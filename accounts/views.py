@@ -37,56 +37,79 @@ def me(request):
 
 
 # Frontend Views
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .models import User
+import secrets
 
 
-def login_view(request):
-    """Pagina de login"""
-    if request.user.is_authenticated:
+def admin_login(request):
+    """Login do administrador com todos os campos"""
+    if request.user.is_authenticated and request.user.is_staff:
         return redirect('dashboard')
 
     if request.method == 'POST':
         whatsapp = request.POST.get('whatsapp')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
         password = request.POST.get('password')
 
-        # Normalizar WhatsApp (apenas digitos)
+        # Normalizar WhatsApp
         whatsapp = ''.join(filter(str.isdigit, whatsapp))
 
-        # Se tem senha, e admin
-        if password:
-            user = authenticate(request, username=whatsapp, password=password)
-            if user is not None:
-                auth_login(request, user)
-                messages.success(request, f'Bem-vindo, {user.name}!')
-                return redirect('dashboard')
-            else:
-                messages.error(request, 'WhatsApp ou senha incorretos.')
-        else:
-            # Usuario normal - apenas WhatsApp
-            try:
-                user = User.objects.get(whatsapp=whatsapp)
-                # Login sem senha (backend customizado)
-                auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                messages.success(request, f'Bem-vindo, {user.name}!')
-                return redirect('dashboard')
-            except User.DoesNotExist:
-                # Criar novo usuario
-                user = User.objects.create_user(
-                    whatsapp=whatsapp,
-                    name=f'Usuario {whatsapp[-4:]}'
-                )
-                auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                messages.success(request, f'Conta criada! Bem-vindo, {user.name}!')
-                return redirect('dashboard')
+        # Tentar autenticar
+        user = authenticate(request, username=whatsapp, password=password)
 
-    return render(request, 'accounts/login.html')
+        if user is not None and user.is_staff:
+            auth_login(request, user)
+            messages.success(request, f'Bem-vindo, {user.name}!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Credenciais invalidas ou voce nao e administrador.')
+
+    return render(request, 'accounts/admin_login.html')
+
+
+def customer_magic_link(request, token):
+    """
+    Magic link para clientes acessarem sua area
+    Token e gerado quando fazem uma compra
+    """
+    try:
+        # Buscar usuario pelo token (vamos implementar depois)
+        # Por enquanto, apenas mostrar erro
+        messages.error(request, 'Link invalido ou expirado.')
+        return redirect('/')
+    except:
+        messages.error(request, 'Link invalido.')
+        return redirect('/')
+
+
+@login_required
+def customer_area(request):
+    """Area do cliente - ver seus numeros e historico"""
+    from raffles.models import RaffleNumber, RaffleOrder
+
+    my_numbers = RaffleNumber.objects.filter(
+        user=request.user,
+        status__in=['reserved', 'vendido']
+    ).select_related('raffle').order_by('-sold_at', '-reserved_at')
+
+    my_orders = RaffleOrder.objects.filter(
+        user=request.user
+    ).select_related('raffle').order_by('-created_at')
+
+    context = {
+        'my_numbers': my_numbers,
+        'my_orders': my_orders,
+    }
+    return render(request, 'accounts/customer_area.html', context)
 
 
 def logout_view(request):
     """Logout"""
     auth_logout(request)
     messages.success(request, 'Voce saiu do sistema.')
-    return redirect('login')
+    return redirect('admin_login')

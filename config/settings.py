@@ -81,9 +81,9 @@ DATABASES = {
 AUTH_USER_MODEL = 'accounts.User'
 
 # Login URL
-LOGIN_URL = '/login/'
+LOGIN_URL = '/admin-login/'
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/admin-login/'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

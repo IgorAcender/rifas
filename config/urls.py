@@ -9,10 +9,12 @@ def health_check(request):
 
 urlpatterns = [
     # Auth URLs
-    path('login/', account_views.login_view, name='login'),
+    path('admin-login/', account_views.admin_login, name='admin_login'),
+    path('minha-area/', account_views.customer_area, name='customer_area'),
+    path('acesso/<str:token>/', account_views.customer_magic_link, name='customer_magic_link'),
     path('logout/', account_views.logout_view, name='logout'),
 
-    # Frontend URLs
+    # Frontend URLs (Admin)
     path('', raffle_views.dashboard, name='dashboard'),
     path('campanhas/', raffle_views.raffle_list, name='raffle_list'),
     path('criar-campanha/', raffle_views.raffle_create, name='raffle_create'),
