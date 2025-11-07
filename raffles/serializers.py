@@ -52,6 +52,10 @@ class RaffleOrderSerializer(serializers.ModelSerializer):
         if raffle.status != Raffle.Status.ACTIVE:
             raise serializers.ValidationError('Esta rifa não está ativa')
 
+        # Initialize numbers if not already done
+        if not raffle.numbers.exists():
+            raffle.initialize_numbers()
+
         # Check if there are enough numbers
         if raffle.numbers_available < data['quantity']:
             raise serializers.ValidationError('Não há números suficientes disponíveis')
