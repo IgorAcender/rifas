@@ -21,11 +21,11 @@ def create_mercadopago_payment(request):
     if order.status == RaffleOrder.Status.PAID:
         return Response({'error': 'Este pedido já foi pago.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Ensure user has required data
-    if not request.user.email or not request.user.cpf:
-        return Response({'error': 'CPF e E-mail são obrigatórios para pagamentos PIX.'}, status=status.HTTP_400_BAD_REQUEST)
-
     sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+    
+    # Usar email e CPF do usuário se disponível, senão usar valores padrão
+    payer_email = request.user.email or f"user{request.user.id}@noemail.com"
+    payer_cpf = request.user.cpf or "00000000000"
 
     # Create PIX payment data
     payment_data = {
@@ -33,12 +33,12 @@ def create_mercadopago_payment(request):
         "description": f"Rifa: {order.raffle.name} - Pedido #{order.id}",
         "payment_method_id": "pix",
         "payer": {
-            "email": request.user.email,
+            "email": payer_email,
             "first_name": request.user.get_short_name(),
-            "last_name": ' '.join(request.user.get_full_name().split(' ')[1:]),
+            "last_name": ' '.join(request.user.get_full_name().split(' ')[1:]) or request.user.get_short_name(),
             "identification": {
                 "type": "CPF",
-                "number": request.user.cpf
+                "number": payer_cpf
             },
         },
         "external_reference": str(order.id),
