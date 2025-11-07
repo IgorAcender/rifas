@@ -37,12 +37,11 @@ def me(request):
 
 
 # Frontend Views
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import User
-import secrets
 
 
 def admin_login(request):
@@ -94,21 +93,6 @@ def customer_login(request):
             messages.error(request, 'WhatsApp nao encontrado. Voce ja fez alguma compra?')
 
     return render(request, 'accounts/customer_login.html')
-
-
-def customer_magic_link(request, token):
-    """
-    Magic link para clientes acessarem sua area
-    Token e gerado quando fazem uma compra
-    """
-    try:
-        # Buscar usuario pelo token (vamos implementar depois)
-        # Por enquanto, apenas mostrar erro
-        messages.error(request, 'Link invalido ou expirado.')
-        return redirect('/')
-    except:
-        messages.error(request, 'Link invalido.')
-        return redirect('/')
 
 
 @login_required
