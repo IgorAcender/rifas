@@ -651,10 +651,14 @@
             updateDisplay();
         }
 
+        function formatCurrency(value) {
+            return value.toFixed(2).replace('.', ',');
+        }
+
         function updateDisplay() {
             const total = state.currentQuantity * config.pricePerNumber;
             document.getElementById('selectedCount').textContent = state.currentQuantity;
-            document.getElementById('totalAmount').textContent = total.toFixed(2).replace('.', ',');
+            document.getElementById('totalAmount').textContent = formatCurrency(total);
         }
 
         function openLoginModal() {
