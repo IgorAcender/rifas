@@ -72,6 +72,30 @@ def admin_login(request):
     return render(request, 'accounts/admin_login.html')
 
 
+def customer_login(request):
+    """Login do cliente - apenas WhatsApp"""
+    if request.user.is_authenticated and not request.user.is_staff:
+        return redirect('customer_area')
+
+    if request.method == 'POST':
+        whatsapp = request.POST.get('whatsapp')
+
+        # Normalizar WhatsApp
+        whatsapp = ''.join(filter(str.isdigit, whatsapp))
+
+        # Buscar usuario
+        try:
+            user = User.objects.get(whatsapp=whatsapp, is_staff=False)
+            # Login sem senha
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            messages.success(request, f'Bem-vindo, {user.name}!')
+            return redirect('customer_area')
+        except User.DoesNotExist:
+            messages.error(request, 'WhatsApp nao encontrado. Voce ja fez alguma compra?')
+
+    return render(request, 'accounts/customer_login.html')
+
+
 def customer_magic_link(request, token):
     """
     Magic link para clientes acessarem sua area

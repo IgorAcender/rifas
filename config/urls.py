@@ -10,6 +10,7 @@ def health_check(request):
 urlpatterns = [
     # Auth URLs
     path('admin-login/', account_views.admin_login, name='admin_login'),
+    path('login/', account_views.customer_login, name='customer_login'),
     path('minha-area/', account_views.customer_area, name='customer_area'),
     path('acesso/<str:token>/', account_views.customer_magic_link, name='customer_magic_link'),
     path('logout/', account_views.logout_view, name='logout'),
