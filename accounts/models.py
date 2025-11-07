@@ -61,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         'WhatsApp',
         max_length=20,
         unique=True,
-        help_text='Número de WhatsApp (apenas dígitos)'
+        help_text='Numero de WhatsApp (apenas digitos)'
     )
     name = models.CharField('Nome', max_length=150)
     email = models.EmailField('Email', blank=True, null=True)
@@ -70,7 +70,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField('Admin', default=False)
 
     date_joined = models.DateTimeField('Data de cadastro', default=timezone.now)
-    last_login = models.DateTimeField('Último acesso', blank=True, null=True)
+    last_login = models.DateTimeField('Ultimo acesso', blank=True, null=True)
 
     objects = UserManager()
 
@@ -78,8 +78,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['name']
 
     class Meta:
-        verbose_name = 'Usuário'
-        verbose_name_plural = 'Usuários'
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
         ordering = ['-date_joined']
 
     def __str__(self):
