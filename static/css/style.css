@@ -120,6 +120,7 @@ body {
     font-size: 14px;
     margin-top: 16px;
     transition: all 0.2s;
+    text-decoration: none;
 }
 
 .btn-sair:hover {

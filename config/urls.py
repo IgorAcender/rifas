@@ -2,11 +2,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
 from raffles import views as raffle_views
+from accounts import views as account_views
 
 def health_check(request):
     return JsonResponse({'status': 'ok', 'service': 'rifas'})
 
 urlpatterns = [
+    # Auth URLs
+    path('login/', account_views.login_view, name='login'),
+    path('logout/', account_views.logout_view, name='logout'),
+
     # Frontend URLs
     path('', raffle_views.dashboard, name='dashboard'),
     path('campanhas/', raffle_views.raffle_list, name='raffle_list'),

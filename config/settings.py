@@ -80,6 +80,11 @@ DATABASES = {
 # Custom user model
 AUTH_USER_MODEL = 'accounts.User'
 
+# Login URL
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
