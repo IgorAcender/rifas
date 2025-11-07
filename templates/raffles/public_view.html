@@ -7,6 +7,18 @@
     <meta name="description" content="{{ raffle.description }}">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <style>
+        :root {
+            --primary-color: #ef4444;
+            --primary-dark: #dc2626;
+            --secondary-color: #16a34a;
+            --secondary-dark: #15803d;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --bg-light: #f8fafc;
+            --white: #ffffff;
+            --border-color: #cbd5e1;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -15,26 +27,16 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f8fafc;
+            background: var(--bg-light);
             min-height: 100vh;
-            padding-bottom: 140px; /* Space for action bar */
+            padding-bottom: 140px;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            color: var(--white);
             padding: 40px 20px;
             text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
         }
 
         .container {
@@ -43,16 +45,15 @@
             padding: 0 20px;
         }
 
-        .main-card {
-            background: white;
+        .main-card, .numbers-section, .share-section {
+            background: var(--white);
             border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             margin-bottom: 24px;
+            padding: 32px;
         }
 
         .prize-section {
-            padding: 32px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 32px;
@@ -74,24 +75,19 @@
 
         .prize-info h2 {
             font-size: 32px;
-            color: #1e293b;
+            color: var(--text-dark);
             margin-bottom: 16px;
         }
 
-        .prize-info p {
-            color: #64748b;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
         .price-tag {
-            background: #ef4444;
-            color: white;
+            background: var(--primary-color);
+            color: var(--white);
             padding: 16px 32px;
             border-radius: 12px;
             text-align: center;
             font-size: 18px;
             font-weight: 600;
+            margin-top: 24px;
         }
 
         .price-tag .amount {
@@ -99,52 +95,35 @@
             display: block;
         }
 
-        .numbers-section {
-            padding: 32px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
         .section-title {
             font-size: 24px;
-            color: #1e293b;
+            color: var(--text-dark);
             margin-bottom: 24px;
             text-align: center;
         }
 
         .quantity-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 12px;
             margin-bottom: 32px;
         }
 
-        @media (max-width: 768px) {
-            .quantity-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
         .quantity-btn {
-            background: #ef4444;
-            color: white;
+            background: var(--primary-color);
+            color: var(--white);
             border: none;
-            padding: 24px;
+            padding: 20px;
             border-radius: 12px;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .quantity-btn:hover {
-            background: #dc2626;
+            background: var(--primary-dark);
             transform: scale(1.05);
-        }
-
-        .quantity-btn:active {
-            transform: scale(0.95);
         }
 
         .custom-quantity {
@@ -156,22 +135,14 @@
         }
 
         .btn-minus, .btn-plus {
-            background: #ef4444;
-            color: white;
+            background: var(--primary-color);
+            color: var(--white);
             border: none;
             width: 48px;
             height: 48px;
             border-radius: 8px;
             font-size: 24px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .btn-minus:hover, .btn-plus:hover {
-            background: #dc2626;
         }
 
         #quantityInput {
@@ -180,14 +151,8 @@
             text-align: center;
             font-size: 24px;
             font-weight: 700;
-            border: 2px solid #e5e5e5;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
-            color: #1e293b;
-        }
-
-        #quantityInput:focus {
-            outline: none;
-            border-color: #ef4444;
         }
 
         .action-bar {
@@ -195,7 +160,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
+            background: var(--white);
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             padding: 20px;
             display: flex;
@@ -205,25 +170,9 @@
             z-index: 1000;
         }
 
-        .selection-info {
-            flex: 1;
-        }
-
-        .selection-info .count {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .selection-info .total {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ef4444;
-        }
-
         .btn-buy {
-            background: #16a34a;
-            color: white;
+            background: var(--secondary-color);
+            color: var(--white);
             border: none;
             padding: 16px 48px;
             border-radius: 12px;
@@ -234,54 +183,12 @@
         }
 
         .btn-buy:hover {
-            background: #15803d;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+            background: var(--secondary-dark);
         }
 
         .btn-buy:disabled {
             background: #9ca3af;
             cursor: not-allowed;
-            transform: none;
-        }
-
-        .share-section {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-            text-align: center;
-            margin-top: 24px;
-        }
-
-        .share-section h3 {
-            margin-bottom: 16px;
-            color: #1e293b;
-        }
-
-        .share-link {
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 8px;
-            border: 2px dashed #cbd5e1;
-            font-family: monospace;
-            color: #3b82f6;
-            word-break: break-all;
-        }
-
-        .btn-copy {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 12px;
-        }
-
-        .btn-copy:hover {
-            background: #2563eb;
         }
 
         /* Modal Styles */
@@ -307,13 +214,14 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--white);
             padding: 32px;
             border-radius: 16px;
             width: 90%;
-            max-width: 400px;
+            max-width: 450px;
             transform: scale(0.9);
             transition: all 0.3s ease;
+            text-align: center;
         }
 
         .modal-overlay.visible .modal-content {
@@ -322,13 +230,13 @@
 
         .modal-title {
             font-size: 22px;
-            color: #1e293b;
+            color: var(--text-dark);
             margin-bottom: 24px;
-            text-align: center;
         }
 
         .form-group {
             margin-bottom: 16px;
+            text-align: left;
         }
 
         .form-group label {
@@ -341,7 +249,7 @@
         .form-group input {
             width: 100%;
             padding: 12px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 16px;
         }
@@ -359,25 +267,95 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
+            border: none;
         }
 
         .btn-cancel {
             background: #e2e8f0;
-            border: none;
             color: #475569;
         }
 
         .btn-confirm {
-            background: #16a34a;
-            border: none;
-            color: white;
+            background: var(--secondary-color);
+            color: var(--white);
         }
         
         .error-message {
-            color: #ef4444;
+            color: var(--primary-color);
             font-size: 14px;
             margin-top: 4px;
             display: none;
+        }
+
+        /* PIX Modal Specifics */
+        #pixQrCode {
+            max-width: 280px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        #pixCopyPaste {
+            width: 100%;
+            padding: 12px;
+            font-family: monospace;
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--secondary-color);
+            margin: 20px auto;
+            animation: spin 1s ease infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 2;
+            stroke: var(--secondary-color);
+            stroke-miterlimit: 10;
+            box-shadow: inset 0px 0px 0px var(--secondary-color);
+            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+            margin: 20px auto;
+        }
+        .success-checkmark__circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: var(--secondary-color);
+            fill: none;
+            animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        .success-checkmark__check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke .3s cubic-bezier(0.65, 0, 0.45, 1) .8s forwards;
+        }
+        @keyframes stroke {
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes scale {
+            0%, 100% { transform: none; }
+            50% { transform: scale3d(1.1, 1.1, 1); }
+        }
+        @keyframes fill {
+            100% { box-shadow: inset 0px 0px 0px 40px var(--secondary-color); }
         }
 
     </style>
@@ -394,19 +372,13 @@
                 {% if raffle.prize_image_base64 %}
                 <img src="data:image/jpeg;base64,{{ raffle.prize_image_base64 }}" alt="{{ raffle.prize_name }}" class="prize-image">
                 {% else %}
-                <div class="prize-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
-                    🏆
-                </div>
+                <div class="prize-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">🏆</div>
                 {% endif %}
-
                 <div class="prize-info">
                     <h2>{{ raffle.prize_name }}</h2>
                     <p>{{ raffle.description }}</p>
-
                     <div class="price-tag">
-                        Por apenas
-                        <span class="amount">R$ {{ raffle.price_per_number }}</span>
-                        por número
+                        Por apenas <span class="amount">R$ {{ raffle.price_per_number }}</span> por número
                     </div>
                 </div>
             </div>
@@ -414,45 +386,31 @@
 
         <div class="numbers-section">
             <h3 class="section-title">Escolha a quantidade de números</h3>
-            
             <div class="quantity-grid">
-                <button class="quantity-btn" onclick="selectQuantity(1)">+01</button>
+                <button class="quantity-btn" onclick="selectQuantity(1)">+1</button>
                 <button class="quantity-btn" onclick="selectQuantity(20)">+20</button>
                 <button class="quantity-btn" onclick="selectQuantity(50)">+50</button>
                 <button class="quantity-btn" onclick="selectQuantity(100)">+100</button>
                 <button class="quantity-btn" onclick="selectQuantity(300)">+300</button>
                 <button class="quantity-btn" onclick="selectQuantity(500)">+500</button>
             </div>
-
             <div class="custom-quantity">
                 <button class="btn-minus" onclick="decreaseQuantity()">-</button>
                 <input type="number" id="quantityInput" value="1" min="1" max="10000" onchange="updateQuantity()">
                 <button class="btn-plus" onclick="increaseQuantity()">+</button>
             </div>
         </div>
-
-        <div class="share-section">
-            <h3>📱 Compartilhe este link</h3>
-            <div class="share-link" id="shareLink">{{ request.build_absolute_uri }}</div>
-            <button class="btn-copy" onclick="copyLink()">📋 Copiar Link</button>
-        </div>
     </div>
 
     <div class="action-bar">
         <div class="selection-info">
-            <div class="count">
-                <span id="selectedCount">1</span> número(s) selecionado(s)
-            </div>
-            <div class="total">
-                Total: R$ <span id="totalAmount">{{ raffle.price_per_number }}</span>
-            </div>
+            <div class="count"><span id="selectedCount">1</span> número(s)</div>
+            <div class="total">Total: R$ <span id="totalAmount">{{ raffle.price_per_number }}</span></div>
         </div>
-        <button class="btn-buy" id="buyButton" onclick="openLoginModal()">
-            Participar Agora
-        </button>
+        <button class="btn-buy" id="buyButton" onclick="openLoginModal()">Participar Agora</button>
     </div>
 
-    <!-- Login Modal -->
+    <!-- Modals -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-content">
             <h3 class="modal-title">Identifique-se para continuar</h3>
@@ -463,95 +421,102 @@
                     <div class="error-message" id="nameError"></div>
                 </div>
                 <div class="form-group">
+                    <label for="emailInput">E-mail</label>
+                    <input type="email" id="emailInput" required>
+                    <div class="error-message" id="emailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="cpfInput">CPF</label>
+                    <input type="text" id="cpfInput" required>
+                    <div class="error-message" id="cpfError"></div>
+                </div>
+                <div class="form-group">
                     <label for="whatsappInput">WhatsApp (com DDD)</label>
                     <input type="tel" id="whatsappInput" placeholder="11999998888" required>
                     <div class="error-message" id="whatsappError"></div>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeLoginModal()">Cancelar</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal('loginModal')">Cancelar</button>
                     <button type="submit" class="btn-confirm" id="confirmPurchaseBtn">Confirmar e Pagar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        const pricePerNumber = {{ raffle.price_per_number }};
-        const raffleId = "{{ raffle.id }}";
-        let currentQuantity = 1;
+    <div class="modal-overlay" id="pixModal">
+        <div class="modal-content" id="pixModalContent">
+            <!-- Content will be injected by JavaScript -->
+        </div>
+    </div>
 
-        // --- Funções de UI ---
+    <script>
+        const config = {
+            pricePerNumber: parseFloat("{{ raffle.price_per_number|stringformat:'.2f' }}"),
+            raffleId: "{{ raffle.id }}",
+            csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        };
+
+        let state = {
+            currentQuantity: 1,
+            accessToken: null,
+            pollingInterval: null,
+        };
+
+        // --- UI Functions ---
         function selectQuantity(qty) {
-            currentQuantity = qty;
+            state.currentQuantity = qty;
             document.getElementById('quantityInput').value = qty;
             updateDisplay();
         }
 
         function increaseQuantity() {
-            const input = document.getElementById('quantityInput');
-            let value = parseInt(input.value) || 0;
-            value++;
-            input.value = value;
-            currentQuantity = value;
-            updateDisplay();
+            document.getElementById('quantityInput').value++;
+            updateQuantity();
         }
 
         function decreaseQuantity() {
             const input = document.getElementById('quantityInput');
-            let value = parseInt(input.value) || 0;
-            if (value > 1) {
-                value--;
-                input.value = value;
-                currentQuantity = value;
-                updateDisplay();
+            if (input.value > 1) {
+                input.value--;
+                updateQuantity();
             }
         }
 
         function updateQuantity() {
             const input = document.getElementById('quantityInput');
-            let value = parseInt(input.value) || 1;
-            if (value < 1) value = 1;
-            input.value = value;
-            currentQuantity = value;
+            state.currentQuantity = parseInt(input.value) || 1;
+            if (state.currentQuantity < 1) state.currentQuantity = 1;
+            input.value = state.currentQuantity;
             updateDisplay();
         }
 
         function updateDisplay() {
-            const total = currentQuantity * pricePerNumber;
-            document.getElementById('selectedCount').textContent = currentQuantity;
+            const total = state.currentQuantity * config.pricePerNumber;
+            document.getElementById('selectedCount').textContent = state.currentQuantity;
             document.getElementById('totalAmount').textContent = total.toFixed(2).replace('.', ',');
         }
 
-        function copyLink() {
-            const link = document.getElementById('shareLink').textContent;
-            navigator.clipboard.writeText(link).then(() => {
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copiado!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            });
-        }
-
         function openLoginModal() {
-            document.getElementById('loginModal').classList.add('visible');
+            openModal('loginModal');
         }
 
-        function closeLoginModal() {
-            document.getElementById('loginModal').classList.remove('visible');
+        function openModal(id) {
+            document.getElementById(id).classList.add('visible');
         }
 
-        function setButtonLoading(button, isLoading) {
-            if (isLoading) {
-                button.disabled = true;
-                button.textContent = 'Aguarde...';
-            } else {
-                button.disabled = false;
-                button.textContent = 'Confirmar e Pagar';
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('visible');
+            if (state.pollingInterval) {
+                clearInterval(state.pollingInterval);
+                state.pollingInterval = null;
             }
         }
-        
+
+        function setButtonLoading(button, isLoading, text = 'Aguarde...') {
+            button.disabled = isLoading;
+            button.textContent = isLoading ? text : button.dataset.originalText;
+        }
+
         function displayError(field, message) {
             const errorElement = document.getElementById(`${field}Error`);
             errorElement.textContent = message;
@@ -562,89 +527,150 @@
             document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
         }
 
-        // --- Funções de Lógica de Compra ---
-
+        // --- Purchase Logic ---
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             clearErrors();
 
-            const name = document.getElementById('nameInput').value;
-            const whatsapp = document.getElementById('whatsappInput').value;
             const confirmBtn = document.getElementById('confirmPurchaseBtn');
-
-            // Validação simples
-            if (!name) {
-                displayError('name', 'Por favor, insira seu nome.');
-                return;
-            }
-            if (!/^\d{10,13}$/.test(whatsapp)) {
-                displayError('whatsapp', 'Número de WhatsApp inválido. Use apenas números, incluindo o DDD.');
-                return;
-            }
-
+            confirmBtn.dataset.originalText = confirmBtn.textContent;
             setButtonLoading(confirmBtn, true);
 
+            const userData = {
+                name: document.getElementById('nameInput').value,
+                email: document.getElementById('emailInput').value,
+                cpf: document.getElementById('cpfInput').value,
+                whatsapp: document.getElementById('whatsappInput').value
+            };
+
+            // Basic validation
+            if (!userData.name || !userData.email || !userData.cpf || !userData.whatsapp) {
+                displayError('whatsapp', 'Todos os campos são obrigatórios.');
+                setButtonLoading(confirmBtn, false);
+                return;
+            }
+
             try {
-                // 1. Autenticar e obter token
-                const tokens = await authenticateUser(name, whatsapp);
-                
-                // 2. Criar o pedido (RaffleOrder)
-                const order = await createRaffleOrder(tokens.access, currentQuantity);
+                const tokens = await authenticateUser(userData);
+                state.accessToken = tokens.access;
 
-                // 3. Criar o pagamento no MercadoPago
-                const payment = await createMercadoPagoPayment(tokens.access, order.id);
+                const order = await createRaffleOrder(state.currentQuantity);
+                const pixData = await createPixPayment(order.id);
 
-                // 4. Redirecionar para o checkout
-                window.location.href = payment.sandbox_init_point;
+                closeModal('loginModal');
+                showPixModal(pixData, order.id);
 
             } catch (error) {
-                console.error('Erro no processo de compra:', error);
+                console.error('Purchase process error:', error);
                 displayError('whatsapp', error.message || 'Ocorreu um erro. Tente novamente.');
+            } finally {
                 setButtonLoading(confirmBtn, false);
             }
         });
 
-        async function apiFetch(url, method, token, body) {
+        function showPixModal(pixData, orderId) {
+            const modalContent = document.getElementById('pixModalContent');
+            modalContent.innerHTML = `
+                <h3 class="modal-title">Pague com PIX para garantir seus números</h3>
+                <img src="data:image/png;base64,${pixData.qr_code_base64}" alt="PIX QR Code" id="pixQrCode">
+                <p>Ou copie o código abaixo:</p>
+                <input type="text" id="pixCopyPaste" value="${pixData.qr_code}" readonly>
+                <button class="btn-confirm" onclick="copyPixCode()">Copiar Código</button>
+                <div id="paymentStatus">
+                    <div class="spinner"></div>
+                    <p>Aguardando confirmação do pagamento...</p>
+                </div>
+            `;
+            openModal('pixModal');
+            startPolling(orderId);
+        }
+
+        function startPolling(orderId) {
+            state.pollingInterval = setInterval(async () => {
+                try {
+                    const statusData = await checkOrderStatus(orderId);
+                    if (statusData.status === 'paid') {
+                        clearInterval(state.pollingInterval);
+                        showSuccess();
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    clearInterval(state.pollingInterval);
+                }
+            }, 5000); // Check every 5 seconds
+        }
+
+        function showSuccess() {
+            const modalContent = document.getElementById('pixModalContent');
+            modalContent.innerHTML = `
+                <div class="success-checkmark">
+                    <svg class="success-checkmark__circle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <circle cx="26" cy="26" r="25" fill="none"/>
+                    </svg>
+                    <svg class="success-checkmark__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                        <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+                <h3 class="modal-title">Pagamento Aprovado!</h3>
+                <p>Seus números foram garantidos e enviados para seu WhatsApp.</p>
+                <div class="modal-actions">
+                    <button class="btn-confirm" onclick="closeModal('pixModal')">Fechar</button>
+                </div>
+            `;
+        }
+
+        function copyPixCode() {
+            const input = document.getElementById('pixCopyPaste');
+            input.select();
+            document.execCommand('copy');
+            const btn = event.target;
+            btn.textContent = 'Copiado!';
+            setTimeout(() => { btn.textContent = 'Copiar Código'; }, 2000);
+        }
+
+        // --- API Functions ---
+        async function apiFetch(url, method, body) {
             const headers = {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
+                'X-CSRFToken': config.csrfToken,
             };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
+            if (state.accessToken) {
+                headers['Authorization'] = `Bearer ${state.accessToken}`;
             }
 
             const response = await fetch(url, {
                 method: method,
                 headers: headers,
-                body: JSON.stringify(body),
+                body: body ? JSON.stringify(body) : null,
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || JSON.stringify(errorData));
+                throw new Error(errorData.error || JSON.stringify(errorData));
             }
             return response.json();
         }
 
-        async function authenticateUser(name, whatsapp) {
-            return await apiFetch('/api/auth/login/', 'POST', null, { name, whatsapp });
+        async function authenticateUser(userData) {
+            return await apiFetch('/api/auth/login/', 'POST', userData);
         }
 
-        async function createRaffleOrder(accessToken, quantity) {
-            const data = {
-                raffle: raffleId,
-                quantity: quantity,
-                payment_method: 'mercadopago'
-            };
-            return await apiFetch(`/api/raffles/${raffleId}/buy/`, 'POST', accessToken, data);
+        async function createRaffleOrder(quantity) {
+            const data = { raffle: config.raffleId, quantity: quantity, payment_method: 'mercadopago' };
+            return await apiFetch(`/api/raffles/${config.raffleId}/buy/`, 'POST', data);
         }
 
-        async function createMercadoPagoPayment(accessToken, orderId) {
-            return await apiFetch('/api/payments/mercadopago/create/', 'POST', accessToken, { order_id: orderId });
+        async function createPixPayment(orderId) {
+            return await apiFetch('/api/payments/mercadopago/create/', 'POST', { order_id: orderId });
         }
 
-        // Inicializa o display
+        async function checkOrderStatus(orderId) {
+            return await apiFetch(`/api/payments/status/${orderId}/`, 'GET');
+        }
+
+        // --- Init ---
         updateDisplay();
+
     </script>
 </body>
 </html>
