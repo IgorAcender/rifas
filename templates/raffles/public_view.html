@@ -658,9 +658,24 @@
         }
 
         function openLoginModal() {
+            // Validar quantidade mínima
+            if (!state.currentQuantity || state.currentQuantity < 1) {
+                state.currentQuantity = 1;
+            }
+            
+            console.log('Opening modal with quantity:', state.currentQuantity);
+            
             // Atualizar valores do resumo da compra no modal
-            document.getElementById('modalQuantity').textContent = state.currentQuantity;
-            document.getElementById('modalTotal').textContent = formatCurrency(state.currentQuantity * config.pricePerNumber);
+            const modalQtyElement = document.getElementById('modalQuantity');
+            const modalTotalElement = document.getElementById('modalTotal');
+            
+            if (modalQtyElement && modalTotalElement) {
+                modalQtyElement.textContent = state.currentQuantity;
+                modalTotalElement.textContent = formatCurrency(state.currentQuantity * config.pricePerNumber);
+            } else {
+                console.error('Modal elements not found!');
+            }
+            
             openModal('loginModal');
         }
 
@@ -696,7 +711,13 @@
         }
 
         function openModal(id) {
-            document.getElementById(id).classList.add('visible');
+            const modal = document.getElementById(id);
+            if (modal) {
+                console.log('Opening modal:', id);
+                modal.classList.add('visible');
+            } else {
+                console.error('Modal not found:', id);
+            }
         }
 
         function closeModal(id) {
