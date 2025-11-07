@@ -20,18 +20,18 @@ class Raffle(models.Model):
         CANCELLED = 'cancelled', 'Cancelada'
 
     name = models.CharField('Nome', max_length=200)
-    description = models.TextField('Descrição', blank=True)
-    prize_name = models.CharField('Nome do Prêmio', max_length=200)
-    prize_description = models.TextField('Descrição do Prêmio', blank=True)
-    prize_image_base64 = models.TextField('Imagem do Prêmio (Base64)', blank=True)
+    description = models.TextField('Descricao', blank=True)
+    prize_name = models.CharField('Nome do Premio', max_length=200)
+    prize_description = models.TextField('Descricao do Premio', blank=True)
+    prize_image_base64 = models.TextField('Imagem do Premio (Base64)', blank=True)
 
-    total_numbers = models.PositiveIntegerField('Total de Números')
-    price_per_number = models.DecimalField('Preço por Número', max_digits=10, decimal_places=2)
+    total_numbers = models.PositiveIntegerField('Total de Numeros')
+    price_per_number = models.DecimalField('Preco por Numero', max_digits=10, decimal_places=2)
 
     status = models.CharField('Status', max_length=20, choices=Status.choices, default=Status.DRAFT)
 
     draw_date = models.DateTimeField('Data do Sorteio', null=True, blank=True)
-    winner_number = models.PositiveIntegerField('Número Vencedor', null=True, blank=True)
+    winner_number = models.PositiveIntegerField('Numero Vencedor', null=True, blank=True)
     winner = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -42,8 +42,8 @@ class Raffle(models.Model):
     )
 
     # Referral settings
-    inviter_bonus = models.PositiveIntegerField('Bônus do Indicante', default=2, help_text='Números grátis para quem indica')
-    invitee_bonus = models.PositiveIntegerField('Bônus do Indicado', default=1, help_text='Números grátis para quem foi indicado')
+    inviter_bonus = models.PositiveIntegerField('Bonus do Indicante', default=2, help_text='Numeros gratis para quem indica')
+    invitee_bonus = models.PositiveIntegerField('Bonus do Indicado', default=1, help_text='Numeros gratis para quem foi indicado')
 
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
@@ -87,17 +87,17 @@ class RaffleNumber(models.Model):
     """Individual raffle number"""
 
     class Status(models.TextChoices):
-        AVAILABLE = 'available', 'Disponível'
+        AVAILABLE = 'available', 'Disponivel'
         RESERVED = 'reserved', 'Reservado'
         SOLD = 'vendido', 'Vendido'
 
     class Source(models.TextChoices):
         PURCHASE = 'purchase', 'Compra'
-        REFERRAL_INVITER = 'referral_inviter', 'Bônus Indicante'
-        REFERRAL_INVITEE = 'referral_invitee', 'Bônus Indicado'
+        REFERRAL_INVITER = 'referral_inviter', 'Bonus Indicante'
+        REFERRAL_INVITEE = 'referral_invitee', 'Bonus Indicado'
 
     raffle = models.ForeignKey(Raffle, on_delete=models.CASCADE, related_name='numbers')
-    number = models.PositiveIntegerField('Número')
+    number = models.PositiveIntegerField('Numero')
     status = models.CharField('Status', max_length=20, choices=Status.choices, default=Status.AVAILABLE)
 
     user = models.ForeignKey(
@@ -125,13 +125,13 @@ class RaffleNumber(models.Model):
     sold_at = models.DateTimeField('Vendido em', null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Número da Rifa'
-        verbose_name_plural = 'Números da Rifa'
+        verbose_name = 'Numero da Rifa'
+        verbose_name_plural = 'Numeros da Rifa'
         unique_together = ['raffle', 'number']
         ordering = ['raffle', 'number']
 
     def __str__(self):
-        return f"Rifa {self.raffle.name} - Número {self.number:04d}"
+        return f"Rifa {self.raffle.name} - Numero {self.number:04d}"
 
 
 class RaffleOrder(models.Model):
@@ -146,17 +146,17 @@ class RaffleOrder(models.Model):
     class PaymentMethod(models.TextChoices):
         MERCADOPAGO = 'mercadopago', 'MercadoPago'
         PIX = 'pix', 'PIX'
-        CREDIT_CARD = 'credit_card', 'Cartão de Crédito'
+        CREDIT_CARD = 'credit_card', 'Cartao de Credito'
 
     raffle = models.ForeignKey(Raffle, on_delete=models.PROTECT, related_name='orders')
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name='raffle_orders')
 
-    quantity = models.PositiveIntegerField('Quantidade de Números')
+    quantity = models.PositiveIntegerField('Quantidade de Numeros')
     amount = models.DecimalField('Valor Total', max_digits=10, decimal_places=2)
 
     status = models.CharField('Status', max_length=20, choices=Status.choices, default=Status.PENDING)
     payment_method = models.CharField(
-        'Método de Pagamento',
+        'Metodo de Pagamento',
         max_length=20,
         choices=PaymentMethod.choices,
         default=PaymentMethod.MERCADOPAGO
@@ -192,7 +192,7 @@ class RaffleOrder(models.Model):
         )
 
         if len(available) < self.quantity:
-            raise ValidationError('Não há números suficientes disponíveis')
+            raise ValidationError('Nao ha numeros suficientes disponiveis')
 
         # Select random numbers
         selected_ids = random.sample(available, self.quantity)
@@ -235,7 +235,7 @@ class Referral(models.Model):
         REDEEMED = 'redeemed', 'Resgatado'
         EXPIRED = 'expired', 'Expirado'
 
-    code = models.CharField('Código', max_length=10, unique=True, default=generate_referral_code)
+    code = models.CharField('Codigo', max_length=10, unique=True, default=generate_referral_code)
     raffle = models.ForeignKey(Raffle, on_delete=models.CASCADE, related_name='referrals')
 
     inviter = models.ForeignKey(
@@ -255,8 +255,8 @@ class Referral(models.Model):
 
     status = models.CharField('Status', max_length=20, choices=Status.choices, default=Status.PENDING)
 
-    inviter_numbers_allocated = models.BooleanField('Números do indicante alocados', default=False)
-    invitee_numbers_allocated = models.BooleanField('Números do indicado alocados', default=False)
+    inviter_numbers_allocated = models.BooleanField('Numeros do indicante alocados', default=False)
+    invitee_numbers_allocated = models.BooleanField('Numeros do indicado alocados', default=False)
 
     clicks = models.PositiveIntegerField('Cliques', default=0)
 
@@ -264,8 +264,8 @@ class Referral(models.Model):
     redeemed_at = models.DateTimeField('Resgatado em', null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Indicação'
-        verbose_name_plural = 'Indicações'
+        verbose_name = 'Indicacao'
+        verbose_name_plural = 'Indicacoes'
         ordering = ['-created_at']
 
     def __str__(self):
@@ -282,10 +282,10 @@ class Referral(models.Model):
         from django.utils import timezone
 
         if self.status != self.Status.PENDING:
-            raise ValidationError('Este código de indicação já foi utilizado')
+            raise ValidationError('Este codigo de indicacao ja foi utilizado')
 
         if invitee == self.inviter:
-            raise ValidationError('Você não pode usar seu próprio código de indicação')
+            raise ValidationError('Voce nao pode usar seu proprio codigo de indicacao')
 
         self.invitee = invitee
         self.status = self.Status.REDEEMED
