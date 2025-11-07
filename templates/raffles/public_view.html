@@ -217,39 +217,6 @@
             border-color: #ef4444;
         }
 
-        .stats-info {
-            display: flex;
-            justify-content: center;
-            gap: 32px;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 12px;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 4px;
-        }
-
-        .stat-value-green {
-            font-size: 28px;
-            font-weight: 700;
-            color: #16a34a;
-        }
-
-        .stat-value-red {
-            font-size: 28px;
-            font-weight: 700;
-            color: #ef4444;
-        }
-
         .action-bar {
             position: fixed;
             bottom: 0;
@@ -366,21 +333,6 @@
                     <h2>{{ raffle.prize_name }}</h2>
                     <p>{{ raffle.description }}</p>
 
-                    <div class="stats">
-                        <div class="stat-card">
-                            <span class="stat-value">{{ raffle.numbers_sold }}</span>
-                            <span class="stat-label">Vendidos</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-value">{{ raffle.numbers_available }}</span>
-                            <span class="stat-label">Disponíveis</span>
-                        </div>
-                        <div class="stat-card">
-                            <span class="stat-value">{{ raffle.total_numbers }}</span>
-                            <span class="stat-label">Total</span>
-                        </div>
-                    </div>
-
                     <div class="price-tag">
                         Por apenas
                         <span class="amount">R$ {{ raffle.price_per_number }}</span>
@@ -404,19 +356,8 @@
 
             <div class="custom-quantity">
                 <button class="btn-minus" onclick="decreaseQuantity()">-</button>
-                <input type="number" id="quantityInput" value="1" min="1" max="{{ raffle.numbers_available }}" onchange="updateQuantity()">
+                <input type="number" id="quantityInput" value="1" min="1" max="10000" onchange="updateQuantity()">
                 <button class="btn-plus" onclick="increaseQuantity()">+</button>
-            </div>
-
-            <div class="stats-info">
-                <div class="stat-item">
-                    <span class="stat-label">Disponíveis:</span>
-                    <span class="stat-value-green">{{ raffle.numbers_available }}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Vendidos:</span>
-                    <span class="stat-value-red">{{ raffle.numbers_sold }}</span>
-                </div>
             </div>
         </div>
 
@@ -443,14 +384,9 @@
 
     <script>
         const pricePerNumber = parseFloat("{{ raffle.price_per_number }}");
-        const maxAvailable = {{ raffle.numbers_available }};
         let currentQuantity = 1;
 
         function selectQuantity(qty) {
-            if (qty > maxAvailable) {
-                alert(`Apenas ${maxAvailable} números disponíveis!`);
-                return;
-            }
             currentQuantity = qty;
             document.getElementById('quantityInput').value = qty;
             updateDisplay();
@@ -459,14 +395,10 @@
         function increaseQuantity() {
             const input = document.getElementById('quantityInput');
             let value = parseInt(input.value) || 0;
-            if (value < maxAvailable) {
-                value++;
-                input.value = value;
-                currentQuantity = value;
-                updateDisplay();
-            } else {
-                alert(`Apenas ${maxAvailable} números disponíveis!`);
-            }
+            value++;
+            input.value = value;
+            currentQuantity = value;
+            updateDisplay();
         }
 
         function decreaseQuantity() {
@@ -485,10 +417,6 @@
             let value = parseInt(input.value) || 1;
             
             if (value < 1) value = 1;
-            if (value > maxAvailable) {
-                value = maxAvailable;
-                alert(`Apenas ${maxAvailable} números disponíveis!`);
-            }
             
             input.value = value;
             currentQuantity = value;
