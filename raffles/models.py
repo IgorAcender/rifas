@@ -44,6 +44,8 @@ class Raffle(models.Model):
     )
 
     # Referral settings
+    enable_referral = models.BooleanField('Ativar Indicações', default=True, help_text='Permitir que clientes indiquem amigos')
+    referral_min_purchase = models.PositiveIntegerField('Mínimo para Indicar', default=1, help_text='Quantidade mínima de números para poder indicar (0 = sem mínimo)')
     inviter_bonus = models.PositiveIntegerField('Bonus do Indicante', default=2, help_text='Numeros gratis para quem indica')
     invitee_bonus = models.PositiveIntegerField('Bonus do Indicado', default=1, help_text='Numeros gratis para quem foi indicado')
 

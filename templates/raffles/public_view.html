@@ -615,7 +615,11 @@
             pricePerNumber: parseFloat("{{ raffle.price_per_number|stringformat:'.2f' }}"),
             raffleId: "{{ raffle.id }}",
             raffleName: "{{ raffle.name|escapejs }}",
-            csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            enableReferral: {{ raffle.enable_referral|yesno:"true,false" }},
+            referralMinPurchase: {{ raffle.referral_min_purchase }},
+            inviterBonus: {{ raffle.inviter_bonus }},
+            inviteeBonus: {{ raffle.invitee_bonus }}
         };
 
         let state = {
@@ -903,9 +907,11 @@
             
             // Buscar detalhes do pedido com os números
             let numbers = [];
+            let quantity = 0;
             try {
                 const orderData = await getOrderDetails(orderId);
                 numbers = orderData.numbers || [];
+                quantity = orderData.quantity || numbers.length;
             } catch (error) {
                 console.error('Error fetching order details:', error);
             }
@@ -919,8 +925,22 @@
                    </div>`
                 : '';
             
-            const shareUrl = window.location.href;
-            const shareText = encodeURIComponent(`Participe desta rifa incrível! ${shareUrl}`);
+            // Verificar se deve mostrar botão de indicação
+            const canRefer = config.enableReferral && quantity >= config.referralMinPurchase;
+            const minText = config.referralMinPurchase > 0 
+                ? `*Válido para compras acima de ${config.referralMinPurchase} números` 
+                : '*Compartilhe e ganhe!';
+            
+            const referralHTML = canRefer ? `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; text-align: center;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 20px;">🎁 Ganhe ${config.inviterBonus} Números Grátis!</h4>
+                    <p style="margin: 0 0 15px 0; font-size: 14px;">Indique um amigo e vocês dois ganham números extras*</p>
+                    <button onclick="shareReferral('${window.location.href}')" style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+                        📤 Indicar Amigo
+                    </button>
+                    <p style="margin: 15px 0 0 0; font-size: 11px; opacity: 0.9;">${minText}</p>
+                </div>
+            ` : '';
             
             modalContent.innerHTML = `
                 <div class="success-checkmark">
@@ -935,15 +955,7 @@
                 <p>Seus números foram garantidos e enviados para seu WhatsApp.</p>
                 
                 ${numbersHTML}
-                
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; text-align: center;">
-                    <h4 style="margin: 0 0 10px 0; font-size: 20px;">🎁 Ganhe 2 Números Grátis!</h4>
-                    <p style="margin: 0 0 15px 0; font-size: 14px;">Indique um amigo e vocês dois ganham números extras*</p>
-                    <button onclick="shareReferral('${shareUrl}')" style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
-                        📤 Indicar Amigo
-                    </button>
-                    <p style="margin: 15px 0 0 0; font-size: 11px; opacity: 0.9;">*Válido para compras acima de 10 números</p>
-                </div>
+                ${referralHTML}
                 
                 <div class="modal-actions">
                     <button class="btn-confirm" onclick="closeModal('pixModal'); location.reload()">Fechar</button>
@@ -952,7 +964,7 @@
         }
         
         function shareReferral(url) {
-            const text = `🎉 Participe desta rifa incrível e concorra a prêmios! Use meu link e ganhe 2 números grátis: ${url}`;
+            const text = `🎉 Participe desta rifa incrível e concorra a prêmios! Use meu link e ganhe ${config.inviteeBonus} números grátis: ${url}`;
             
             if (navigator.share) {
                 navigator.share({
