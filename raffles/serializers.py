@@ -55,10 +55,18 @@ class RaffleOrderSerializer(serializers.ModelSerializer):
         # Initialize numbers if not already done
         if not raffle.numbers.exists():
             raffle.initialize_numbers()
+            # Refresh from database to get updated counts
+            raffle.refresh_from_db()
+
+        # Get current availability
+        available = raffle.numbers_available
+        requested = data['quantity']
+        
+        print(f"DEBUG: Raffle '{raffle.name}' - Total: {raffle.total_numbers}, Sold: {raffle.numbers_sold}, Reserved: {raffle.numbers_reserved}, Available: {available}, Requested: {requested}")
 
         # Check if there are enough numbers
-        if raffle.numbers_available < data['quantity']:
-            raise serializers.ValidationError('Não há números suficientes disponíveis')
+        if available < requested:
+            raise serializers.ValidationError(f'Não há números suficientes disponíveis. Disponível: {available}, Solicitado: {requested}')
 
         # Calculate amount
         data['amount'] = raffle.price_per_number * data['quantity']
