@@ -151,6 +151,46 @@ def raffle_create(request):
 
 
 @login_required
+def raffle_edit(request, pk):
+    """Editar campanha existente"""
+    raffle = get_object_or_404(Raffle, pk=pk)
+
+    if request.method == 'POST':
+        try:
+            # Update basic fields
+            raffle.name = request.POST.get('name')
+            raffle.description = request.POST.get('description', '')
+            raffle.prize_name = request.POST.get('prize_name')
+            raffle.prize_description = request.POST.get('prize_description', '')
+            raffle.price_per_number = float(request.POST.get('price_per_number'))
+            raffle.status = request.POST.get('status', 'draft')
+            raffle.inviter_bonus = int(request.POST.get('inviter_bonus', 2))
+            raffle.invitee_bonus = int(request.POST.get('invitee_bonus', 1))
+
+            # Update draw_date if provided
+            if request.POST.get('draw_date'):
+                raffle.draw_date = request.POST.get('draw_date')
+
+            # Update image if new one is uploaded
+            if 'prize_image' in request.FILES:
+                image_file = request.FILES['prize_image']
+                image_data = image_file.read()
+                raffle.prize_image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+            raffle.save()
+            messages.success(request, 'Campanha atualizada com sucesso!')
+            return redirect('raffle_list')
+
+        except Exception as e:
+            messages.error(request, f'Erro ao atualizar campanha: {str(e)}')
+
+    context = {
+        'raffle': raffle,
+    }
+    return render(request, 'raffles/edit.html', context)
+
+
+@login_required
 def supporters(request):
     """Meus apoiadores"""
     if request.user.is_staff:

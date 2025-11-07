@@ -21,6 +21,7 @@ urlpatterns = [
     path('', raffle_views.dashboard, name='dashboard'),
     path('campanhas/', raffle_views.raffle_list, name='raffle_list'),
     path('criar-campanha/', raffle_views.raffle_create, name='raffle_create'),
+    path('editar-campanha/<int:pk>/', raffle_views.raffle_edit, name='raffle_edit'),
     path('apoiadores/', raffle_views.supporters, name='supporters'),
     path('afiliados/', raffle_views.affiliates, name='affiliates'),
     path('configuracoes/', raffle_views.settings_view, name='settings'),
