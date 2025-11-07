@@ -218,40 +218,176 @@
             padding: 32px;
             border-radius: 16px;
             width: 90%;
-            max-width: 450px;
+            max-width: 500px;
             transform: scale(0.9);
             transition: all 0.3s ease;
-            text-align: center;
+            text-align: left;
+            position: relative;
         }
 
         .modal-overlay.visible .modal-content {
             transform: scale(1);
         }
 
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 32px;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+        }
+
+        .modal-close:hover {
+            color: #64748b;
+        }
+
         .modal-title {
-            font-size: 22px;
+            font-size: 20px;
+            font-weight: 600;
             color: var(--text-dark);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .purchase-summary {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
             margin-bottom: 24px;
         }
 
+        .summary-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .summary-icon {
+            font-size: 20px;
+        }
+
+        .summary-label {
+            flex: 1;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .summary-value {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 16px;
+        }
+
+        .summary-price {
+            color: #16a34a;
+        }
+
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             text-align: left;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #475569;
+            font-weight: 500;
+            color: #64748b;
+            font-size: 14px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .phone-input-wrapper {
+            display: flex;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .phone-input-wrapper:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .phone-prefix {
+            background: #f8fafc;
+            padding: 14px 16px;
+            color: #64748b;
+            font-weight: 600;
+            border-right: 1px solid #e2e8f0;
+            white-space: nowrap;
+            font-size: 15px;
+        }
+
+        .phone-input-wrapper input {
+            border: none;
+            flex: 1;
+            padding: 14px 16px;
+        }
+
+        .phone-input-wrapper input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .btn-confirm-purchase {
+            width: 100%;
+            background: #f97316;
+            color: white;
+            border: none;
+            padding: 16px;
             border-radius: 8px;
             font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-confirm-purchase:hover {
+            background: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-confirm-purchase:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
         }
 
         .modal-actions {
@@ -413,32 +549,57 @@
     <!-- Modals -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-content">
-            <h3 class="modal-title">Identifique-se para continuar</h3>
+            <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            <h3 class="modal-title">Finalize o cadastro</h3>
+            
+            <!-- Resumo da compra -->
+            <div class="purchase-summary">
+                <div class="summary-row">
+                    <span class="summary-icon">🎟️</span>
+                    <span class="summary-label">Quantidade de títulos</span>
+                    <span class="summary-value" id="modalQuantity">1</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-icon">💰</span>
+                    <span class="summary-label">Valor</span>
+                    <span class="summary-value summary-price" id="modalTotal">R$ 0,19</span>
+                </div>
+            </div>
+
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="nameInput">Nome Completo</label>
-                    <input type="text" id="nameInput" required>
+                    <label for="nameInput">Nome Completo*</label>
+                    <input type="text" id="nameInput" placeholder="Igor" required>
                     <div class="error-message" id="nameError"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label for="emailInput">E-mail</label>
-                    <input type="email" id="emailInput" required>
+                    <label for="emailInput">E-mail (opcional)</label>
+                    <input type="email" id="emailInput" placeholder="email@email.com">
                     <div class="error-message" id="emailError"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label for="cpfInput">CPF</label>
-                    <input type="text" id="cpfInput" required>
-                    <div class="error-message" id="cpfError"></div>
-                </div>
-                <div class="form-group">
-                    <label for="whatsappInput">WhatsApp (com DDD)</label>
-                    <input type="tel" id="whatsappInput" placeholder="11999998888" required>
+                    <label for="whatsappInput">Celular com DDD</label>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">🇧🇷 +55</span>
+                        <input type="tel" id="whatsappInput" placeholder="(37) 988051628" required maxlength="15">
+                    </div>
                     <div class="error-message" id="whatsappError"></div>
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeModal('loginModal')">Cancelar</button>
-                    <button type="submit" class="btn-confirm" id="confirmPurchaseBtn">Confirmar e Pagar</button>
+
+                <div class="form-group">
+                    <label for="whatsappConfirmInput">Confirmar celular</label>
+                    <div class="phone-input-wrapper">
+                        <span class="phone-prefix">🇧🇷 +55</span>
+                        <input type="tel" id="whatsappConfirmInput" placeholder="(37) 988051628" required maxlength="15">
+                    </div>
+                    <div class="error-message" id="whatsappConfirmError"></div>
                 </div>
+                
+                <button type="submit" class="btn-confirm-purchase" id="confirmPurchaseBtn">
+                    Concluir reserva →
+                </button>
             </form>
         </div>
     </div>
@@ -497,7 +658,41 @@
         }
 
         function openLoginModal() {
+            // Atualizar valores do resumo da compra no modal
+            document.getElementById('modalQuantity').textContent = state.currentQuantity;
+            document.getElementById('modalTotal').textContent = formatCurrency(state.currentQuantity * config.pricePerNumber);
             openModal('loginModal');
+        }
+
+        // Máscara para telefone brasileiro (XX) XXXXXXXXX
+        function phoneMask(value) {
+            value = value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            
+            if (value.length <= 10) {
+                // (XX) XXXX-XXXX
+                value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            } else {
+                // (XX) XXXXX-XXXX
+                value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+            }
+            
+            return value;
+        }
+
+        // Aplicar máscara aos inputs de telefone
+        const whatsappInput = document.getElementById('whatsappInput');
+        const whatsappConfirmInput = document.getElementById('whatsappConfirmInput');
+
+        if (whatsappInput) {
+            whatsappInput.addEventListener('input', function(e) {
+                e.target.value = phoneMask(e.target.value);
+            });
+        }
+
+        if (whatsappConfirmInput) {
+            whatsappConfirmInput.addEventListener('input', function(e) {
+                e.target.value = phoneMask(e.target.value);
+            });
         }
 
         function openModal(id) {
@@ -539,13 +734,21 @@
             const userData = {
                 name: document.getElementById('nameInput').value,
                 email: document.getElementById('emailInput').value,
-                cpf: document.getElementById('cpfInput').value,
                 whatsapp: document.getElementById('whatsappInput').value
             };
+            
+            const whatsappConfirm = document.getElementById('whatsappConfirmInput').value;
 
-            // Basic validation
-            if (!userData.name || !userData.email || !userData.cpf || !userData.whatsapp) {
-                displayError('whatsapp', 'Todos os campos são obrigatórios.');
+            // Validação básica
+            if (!userData.name || !userData.whatsapp) {
+                displayError('whatsapp', 'Nome e telefone são obrigatórios.');
+                setButtonLoading(confirmBtn, false);
+                return;
+            }
+            
+            // Validação de confirmação do telefone
+            if (userData.whatsapp !== whatsappConfirm) {
+                displayError('whatsapp', 'Os números de telefone não coincidem.');
                 setButtonLoading(confirmBtn, false);
                 return;
             }

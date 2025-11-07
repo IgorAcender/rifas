@@ -65,7 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     name = models.CharField('Nome', max_length=150)
     email = models.EmailField('Email', unique=True, blank=True, null=True)
-    cpf = models.CharField('CPF', max_length=14, unique=True, blank=True, null=True) # Temporarily allows null
+    cpf = models.CharField('CPF', max_length=14, unique=True, blank=True, null=True)
 
     is_active = models.BooleanField('Ativo', default=True)
     is_staff = models.BooleanField('Admin', default=False)
