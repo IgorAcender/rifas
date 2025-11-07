@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.conf import settings
 import mercadopago
@@ -8,8 +8,9 @@ from raffles.models import RaffleOrder
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_mercadopago_payment(request):
-    """Create MercadoPago payment preference"""
+    """Create a direct PIX payment on MercadoPago"""
     order_id = request.data.get('order_id')
 
     try:
@@ -18,48 +19,72 @@ def create_mercadopago_payment(request):
         return Response({'error': 'Pedido não encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
     if order.status == RaffleOrder.Status.PAID:
-        return Response({'error': 'Pedido já pago'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Este pedido já foi pago.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Initialize MercadoPago SDK
+    # Ensure user has required data
+    if not request.user.email or not request.user.cpf:
+        return Response({'error': 'CPF e E-mail são obrigatórios para pagamentos PIX.'}, status=status.HTTP_400_BAD_REQUEST)
+
     sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
 
-    # Create preference
-    preference_data = {
-        "items": [{
-            "title": f"Rifa: {order.raffle.name}",
-            "quantity": order.quantity,
-            "unit_price": float(order.amount / order.quantity),
-        }],
+    # Create PIX payment data
+    payment_data = {
+        "transaction_amount": float(order.amount),
+        "description": f"Rifa: {order.raffle.name} - Pedido #{order.id}",
+        "payment_method_id": "pix",
         "payer": {
-            "name": order.user.name,
-            "phone": {
-                "number": order.user.whatsapp
-            }
+            "email": request.user.email,
+            "first_name": request.user.get_short_name(),
+            "last_name": ' '.join(request.user.get_full_name().split(' ')[1:]),
+            "identification": {
+                "type": "CPF",
+                "number": request.user.cpf
+            },
         },
         "external_reference": str(order.id),
-        "notification_url": request.build_absolute_uri('/api/payments/mercadopago/webhook/'),
+        "notification_url": request.build_absolute_uri(f'/api/payments/mercadopago/webhook/'),
     }
 
-    preference_response = sdk.preference().create(preference_data)
-    preference = preference_response["response"]
+    payment_response = sdk.payment().create(payment_data)
+    payment = payment_response["response"]
 
-    # Save payment ID
-    order.payment_id = preference["id"]
+    if payment_response["status"] >= 400:
+        return Response({'error': 'Erro ao criar pagamento PIX', 'details': payment}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Save payment ID from the payment itself
+    order.payment_id = payment["id"]
     order.save(update_fields=['payment_id'])
 
-    return Response({
-        'preference_id': preference["id"],
-        'init_point': preference["init_point"],
-        'sandbox_init_point': preference["sandbox_init_point"],
-    })
+    # Extract PIX data to return to frontend
+    pix_data = {
+        "payment_id": payment["id"],
+        "qr_code_base64": payment["point_of_interaction"]["transaction_data"]["qr_code_base64"],
+        "qr_code": payment["point_of_interaction"]["transaction_data"]["qr_code"],
+    }
+
+    return Response(pix_data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_order_status(request, order_id):
+    """Check the status of a specific order"""
+    try:
+        order = RaffleOrder.objects.get(id=order_id, user=request.user)
+        return Response({'status': order.status})
+    except RaffleOrder.DoesNotExist:
+        return Response({'error': 'Pedido não encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def mercadopago_webhook(request):
     """MercadoPago webhook handler"""
-    # Get payment info from webhook
-    payment_id = request.data.get('data', {}).get('id')
+    if request.data.get("action") == "payment.updated":
+        payment_id = request.data.get('data', {}).get('id')
+    else:
+        # Not a payment update, ignore
+        return Response(status=status.HTTP_200_OK)
 
     if not payment_id:
         return Response(status=status.HTTP_200_OK)
@@ -81,14 +106,15 @@ def mercadopago_webhook(request):
     except RaffleOrder.DoesNotExist:
         return Response(status=status.HTTP_200_OK)
 
-    # Check payment status
-    if payment_data["status"] == "approved":
-        numbers = order.mark_as_paid()
+    # Check payment status and mark as paid if approved
+    if payment_data["status"] == "approved" and order.status != RaffleOrder.Status.PAID:
+        order.mark_as_paid()
 
         # TODO: Send WhatsApp notification with numbers
         # from notifications.tasks import send_whatsapp_notification
         # send_whatsapp_notification.delay(order.id)
 
+    # Save the latest payment data for reference
     order.payment_data = payment_data
     order.save(update_fields=['payment_data'])
 

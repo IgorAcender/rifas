@@ -64,7 +64,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text='Numero de WhatsApp (apenas digitos)'
     )
     name = models.CharField('Nome', max_length=150)
-    email = models.EmailField('Email', blank=True, null=True)
+    email = models.EmailField('Email', unique=True, blank=True, null=True)
+    cpf = models.CharField('CPF', max_length=14, unique=True, blank=True, null=True) # Temporarily allows null
 
     is_active = models.BooleanField('Ativo', default=True)
     is_staff = models.BooleanField('Admin', default=False)

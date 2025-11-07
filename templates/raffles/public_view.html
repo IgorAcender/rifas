@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ raffle.name }} - Participe agora!</title>
     <meta name="description" content="{{ raffle.description }}">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <style>
         * {
             margin: 0;
@@ -16,7 +17,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f8fafc;
             min-height: 100vh;
-            padding-bottom: 40px;
+            padding-bottom: 140px; /* Space for action bar */
         }
 
         .header {
@@ -81,34 +82,6 @@
             color: #64748b;
             line-height: 1.6;
             margin-bottom: 24px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: #f8fafc;
-            padding: 16px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #ef4444;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .price-tag {
@@ -310,6 +283,103 @@
         .btn-copy:hover {
             background: #2563eb;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.visible .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            color: #1e293b;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .modal-actions {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel, .btn-confirm {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background: #e2e8f0;
+            border: none;
+            color: #475569;
+        }
+
+        .btn-confirm {
+            background: #16a34a;
+            border: none;
+            color: white;
+        }
+        
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 4px;
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -377,15 +447,40 @@
                 Total: R$ <span id="totalAmount">{{ raffle.price_per_number }}</span>
             </div>
         </div>
-        <button class="btn-buy" id="buyButton" onclick="proceedToBuy()">
+        <button class="btn-buy" id="buyButton" onclick="openLoginModal()">
             Participar Agora
         </button>
     </div>
 
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Identifique-se para continuar</h3>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="nameInput">Nome Completo</label>
+                    <input type="text" id="nameInput" required>
+                    <div class="error-message" id="nameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="whatsappInput">WhatsApp (com DDD)</label>
+                    <input type="tel" id="whatsappInput" placeholder="11999998888" required>
+                    <div class="error-message" id="whatsappError"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeLoginModal()">Cancelar</button>
+                    <button type="submit" class="btn-confirm" id="confirmPurchaseBtn">Confirmar e Pagar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        const pricePerNumber = parseFloat("{{ raffle.price_per_number }}");
+        const pricePerNumber = {{ raffle.price_per_number }};
+        const raffleId = "{{ raffle.id }}";
         let currentQuantity = 1;
 
+        // --- Funções de UI ---
         function selectQuantity(qty) {
             currentQuantity = qty;
             document.getElementById('quantityInput').value = qty;
@@ -415,9 +510,7 @@
         function updateQuantity() {
             const input = document.getElementById('quantityInput');
             let value = parseInt(input.value) || 1;
-            
             if (value < 1) value = 1;
-            
             input.value = value;
             currentQuantity = value;
             updateDisplay();
@@ -427,24 +520,6 @@
             const total = currentQuantity * pricePerNumber;
             document.getElementById('selectedCount').textContent = currentQuantity;
             document.getElementById('totalAmount').textContent = total.toFixed(2).replace('.', ',');
-        }
-
-        function proceedToBuy() {
-            if (currentQuantity < 1) {
-                alert('Selecione pelo menos um número!');
-                return;
-            }
-
-            const whatsappNumber = '5511999999999'; // Coloque o WhatsApp do vendedor aqui
-            const total = currentQuantity * pricePerNumber;
-            const message = encodeURIComponent(
-                `Olá! Gostaria de comprar ${currentQuantity} número(s) da rifa "${raffle.name}":\n\n` +
-                `Quantidade: ${currentQuantity} número(s)\n` +
-                `Valor unitário: R$ ${pricePerNumber.toFixed(2).replace('.', ',')}\n` +
-                `Total: R$ ${total.toFixed(2).replace('.', ',')}`
-            );
-
-            window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
         }
 
         function copyLink() {
@@ -459,12 +534,115 @@
             });
         }
 
-        // Atualiza o raffle name para o JavaScript
-        const raffle = {
-            name: "{{ raffle.name|escapejs }}",
-            pricePerNumber: pricePerNumber
-        };
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.add('visible');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('visible');
+        }
+
+        function setButtonLoading(button, isLoading) {
+            if (isLoading) {
+                button.disabled = true;
+                button.textContent = 'Aguarde...';
+            } else {
+                button.disabled = false;
+                button.textContent = 'Confirmar e Pagar';
+            }
+        }
         
+        function displayError(field, message) {
+            const errorElement = document.getElementById(`${field}Error`);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+        }
+
+        // --- Funções de Lógica de Compra ---
+
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            clearErrors();
+
+            const name = document.getElementById('nameInput').value;
+            const whatsapp = document.getElementById('whatsappInput').value;
+            const confirmBtn = document.getElementById('confirmPurchaseBtn');
+
+            // Validação simples
+            if (!name) {
+                displayError('name', 'Por favor, insira seu nome.');
+                return;
+            }
+            if (!/^\d{10,13}$/.test(whatsapp)) {
+                displayError('whatsapp', 'Número de WhatsApp inválido. Use apenas números, incluindo o DDD.');
+                return;
+            }
+
+            setButtonLoading(confirmBtn, true);
+
+            try {
+                // 1. Autenticar e obter token
+                const tokens = await authenticateUser(name, whatsapp);
+                
+                // 2. Criar o pedido (RaffleOrder)
+                const order = await createRaffleOrder(tokens.access, currentQuantity);
+
+                // 3. Criar o pagamento no MercadoPago
+                const payment = await createMercadoPagoPayment(tokens.access, order.id);
+
+                // 4. Redirecionar para o checkout
+                window.location.href = payment.sandbox_init_point;
+
+            } catch (error) {
+                console.error('Erro no processo de compra:', error);
+                displayError('whatsapp', error.message || 'Ocorreu um erro. Tente novamente.');
+                setButtonLoading(confirmBtn, false);
+            }
+        });
+
+        async function apiFetch(url, method, token, body) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(url, {
+                method: method,
+                headers: headers,
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || JSON.stringify(errorData));
+            }
+            return response.json();
+        }
+
+        async function authenticateUser(name, whatsapp) {
+            return await apiFetch('/api/auth/login/', 'POST', null, { name, whatsapp });
+        }
+
+        async function createRaffleOrder(accessToken, quantity) {
+            const data = {
+                raffle: raffleId,
+                quantity: quantity,
+                payment_method: 'mercadopago'
+            };
+            return await apiFetch(`/api/raffles/${raffleId}/buy/`, 'POST', accessToken, data);
+        }
+
+        async function createMercadoPagoPayment(accessToken, orderId) {
+            return await apiFetch('/api/payments/mercadopago/create/', 'POST', accessToken, { order_id: orderId });
+        }
+
         // Inicializa o display
         updateDisplay();
     </script>
