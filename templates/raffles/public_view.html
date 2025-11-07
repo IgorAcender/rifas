@@ -785,8 +785,10 @@
             }
 
             try {
-                const tokens = await authenticateUser(userData);
-                state.accessToken = tokens.access;
+                const response = await authenticateUser(userData);
+                
+                // A resposta tem estrutura: { user: {...}, tokens: { access, refresh }, created: bool }
+                state.accessToken = response.tokens.access;
                 
                 console.log('Authentication successful, token:', state.accessToken ? 'SET' : 'NOT SET');
 
