@@ -1,0 +1,31 @@
+# Core Django
+Django==4.2.7
+djangorestframework==3.14.0
+
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# Authentication
+djangorestframework-simplejwt==5.3.0
+
+# CORS
+django-cors-headers==4.3.1
+
+# Task Queue
+celery==5.3.4
+redis==5.0.1
+
+# Web Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Utilities
+python-decouple==3.8
+pytz==2024.1
+
+# Payment Gateway
+mercadopago==2.2.3
+
+# HTTP Requests (for Avolution API)
+requests==2.31.0
