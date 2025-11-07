@@ -36,23 +36,10 @@ body {
     justify-content: center;
 }
 
-.logo-box {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.logo-text-green {
-    color: #22c55e;
-}
-
-.logo-text-red {
-    background: #ef4444;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 6px;
+.logo img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
 
 .btn-criar-campanha {
