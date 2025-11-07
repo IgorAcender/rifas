@@ -756,13 +756,19 @@
             confirmBtn.dataset.originalText = confirmBtn.textContent;
             setButtonLoading(confirmBtn, true);
 
+            // Obter valores e limpar formatação do telefone
+            const whatsappRaw = document.getElementById('whatsappInput').value;
+            const whatsappConfirmRaw = document.getElementById('whatsappConfirmInput').value;
+            
+            // Remover formatação para comparação e envio
+            const whatsappClean = whatsappRaw.replace(/\D/g, '');
+            const whatsappConfirmClean = whatsappConfirmRaw.replace(/\D/g, '');
+
             const userData = {
                 name: document.getElementById('nameInput').value,
                 email: document.getElementById('emailInput').value,
-                whatsapp: document.getElementById('whatsappInput').value
+                whatsapp: whatsappClean  // Enviar apenas números
             };
-            
-            const whatsappConfirm = document.getElementById('whatsappConfirmInput').value;
 
             // Validação básica
             if (!userData.name || !userData.whatsapp) {
@@ -771,8 +777,8 @@
                 return;
             }
             
-            // Validação de confirmação do telefone
-            if (userData.whatsapp !== whatsappConfirm) {
+            // Validação de confirmação do telefone (comparar sem formatação)
+            if (whatsappClean !== whatsappConfirmClean) {
                 displayError('whatsapp', 'Os números de telefone não coincidem.');
                 setButtonLoading(confirmBtn, false);
                 return;
@@ -781,6 +787,8 @@
             try {
                 const tokens = await authenticateUser(userData);
                 state.accessToken = tokens.access;
+                
+                console.log('Authentication successful, token:', state.accessToken ? 'SET' : 'NOT SET');
 
                 const order = await createRaffleOrder(state.currentQuantity);
                 const pixData = await createPixPayment(order.id);
@@ -790,7 +798,19 @@
 
             } catch (error) {
                 console.error('Purchase process error:', error);
-                displayError('whatsapp', error.message || 'Ocorreu um erro. Tente novamente.');
+                let errorMessage = 'Ocorreu um erro. Tente novamente.';
+                
+                // Tentar extrair mensagem de erro do objeto
+                if (error.message) {
+                    try {
+                        const errorObj = JSON.parse(error.message);
+                        errorMessage = errorObj.detail || errorObj.error || error.message;
+                    } catch (e) {
+                        errorMessage = error.message;
+                    }
+                }
+                
+                displayError('whatsapp', errorMessage);
             } finally {
                 setButtonLoading(confirmBtn, false);
             }
