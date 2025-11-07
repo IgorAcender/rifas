@@ -29,3 +29,6 @@ mercadopago==2.2.3
 
 # HTTP Requests (for Avolution API)
 requests==2.31.0
+
+# Admin Interface
+django-unfold==0.31.0

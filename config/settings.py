@@ -13,6 +13,11 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv(
 
 # Application definition
 INSTALLED_APPS = [
+    # Unfold must be before django.contrib.admin
+    'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -168,3 +173,88 @@ AVOLUTION_INSTANCE_ID = config('AVOLUTION_INSTANCE_ID', default='')
 ADMIN_WHATSAPP = config('ADMIN_WHATSAPP', default='5511999999999')
 ADMIN_PASSWORD = config('ADMIN_PASSWORD', default='admin123')
 ADMIN_NAME = config('ADMIN_NAME', default='Admin')
+
+# Django Unfold Configuration
+UNFOLD = {
+    "SITE_TITLE": "Sistema de Rifas",
+    "SITE_HEADER": "Painel Administrativo",
+    "SITE_URL": "/",
+    "SITE_ICON": None,
+    "SITE_SYMBOL": "confirmation_number",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": False,
+    "ENVIRONMENT": "config.settings.environment_callback",
+    "COLORS": {
+        "primary": {
+            "50": "239 246 255",
+            "100": "219 234 254",
+            "200": "191 219 254",
+            "300": "147 197 253",
+            "400": "96 165 250",
+            "500": "59 130 246",
+            "600": "37 99 235",
+            "700": "29 78 216",
+            "800": "30 64 175",
+            "900": "30 58 138",
+            "950": "23 37 84",
+        },
+    },
+    "EXTENSIONS": {
+        "modeltranslation": {
+            "flags": {
+                "en": "🇬🇧",
+                "fr": "🇫🇷",
+                "nl": "🇧🇪",
+            },
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Autenticacao",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Usuarios",
+                        "icon": "people",
+                        "link": "/admin/accounts/user/",
+                    },
+                ],
+            },
+            {
+                "title": "Rifas",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Rifas",
+                        "icon": "confirmation_number",
+                        "link": "/admin/raffles/raffle/",
+                    },
+                    {
+                        "title": "Pedidos",
+                        "icon": "shopping_cart",
+                        "link": "/admin/raffles/raffleorder/",
+                    },
+                    {
+                        "title": "Numeros",
+                        "icon": "tag",
+                        "link": "/admin/raffles/rafflenumber/",
+                    },
+                    {
+                        "title": "Indicacoes",
+                        "icon": "share",
+                        "link": "/admin/raffles/referral/",
+                    },
+                ],
+            },
+        ],
+    },
+}
+
+def environment_callback(request):
+    """Display environment badge in admin"""
+    if DEBUG:
+        return ["Desenvolvimento", "warning"]
+    return ["Producao", "success"]

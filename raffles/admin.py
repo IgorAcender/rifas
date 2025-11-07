@@ -1,43 +1,44 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import Raffle, RaffleNumber, RaffleOrder, Referral
 
 
 @admin.register(Raffle)
-class RaffleAdmin(admin.ModelAdmin):
+class RaffleAdmin(ModelAdmin):
     list_display = ('name', 'status', 'total_numbers', 'numbers_sold', 'numbers_available', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('name', 'prize_name')
     readonly_fields = ('numbers_sold', 'numbers_reserved', 'numbers_available', 'created_at', 'updated_at')
 
     fieldsets = (
-        ('Informações Básicas', {
+        ('Informacoes Basicas', {
             'fields': ('name', 'description', 'status')
         }),
-        ('Prêmio', {
+        ('Premio', {
             'fields': ('prize_name', 'prize_description', 'prize_image_base64')
         }),
-        ('Configurações', {
+        ('Configuracoes', {
             'fields': ('total_numbers', 'price_per_number', 'draw_date')
         }),
         ('Resultado', {
             'fields': ('winner_number', 'winner')
         }),
-        ('Indicações', {
+        ('Indicacoes', {
             'fields': ('inviter_bonus', 'invitee_bonus')
         }),
-        ('Estatísticas', {
+        ('Estatisticas', {
             'fields': ('numbers_sold', 'numbers_reserved', 'numbers_available', 'created_at', 'updated_at')
         }),
     )
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if not change:  # Se é novo
+        if not change:  # Se e novo
             obj.initialize_numbers()
 
 
 @admin.register(RaffleNumber)
-class RaffleNumberAdmin(admin.ModelAdmin):
+class RaffleNumberAdmin(ModelAdmin):
     list_display = ('raffle', 'number', 'status', 'user', 'source', 'sold_at')
     list_filter = ('status', 'source', 'raffle')
     search_fields = ('number', 'user__whatsapp', 'user__name')
@@ -45,7 +46,7 @@ class RaffleNumberAdmin(admin.ModelAdmin):
 
 
 @admin.register(RaffleOrder)
-class RaffleOrderAdmin(admin.ModelAdmin):
+class RaffleOrderAdmin(ModelAdmin):
     list_display = ('id', 'raffle', 'user', 'quantity', 'amount', 'status', 'created_at')
     list_filter = ('status', 'payment_method', 'created_at')
     search_fields = ('id', 'user__whatsapp', 'user__name', 'raffle__name', 'payment_id')
@@ -53,7 +54,7 @@ class RaffleOrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(Referral)
-class ReferralAdmin(admin.ModelAdmin):
+class ReferralAdmin(ModelAdmin):
     list_display = ('code', 'raffle', 'inviter', 'invitee', 'status', 'clicks', 'created_at')
     list_filter = ('status', 'created_at')
     search_fields = ('code', 'inviter__whatsapp', 'inviter__name', 'invitee__whatsapp', 'invitee__name')
