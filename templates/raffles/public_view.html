@@ -614,6 +614,7 @@
         const config = {
             pricePerNumber: parseFloat("{{ raffle.price_per_number|stringformat:'.2f' }}"),
             raffleId: "{{ raffle.id }}",
+            raffleName: "{{ raffle.name|escapejs }}",
             csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         };
 

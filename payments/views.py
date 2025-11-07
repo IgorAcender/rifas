@@ -21,6 +21,13 @@ def create_mercadopago_payment(request):
     if order.status == RaffleOrder.Status.PAID:
         return Response({'error': 'Este pedido já foi pago.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Check if MercadoPago is configured
+    if not settings.MERCADOPAGO_ACCESS_TOKEN:
+        return Response({
+            'error': 'Sistema de pagamento não configurado',
+            'details': 'Entre em contato com o administrador.'
+        }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
     sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
     
     # Usar email e CPF do usuário se disponível, senão usar valores padrão
