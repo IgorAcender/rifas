@@ -101,6 +101,31 @@ class Raffle(models.Model):
         ]
         RaffleNumber.objects.bulk_create(numbers)
 
+    def release_expired_reservations(self):
+        """Release numbers from expired pending orders"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Orders pending for more than 15 minutes are considered expired
+        expiration_time = timezone.now() - timedelta(minutes=15)
+        
+        # Find expired pending orders
+        expired_orders = self.orders.filter(
+            status=RaffleOrder.Status.PENDING,
+            created_at__lt=expiration_time
+        )
+        
+        # Release their numbers
+        for order in expired_orders:
+            order.allocated_numbers.update(
+                status=RaffleNumber.Status.AVAILABLE,
+                user=None,
+                order=None,
+                reserved_at=None
+            )
+            order.status = RaffleOrder.Status.EXPIRED
+            order.save(update_fields=['status'])
+
 
 class RaffleNumber(models.Model):
     """Individual raffle number"""

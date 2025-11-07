@@ -58,6 +58,10 @@ class RaffleOrderSerializer(serializers.ModelSerializer):
             # Refresh from database to get updated counts
             raffle.refresh_from_db()
 
+        # Release expired reservations before checking availability
+        raffle.release_expired_reservations()
+        raffle.refresh_from_db()
+
         # Get current availability
         available = raffle.numbers_available
         requested = data['quantity']
