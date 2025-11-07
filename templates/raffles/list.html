@@ -34,7 +34,7 @@
             <p class="raffle-price">R$ {{ raffle.price_per_number }}</p>
             
             <div class="raffle-actions">
-                {% if raffle.status == 'active' %}
+                {% if raffle.status == 'active' and raffle.slug %}
                 <button class="btn-share" onclick="shareRaffle('{{ raffle.slug }}', '{{ raffle.name|escapejs }}', this)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="18" cy="5" r="3"></circle>
@@ -52,6 +52,15 @@
                     </svg>
                     Ver Página
                 </a>
+                {% elif raffle.status == 'active' and not raffle.slug %}
+                <button class="btn-warning" onclick="alert('Esta campanha precisa ser salva novamente para gerar o link de compartilhamento.')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Gerar Link
+                </button>
                 {% endif %}
                 
                 <button class="btn-edit" onclick="editRaffle({{ raffle.id }})">
@@ -205,6 +214,27 @@
 
 .btn-edit:hover {
     background: #d97706;
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background: #fbbf24;
+    color: #78350f;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-warning:hover {
+    background: #f59e0b;
     transform: translateY(-2px);
 }
 
