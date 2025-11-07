@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Minhas Campanhas | Sistema de Rifas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <svg class="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <h1>Minhas Campanhas</h1>
+    </div>
+    <a href="{% url 'raffle_create' %}" class="btn-primary" style="padding: 10px 20px; text-decoration: none; display: inline-block;">
+        + Nova Campanha
+    </a>
+</div>
+
+<div class="raffles-grid">
+    {% for raffle in raffles %}
+    <div class="raffle-card">
+        {% if raffle.prize_image_base64 %}
+        <img src="data:image/jpeg;base64,{{ raffle.prize_image_base64 }}" alt="{{ raffle.prize_name }}" class="raffle-image">
+        {% endif %}
+        <div class="raffle-content">
+            <h3>{{ raffle.name }}</h3>
+            <p class="raffle-prize">{{ raffle.prize_name }}</p>
+            <div class="raffle-stats">
+                <span class="badge badge-{{ raffle.status }}">{{ raffle.get_status_display }}</span>
+                <span>{{ raffle.numbers_sold }}/{{ raffle.total_numbers }}</span>
+            </div>
+            <p class="raffle-price">R$ {{ raffle.price_per_number }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <p class="empty-state">Nenhuma campanha encontrada. <a href="{% url 'raffle_create' %}">Criar primeira campanha</a></p>
+    {% endfor %}
+</div>
+
+<style>
+.raffles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.raffle-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.raffle-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.raffle-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.raffle-content {
+    padding: 16px;
+}
+
+.raffle-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.raffle-prize {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.raffle-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.badge-draft {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.raffle-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+}
+
+.empty-state a {
+    color: #ef4444;
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
