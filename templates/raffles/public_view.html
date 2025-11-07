@@ -622,6 +622,7 @@
             currentQuantity: 1,
             accessToken: null,
             pollingInterval: null,
+            timerInterval: null,
         };
 
         // --- UI Functions ---
@@ -731,6 +732,10 @@
                 clearInterval(state.pollingInterval);
                 state.pollingInterval = null;
             }
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
         }
 
         function setButtonLoading(button, isLoading, text = 'Aguarde...') {
@@ -823,6 +828,16 @@
             const modalContent = document.getElementById('pixModalContent');
             modalContent.innerHTML = `
                 <h3 class="modal-title">Pague com PIX para garantir seus números</h3>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #856404; font-size: 14px;">
+                        ⏱️ Tempo restante: <strong><span id="timer">15:00</span></strong>
+                    </p>
+                    <p style="margin: 5px 0 0 0; color: #856404; font-size: 12px;">
+                        Após esse tempo, os números serão liberados.
+                    </p>
+                </div>
+                
                 <img src="data:image/png;base64,${pixData.qr_code_base64}" alt="PIX QR Code" id="pixQrCode">
                 <p>Ou copie o código abaixo:</p>
                 <input type="text" id="pixCopyPaste" value="${pixData.qr_code}" readonly>
@@ -833,7 +848,38 @@
                 </div>
             `;
             openModal('pixModal');
+            startTimer(900); // 15 minutos = 900 segundos
             startPolling(orderId);
+        }
+
+        function startTimer(seconds) {
+            let remaining = seconds;
+            const timerElement = document.getElementById('timer');
+            
+            state.timerInterval = setInterval(() => {
+                const minutes = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                timerElement.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+                
+                remaining--;
+                
+                if (remaining < 0) {
+                    clearInterval(state.timerInterval);
+                    clearInterval(state.pollingInterval);
+                    showExpired();
+                }
+            }, 1000);
+        }
+
+        function showExpired() {
+            const modalContent = document.getElementById('pixModalContent');
+            modalContent.innerHTML = `
+                <h3 class="modal-title" style="color: #dc2626;">⏰ Tempo Esgotado</h3>
+                <p style="text-align: center; margin: 30px 0;">
+                    O tempo para pagamento expirou e os números foram liberados.
+                </p>
+                <button class="btn-confirm" onclick="location.reload()">Tentar Novamente</button>
+            `;
         }
 
         function startPolling(orderId) {
@@ -842,6 +888,7 @@
                     const statusData = await checkOrderStatus(orderId);
                     if (statusData.status === 'paid') {
                         clearInterval(state.pollingInterval);
+                        clearInterval(state.timerInterval);
                         showSuccess();
                     }
                 } catch (error) {
