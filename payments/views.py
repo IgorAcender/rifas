@@ -45,11 +45,31 @@ def create_mercadopago_payment(request):
         "notification_url": request.build_absolute_uri(f'/api/payments/mercadopago/webhook/'),
     }
 
-    payment_response = sdk.payment().create(payment_data)
-    payment = payment_response["response"]
+    print(f"DEBUG: Creating PIX payment for order {order.id}")
+    print(f"DEBUG: Amount: {payment_data['transaction_amount']}")
+    print(f"DEBUG: MercadoPago Token configured: {bool(settings.MERCADOPAGO_ACCESS_TOKEN)}")
 
-    if payment_response["status"] >= 400:
-        return Response({'error': 'Erro ao criar pagamento PIX', 'details': payment}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        payment_response = sdk.payment().create(payment_data)
+        payment = payment_response["response"]
+
+        print(f"DEBUG: MercadoPago response status: {payment_response['status']}")
+        
+        if payment_response["status"] >= 400:
+            error_detail = payment.get('message', 'Erro desconhecido')
+            print(f"ERROR: MercadoPago error: {error_detail}")
+            return Response({
+                'error': 'Erro ao criar pagamento PIX', 
+                'details': error_detail,
+                'full_response': payment
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        print(f"ERROR: Exception creating payment: {str(e)}")
+        return Response({
+            'error': 'Erro ao conectar com MercadoPago',
+            'details': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # Save payment ID from the payment itself
     order.payment_id = payment["id"]
