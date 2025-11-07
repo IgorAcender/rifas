@@ -2,6 +2,7 @@ import random
 import string
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 from accounts.models import User
 
 
@@ -20,6 +21,7 @@ class Raffle(models.Model):
         CANCELLED = 'cancelled', 'Cancelada'
 
     name = models.CharField('Nome', max_length=200)
+    slug = models.SlugField('Slug', max_length=250, unique=True, blank=True)
     description = models.TextField('Descricao', blank=True)
     prize_name = models.CharField('Nome do Premio', max_length=200)
     prize_description = models.TextField('Descricao do Premio', blank=True)
@@ -55,6 +57,23 @@ class Raffle(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.get_status_display()}"
+
+    def save(self, *args, **kwargs):
+        """Auto-generate slug from name"""
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            while Raffle.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def get_public_url(self):
+        """Get public URL for this raffle"""
+        from django.urls import reverse
+        return reverse('raffle_public', kwargs={'slug': self.slug})
 
     @property
     def numbers_sold(self):

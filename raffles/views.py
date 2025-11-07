@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .models import Raffle, RaffleOrder, Referral
+from .models import Raffle, RaffleOrder, Referral, RaffleNumber
 from .serializers import RaffleSerializer, RaffleOrderSerializer, ReferralSerializer
 
 
@@ -179,3 +179,23 @@ def affiliates(request):
 def settings_view(request):
     """Configuracoes"""
     return render(request, 'raffles/settings.html')
+
+
+# Public Views (no login required)
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+
+
+def raffle_public_view(request, slug):
+    """Pagina publica da rifa para vendas"""
+    raffle = get_object_or_404(Raffle, slug=slug, status=Raffle.Status.ACTIVE)
+    
+    # Get all numbers with their status
+    numbers = RaffleNumber.objects.filter(raffle=raffle).order_by('number')
+    
+    context = {
+        'raffle': raffle,
+        'numbers': numbers,
+        'numbers_list': list(numbers.values('number', 'status')),
+    }
+    return render(request, 'raffles/public_view.html', context)

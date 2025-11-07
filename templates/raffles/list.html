@@ -32,6 +32,25 @@
                 <span>{{ raffle.numbers_sold }}/{{ raffle.total_numbers }}</span>
             </div>
             <p class="raffle-price">R$ {{ raffle.price_per_number }}</p>
+            
+            {% if raffle.status == 'active' %}
+            <div class="raffle-actions">
+                <button class="btn-share" onclick="copyRaffleLink('{{ raffle.slug }}', this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Copiar Link de Vendas
+                </button>
+                <a href="{% url 'raffle_public' slug=raffle.slug %}" target="_blank" class="btn-view">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Ver Página
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% empty %}
@@ -124,5 +143,71 @@
     color: #ef4444;
     text-decoration: underline;
 }
+
+.raffle-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-share, .btn-view {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-share {
+    background: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.btn-share:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.btn-view {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-view:hover {
+    background: #e2e8f0;
+}
+
+.btn-share.copied {
+    background: #16a34a;
+}
 </style>
+
+<script>
+function copyRaffleLink(slug, button) {
+    const baseUrl = window.location.origin;
+    const link = `${baseUrl}/r/${slug}/`;
+    
+    navigator.clipboard.writeText(link).then(() => {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Link Copiado!';
+        button.classList.add('copied');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        alert('Erro ao copiar link: ' + err);
+    });
+}
+</script>
 {% endblock %}

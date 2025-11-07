@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ raffle.name }} - Participe agora!</title>
+    <meta name="description" content="{{ raffle.description }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: -30px auto 0;
+            padding: 0 20px;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .prize-section {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .prize-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .prize-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .prize-info h2 {
+            font-size: 32px;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .prize-info p {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ef4444;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .price-tag {
+            background: #ef4444;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .price-tag .amount {
+            font-size: 36px;
+            display: block;
+        }
+
+        .numbers-section {
+            padding: 32px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: #1e293b;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .number-item {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .number-item.available {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .number-item.available:hover {
+            background: #16a34a;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .number-item.selected {
+            background: #3b82f6;
+            color: white;
+            border-color: #1e40af;
+            transform: scale(1.05);
+        }
+
+        .number-item.reserved {
+            background: #fef3c7;
+            color: #92400e;
+            cursor: not-allowed;
+        }
+
+        .number-item.sold {
+            background: #e5e5e5;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .selection-info {
+            flex: 1;
+        }
+
+        .selection-info .count {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .selection-info .total {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ef4444;
+        }
+
+        .btn-buy {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-buy:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-buy:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .legend-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .share-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .share-section h3 {
+            margin-bottom: 16px;
+            color: #1e293b;
+        }
+
+        .share-link {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e1;
+            font-family: monospace;
+            color: #3b82f6;
+            word-break: break-all;
+        }
+
+        .btn-copy {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .btn-copy:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎉 {{ raffle.name }}</h1>
+        <p>{{ raffle.prize_name }}</p>
+    </div>
+
+    <div class="container">
+        <div class="main-card">
+            <div class="prize-section">
+                {% if raffle.prize_image_base64 %}
+                <img src="data:image/jpeg;base64,{{ raffle.prize_image_base64 }}" alt="{{ raffle.prize_name }}" class="prize-image">
+                {% else %}
+                <div class="prize-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
+                    🏆
+                </div>
+                {% endif %}
+
+                <div class="prize-info">
+                    <h2>{{ raffle.prize_name }}</h2>
+                    <p>{{ raffle.description }}</p>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <span class="stat-value">{{ raffle.numbers_sold }}</span>
+                            <span class="stat-label">Vendidos</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value">{{ raffle.numbers_available }}</span>
+                            <span class="stat-label">Disponíveis</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-value">{{ raffle.total_numbers }}</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                    </div>
+
+                    <div class="price-tag">
+                        Por apenas
+                        <span class="amount">R$ {{ raffle.price_per_number }}</span>
+                        por número
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="numbers-section">
+            <h3 class="section-title">Escolha seus números da sorte</h3>
+            
+            <div class="numbers-grid" id="numbersGrid">
+                {% for num in numbers %}
+                <div class="number-item {{ num.status }}" 
+                     data-number="{{ num.number }}"
+                     data-status="{{ num.status }}"
+                     onclick="toggleNumber(this)">
+                    {{ num.number|stringformat:"04d" }}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #dcfce7; border: 2px solid #16a34a;"></div>
+                    <span>Disponível</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #3b82f6;"></div>
+                    <span>Selecionado</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #e5e5e5;"></div>
+                    <span>Vendido</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="share-section">
+            <h3>📱 Compartilhe este link</h3>
+            <div class="share-link" id="shareLink">{{ request.build_absolute_uri }}</div>
+            <button class="btn-copy" onclick="copyLink()">📋 Copiar Link</button>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <div class="selection-info">
+            <div class="count">
+                <span id="selectedCount">0</span> números selecionados
+            </div>
+            <div class="total">
+                Total: R$ <span id="totalAmount">0,00</span>
+            </div>
+        </div>
+        <button class="btn-buy" id="buyButton" onclick="proceedToBuy()" disabled>
+            Comprar Agora
+        </button>
+    </div>
+
+    <script>
+        const pricePerNumber = {{ raffle.price_per_number }};
+        let selectedNumbers = new Set();
+
+        function toggleNumber(element) {
+            const status = element.dataset.status;
+            const number = element.dataset.number;
+
+            if (status !== 'available' && !element.classList.contains('selected')) {
+                return;
+            }
+
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                element.classList.add('available');
+                selectedNumbers.delete(number);
+            } else {
+                element.classList.remove('available');
+                element.classList.add('selected');
+                selectedNumbers.add(number);
+            }
+
+            updateSelection();
+        }
+
+        function updateSelection() {
+            const count = selectedNumbers.size;
+            const total = count * pricePerNumber;
+
+            document.getElementById('selectedCount').textContent = count;
+            document.getElementById('totalAmount').textContent = total.toFixed(2).replace('.', ',');
+            document.getElementById('buyButton').disabled = count === 0;
+        }
+
+        function proceedToBuy() {
+            if (selectedNumbers.size === 0) {
+                alert('Selecione pelo menos um número!');
+                return;
+            }
+
+            const numbers = Array.from(selectedNumbers).sort((a, b) => a - b);
+            const whatsappNumber = '5511999999999'; // Coloque o WhatsApp do vendedor aqui
+            const message = encodeURIComponent(
+                `Olá! Gostaria de comprar ${numbers.length} número(s) da rifa "${raffle.name}":\n\n` +
+                `Números: ${numbers.join(', ')}\n` +
+                `Total: R$ ${(numbers.length * pricePerNumber).toFixed(2).replace('.', ',')}`
+            );
+
+            window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+        }
+
+        function copyLink() {
+            const link = document.getElementById('shareLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copiado!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Atualiza o raffle name para o JavaScript
+        const raffle = {
+            name: "{{ raffle.name|escapejs }}",
+            pricePerNumber: {{ raffle.price_per_number }}
+        };
+    </script>
+</body>
+</html>

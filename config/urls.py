@@ -14,6 +14,9 @@ urlpatterns = [
     path('minha-area/', account_views.customer_area, name='customer_area'),
     path('logout/', account_views.logout_view, name='logout'),
 
+    # Public Raffle URLs (sem autenticação)
+    path('r/<slug:slug>/', raffle_views.raffle_public_view, name='raffle_public'),
+
     # Frontend URLs (Admin)
     path('', raffle_views.dashboard, name='dashboard'),
     path('campanhas/', raffle_views.raffle_list, name='raffle_list'),
