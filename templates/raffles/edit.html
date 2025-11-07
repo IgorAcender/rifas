@@ -57,14 +57,36 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>Quantidade de titulos</label>
-                    <input
-                        type="text"
-                        value="{{ raffle.total_numbers }} titulos"
-                        disabled
-                        class="disabled-input"
-                    >
-                    <span class="field-hint">Este campo nao pode ser alterado</span>
+                    <label for="total_numbers">Quantidade de titulos</label>
+                    <select id="total_numbers" name="total_numbers">
+                        <option value="{{ raffle.total_numbers }}" selected>{{ raffle.total_numbers }} titulos (atual)</option>
+                        {% if raffle.total_numbers < 100 %}
+                        <option value="100">100 titulos</option>
+                        {% endif %}
+                        {% if raffle.total_numbers < 200 %}
+                        <option value="200">200 titulos</option>
+                        {% endif %}
+                        {% if raffle.total_numbers < 500 %}
+                        <option value="500">500 titulos</option>
+                        {% endif %}
+                        {% if raffle.total_numbers < 1000 %}
+                        <option value="1000">1.000 titulos</option>
+                        {% endif %}
+                        {% if raffle.total_numbers < 2000 %}
+                        <option value="2000">2.000 titulos</option>
+                        {% endif %}
+                        {% if raffle.total_numbers < 5000 %}
+                        <option value="5000">5.000 titulos</option>
+                        {% endif %}
+                        {% if raffle.total_numbers < 10000 %}
+                        <option value="10000">10.000 titulos</option>
+                        {% endif %}
+                        {% if raffle.total_numbers < 20000 %}
+                        <option value="20000">20.000 titulos</option>
+                        {% endif %}
+                    </select>
+                    <span class="field-hint">✅ Voce pode AUMENTAR a quantidade (novos numeros serao criados)</span>
+                    <span class="field-hint">❌ Nao e possivel REDUZIR</span>
                 </div>
 
                 <div class="form-group">
@@ -236,10 +258,11 @@
 <script>
 // Inicializar calculo da arrecadacao
 document.addEventListener('DOMContentLoaded', function() {
-    const totalNumbers = {{ raffle.total_numbers }};
+    const totalNumbersSelect = document.getElementById('total_numbers');
     const priceInput = document.getElementById('price_per_number');
 
     function calculateEstimate() {
+        const totalNumbers = parseInt(totalNumbersSelect.value) || 0;
         const price = parseFloat(priceInput.value) || 0;
         const total = totalNumbers * price;
 
@@ -257,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'R$ ' + tax.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     }
 
+    totalNumbersSelect.addEventListener('change', calculateEstimate);
     priceInput.addEventListener('input', calculateEstimate);
     calculateEstimate();
 });

@@ -103,6 +103,24 @@ class Raffle(models.Model):
         ]
         RaffleNumber.objects.bulk_create(numbers)
 
+    def expand_numbers(self, new_total):
+        """Expand raffle by adding more numbers"""
+        if new_total <= self.total_numbers:
+            raise ValidationError(f'Novo total ({new_total}) deve ser maior que o atual ({self.total_numbers})')
+
+        current_count = self.numbers.count()
+
+        # Create new numbers from current_count + 1 to new_total
+        new_numbers = [
+            RaffleNumber(raffle=self, number=i)
+            for i in range(current_count + 1, new_total + 1)
+        ]
+        RaffleNumber.objects.bulk_create(new_numbers)
+
+        # Update total_numbers
+        self.total_numbers = new_total
+        self.save(update_fields=['total_numbers'])
+
     def release_expired_reservations(self):
         """Release numbers from expired pending orders"""
         from django.utils import timezone

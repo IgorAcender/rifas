@@ -157,6 +157,14 @@ def raffle_edit(request, pk):
 
     if request.method == 'POST':
         try:
+            # Check if total_numbers is being increased
+            new_total_numbers = int(request.POST.get('total_numbers', raffle.total_numbers))
+            if new_total_numbers > raffle.total_numbers:
+                raffle.expand_numbers(new_total_numbers)
+                messages.success(request, f'Campanha expandida de {raffle.total_numbers} para {new_total_numbers} titulos!')
+            elif new_total_numbers < raffle.total_numbers:
+                messages.warning(request, 'Nao e possivel reduzir a quantidade de titulos. Apenas aumentar.')
+
             # Update basic fields
             raffle.name = request.POST.get('name')
             raffle.description = request.POST.get('description', '')
