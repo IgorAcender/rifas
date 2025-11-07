@@ -889,7 +889,7 @@
                     if (statusData.status === 'paid') {
                         clearInterval(state.pollingInterval);
                         clearInterval(state.timerInterval);
-                        showSuccess();
+                        showSuccess(orderId);
                     }
                 } catch (error) {
                     console.error('Polling error:', error);
@@ -898,8 +898,30 @@
             }, 5000); // Check every 5 seconds
         }
 
-        function showSuccess() {
+        async function showSuccess(orderId) {
             const modalContent = document.getElementById('pixModalContent');
+            
+            // Buscar detalhes do pedido com os números
+            let numbers = [];
+            try {
+                const orderData = await getOrderDetails(orderId);
+                numbers = orderData.numbers || [];
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+            }
+            
+            const numbersHTML = numbers.length > 0 
+                ? `<div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                       <h4 style="margin: 0 0 15px 0; color: #15803d;">🎉 Seus Números da Sorte:</h4>
+                       <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                           ${numbers.map(n => `<span style="background: #22c55e; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 18px;">${String(n).padStart(4, '0')}</span>`).join('')}
+                       </div>
+                   </div>`
+                : '';
+            
+            const shareUrl = window.location.href;
+            const shareText = encodeURIComponent(`Participe desta rifa incrível! ${shareUrl}`);
+            
             modalContent.innerHTML = `
                 <div class="success-checkmark">
                     <svg class="success-checkmark__circle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -911,10 +933,39 @@
                 </div>
                 <h3 class="modal-title">Pagamento Aprovado!</h3>
                 <p>Seus números foram garantidos e enviados para seu WhatsApp.</p>
+                
+                ${numbersHTML}
+                
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; text-align: center;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 20px;">🎁 Ganhe 2 Números Grátis!</h4>
+                    <p style="margin: 0 0 15px 0; font-size: 14px;">Indique um amigo e vocês dois ganham números extras*</p>
+                    <button onclick="shareReferral('${shareUrl}')" style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
+                        📤 Indicar Amigo
+                    </button>
+                    <p style="margin: 15px 0 0 0; font-size: 11px; opacity: 0.9;">*Válido para compras acima de 10 números</p>
+                </div>
+                
                 <div class="modal-actions">
-                    <button class="btn-confirm" onclick="closeModal('pixModal')">Fechar</button>
+                    <button class="btn-confirm" onclick="closeModal('pixModal'); location.reload()">Fechar</button>
                 </div>
             `;
+        }
+        
+        function shareReferral(url) {
+            const text = `🎉 Participe desta rifa incrível e concorra a prêmios! Use meu link e ganhe 2 números grátis: ${url}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Participe da Rifa',
+                    text: text,
+                    url: url
+                }).catch(err => console.log('Error sharing:', err));
+            } else {
+                // Fallback: copiar para clipboard
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Link copiado! Compartilhe com seus amigos 🎉');
+                });
+            }
         }
 
         function copyPixCode() {
@@ -964,6 +1015,10 @@
 
         async function checkOrderStatus(orderId) {
             return await apiFetch(`/api/payments/status/${orderId}/`, 'GET');
+        }
+
+        async function getOrderDetails(orderId) {
+            return await apiFetch(`/api/raffles/orders/${orderId}/`, 'GET');
         }
 
         // --- Init ---
