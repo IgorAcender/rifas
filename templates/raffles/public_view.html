@@ -529,6 +529,7 @@
                 <button class="quantity-btn" onclick="selectQuantity(100)">+100</button>
                 <button class="quantity-btn" onclick="selectQuantity(300)">+300</button>
                 <button class="quantity-btn" onclick="selectQuantity(500)">+500</button>
+                <button class="quantity-btn" onclick="resetQuantity()" style="background-color: #6c757d;">Zerar</button>
             </div>
             <div class="custom-quantity">
                 <button class="btn-minus" onclick="decreaseQuantity()">-</button>
@@ -633,6 +634,12 @@
         function selectQuantity(qty) {
             state.currentQuantity += qty;
             document.getElementById('quantityInput').value = state.currentQuantity;
+            updateDisplay();
+        }
+
+        function resetQuantity() {
+            state.currentQuantity = 1;
+            document.getElementById('quantityInput').value = 1;
             updateDisplay();
         }
 
