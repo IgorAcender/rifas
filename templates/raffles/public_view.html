@@ -631,8 +631,8 @@
 
         // --- UI Functions ---
         function selectQuantity(qty) {
-            state.currentQuantity = qty;
-            document.getElementById('quantityInput').value = qty;
+            state.currentQuantity += qty;
+            document.getElementById('quantityInput').value = state.currentQuantity;
             updateDisplay();
         }
 
