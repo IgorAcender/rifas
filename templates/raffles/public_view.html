@@ -494,6 +494,106 @@
             100% { box-shadow: inset 0px 0px 0px 40px var(--secondary-color); }
         }
 
+        /* Referral Bonus Modal Styles */
+        .referral-bonus-modal {
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .referral-bonus-header {
+            margin-bottom: 24px;
+        }
+
+        .bonus-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .referral-bonus-header h2 {
+            color: var(--text-dark);
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .referral-bonus-body {
+            margin-bottom: 24px;
+        }
+
+        .bonus-highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .bonus-number {
+            font-size: 48px;
+            font-weight: 700;
+            display: block;
+        }
+
+        .bonus-text {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .bonus-description {
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .bonus-description strong {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .bonus-benefits {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-light);
+            border-radius: 8px;
+        }
+
+        .benefit-icon {
+            font-size: 20px;
+        }
+
+        .btn-close-bonus {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-close-bonus:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
     </style>
 </head>
 <body>
@@ -611,6 +711,45 @@
         </div>
     </div>
 
+    <!-- Referral Bonus Modal -->
+    <div class="modal-overlay" id="referralBonusModal">
+        <div class="modal-content referral-bonus-modal">
+            <div class="referral-bonus-header">
+                <div class="bonus-icon">🎁</div>
+                <h2>Parabéns! Você ganhou um bônus!</h2>
+            </div>
+            <div class="referral-bonus-body">
+                <div class="bonus-highlight">
+                    <span class="bonus-number" id="bonusAmount">{{ raffle.invitee_bonus }}</span>
+                    <span class="bonus-text">número{{ raffle.invitee_bonus|pluralize }} grátis!</span>
+                </div>
+                <p class="bonus-description">
+                    Você foi indicado por um amigo! Para receber seu{{ raffle.invitee_bonus|pluralize }} 
+                    número{{ raffle.invitee_bonus|pluralize }} bônus, basta comprar 
+                    <strong id="minPurchaseAmount">{{ raffle.invitee_min_purchase }}</strong> 
+                    ou mais números nesta campanha.
+                </p>
+                <div class="bonus-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✅</span>
+                        <span>Números aleatórios extras</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✅</span>
+                        <span>Mais chances de ganhar</span>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">✅</span>
+                        <span>Totalmente grátis</span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-close-bonus" onclick="closeReferralBonusModal()">
+                Entendi, vamos lá! 🚀
+            </button>
+        </div>
+    </div>
+
     <script>
         const config = {
             pricePerNumber: parseFloat("{{ raffle.price_per_number|stringformat:'.2f' }}"),
@@ -620,7 +759,8 @@
             enableReferral: {{ raffle.enable_referral|yesno:"true,false" }},
             referralMinPurchase: {{ raffle.referral_min_purchase }},
             inviterBonus: {{ raffle.inviter_bonus }},
-            inviteeBonus: {{ raffle.invitee_bonus }}
+            inviteeBonus: {{ raffle.invitee_bonus }},
+            inviteeMinPurchase: {{ raffle.invitee_min_purchase }}
         };
 
         let state = {
@@ -1100,8 +1240,41 @@
             return await apiFetch(`/api/raffles/orders/${orderId}/`, 'GET');
         }
 
+        // --- Referral Bonus Modal Functions ---
+        function showReferralBonusModal() {
+            const modal = document.getElementById('referralBonusModal');
+            modal.classList.add('visible');
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeReferralBonusModal() {
+            const modal = document.getElementById('referralBonusModal');
+            modal.classList.remove('visible');
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }
+
+        function checkReferralCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralCode = urlParams.get('ref');
+            
+            if (referralCode && config.enableReferral) {
+                // Check if user has already seen this modal for this session
+                const modalShown = sessionStorage.getItem(`referral_modal_${referralCode}`);
+                if (!modalShown) {
+                    // Show modal after a short delay for better UX
+                    setTimeout(() => {
+                        showReferralBonusModal();
+                        sessionStorage.setItem(`referral_modal_${referralCode}`, 'true');
+                    }, 1000);
+                }
+            }
+        }
+
         // --- Init ---
         updateDisplay();
+        checkReferralCode();
 
     </script>
 </body>

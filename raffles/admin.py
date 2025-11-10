@@ -24,8 +24,8 @@ class RaffleAdmin(ModelAdmin):
             'fields': ('winner_number', 'winner')
         }),
         ('Indicacoes', {
-            'fields': ('enable_referral', 'referral_min_purchase', 'inviter_bonus', 'invitee_bonus'),
-            'description': 'Configure o sistema de indicação de amigos. Defina se está ativo, quantidade mínima de números para indicar e quantos números extras ganham.'
+            'fields': ('enable_referral', 'referral_min_purchase', 'inviter_bonus', 'invitee_bonus', 'invitee_min_purchase'),
+            'description': 'Configure o sistema de indicação de amigos. Defina se está ativo, quantidade mínima de números para indicar, quantos números extras ganham e a compra mínima do indicado.'
         }),
         ('Estatisticas', {
             'fields': ('numbers_sold', 'numbers_reserved', 'numbers_available', 'created_at', 'updated_at')

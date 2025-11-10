@@ -48,6 +48,7 @@ class Raffle(models.Model):
     referral_min_purchase = models.PositiveIntegerField('Mínimo para Indicar', default=1, help_text='Quantidade mínima de números para poder indicar (0 = sem mínimo)')
     inviter_bonus = models.PositiveIntegerField('Bonus do Indicante', default=2, help_text='Numeros gratis para quem indica')
     invitee_bonus = models.PositiveIntegerField('Bonus do Indicado', default=1, help_text='Numeros gratis para quem foi indicado')
+    invitee_min_purchase = models.PositiveIntegerField('Compra Mínima do Indicado', default=5, help_text='Quantidade mínima que o indicado precisa comprar para ganhar o bônus')
 
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
