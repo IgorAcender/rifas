@@ -78,16 +78,13 @@ class RaffleOrderSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        import logging
-        logger = logging.getLogger(__name__)
-        
         # Set user from request
         validated_data['user'] = self.context['request'].user
         user = validated_data['user']
 
         # Check if there's a referral code
         referral_code = self.context.get('referral_code')
-        logger.info(f"🛒 Creating order for user {user.name}, referral_code: {referral_code}")
+        print(f"🛒 DEBUG: Creating order for user {user.name}, referral_code: {referral_code}")
 
         order = super().create(validated_data)
 
@@ -96,22 +93,22 @@ class RaffleOrderSerializer(serializers.ModelSerializer):
 
         # Handle referral if present
         if referral_code:
-            logger.info(f"🎁 Processing referral code: {referral_code}")
+            print(f"🎁 DEBUG: Processing referral code: {referral_code}")
             try:
                 referral = Referral.objects.get(code=referral_code, raffle=order.raffle)
-                logger.info(f"📋 Referral found: status={referral.status}, inviter={referral.inviter.name}")
+                print(f"📋 DEBUG: Referral found - status={referral.status}, inviter={referral.inviter.name}")
                 
                 if referral.status == Referral.Status.PENDING:
-                    logger.info(f"🎯 Redeeming referral for user {user.name}")
+                    print(f"🎯 DEBUG: Redeeming referral for user {user.name}")
                     referral.redeem(user)
                     # Store referral in order for later bonus allocation
                     order.referral_code = referral_code
                     order.save(update_fields=['referral_code'])
-                    logger.info(f"✅ Referral redeemed and stored in order")
+                    print(f"✅ DEBUG: Referral redeemed and stored in order")
                 else:
-                    logger.warning(f"⚠️  Referral status is {referral.status}, not PENDING")
+                    print(f"⚠️  DEBUG: Referral status is {referral.status}, not PENDING")
             except Referral.DoesNotExist:
-                logger.warning(f"❌ Referral code {referral_code} not found")
+                print(f"❌ DEBUG: Referral code {referral_code} not found")
 
         return order
 
