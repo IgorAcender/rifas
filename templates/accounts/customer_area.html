@@ -78,9 +78,6 @@
                 {% with has_numbers=True %}
                 <div class="number-item {% if number.source != 'purchase' %}bonus-number{% endif %}">
                     <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
-                    <div class="number-badge status-{{ number.status }}">
-                        {{ number.get_status_display }}
-                    </div>
                     {% if number.source != 'purchase' %}
                     <div class="bonus-label">🎁 {{ number.get_source_display }}</div>
                     {% endif %}
