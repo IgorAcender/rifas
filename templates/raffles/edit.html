@@ -290,9 +290,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const estimate = total - tax;
 
         document.querySelector('.estimate-value').textContent =
-            'R$ ' + estimate.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            'R$ ' + estimate.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.querySelector('.tax-value').textContent =
-            'R$ ' + tax.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            'R$ ' + tax.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 
     totalNumbersSelect.addEventListener('change', calculateEstimate);
