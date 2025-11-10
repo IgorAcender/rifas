@@ -46,3 +46,33 @@ Boa sorte! 🍀✨"""
             defaults={"template": default_template}
         )
         return template.template
+
+    @classmethod
+    def get_referral_bonus_template(cls):
+        """Get or create referral bonus notification template"""
+        default_template = """🎉 *Parabéns! Indicação Confirmada!* 🎉
+
+Olá *{inviter_name}*!
+
+Ótima notícia! *{invitee_name}* acabou de concluir a compra usando seu link de indicação!
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {raffle_name}
+👤 *Quem comprou:* {invitee_name}
+💰 *Quantidade:* {invitee_quantity} números
+
+🎁 *Você ganhou {total_bonus} números grátis!*
+({bonus_breakdown})
+
+🔢 *Seus números de bônus:*
+{bonus_numbers}
+━━━━━━━━━━━━━━━━━━━
+
+✨ Continue indicando amigos e ganhe mais números!
+Cada indicação bem-sucedida te dá mais chances de ganhar! 🍀"""
+
+        template, created = cls.objects.get_or_create(
+            name="referral_bonus_notification",
+            defaults={"template": default_template}
+        )
+        return template.template

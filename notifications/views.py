@@ -10,14 +10,16 @@ import requests
 @staff_member_required
 def whatsapp_manager(request):
     """WhatsApp Evolution API Manager"""
-    # Get current message template
-    template = WhatsAppMessageTemplate.get_default_template()
+    # Get current message templates
+    payment_template = WhatsAppMessageTemplate.get_default_template()
+    referral_template = WhatsAppMessageTemplate.get_referral_bonus_template()
 
     context = {
         'evolution_url': settings.EVOLUTION_API_URL,
         'instance_name': settings.EVOLUTION_INSTANCE_NAME,
         'api_configured': bool(settings.EVOLUTION_API_URL and settings.EVOLUTION_API_KEY),
-        'message_template': template,
+        'message_template': payment_template,
+        'referral_bonus_template': referral_template,
     }
     return render(request, 'admin/whatsapp_manager.html', context)
 
@@ -160,6 +162,7 @@ def save_message_template(request):
     """Save WhatsApp message template"""
     if request.method == 'POST':
         template_text = request.POST.get('template')
+        template_name = request.POST.get('template_name', 'payment_confirmation')
 
         if not template_text:
             return JsonResponse({
@@ -167,9 +170,16 @@ def save_message_template(request):
                 'error': 'Template é obrigatório'
             })
 
+        # Validate template_name
+        if template_name not in ['payment_confirmation', 'referral_bonus_notification']:
+            return JsonResponse({
+                'success': False,
+                'error': 'Nome de template inválido'
+            })
+
         try:
             template, created = WhatsAppMessageTemplate.objects.get_or_create(
-                name="payment_confirmation",
+                name=template_name,
                 defaults={"template": template_text}
             )
             if not created:

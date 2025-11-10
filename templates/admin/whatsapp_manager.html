@@ -315,7 +315,7 @@
             <code>{order_id}</code> - ID do pedido
         </div>
 
-        <form id="template-form" onsubmit="saveTemplate(event)">
+        <form id="template-form" onsubmit="saveTemplate(event, 'payment_confirmation')">
             {% csrf_token %}
             <div class="form-group">
                 <label for="template">Template da Mensagem</label>
@@ -323,7 +323,38 @@
             </div>
             <div style="display: flex; gap: 10px;">
                 <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
-                <button type="button" class="btn btn-secondary" onclick="resetTemplate()">🔄 Restaurar Padrão</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate('payment_confirmation')">🔄 Restaurar Padrão</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Referral Bonus Template Editor -->
+    <div class="test-message-form" style="margin-top: 30px;">
+        <h2>🎁 Editor de Mensagem de Bônus de Indicação</h2>
+        <p style="color: #666; margin-bottom: 15px;">
+            Esta mensagem será enviada automaticamente para o indicador quando alguém comprar com seu link.
+        </p>
+
+        <div class="alert alert-warning" style="margin-bottom: 15px;">
+            <strong>Placeholders disponíveis:</strong><br>
+            <code>{inviter_name}</code> - Nome do indicador<br>
+            <code>{invitee_name}</code> - Nome de quem comprou<br>
+            <code>{raffle_name}</code> - Nome da campanha<br>
+            <code>{invitee_quantity}</code> - Quantidade de números comprados<br>
+            <code>{total_bonus}</code> - Total de números de bônus ganhos<br>
+            <code>{bonus_breakdown}</code> - Detalhamento do bônus (base + progressivo)<br>
+            <code>{bonus_numbers}</code> - Lista dos números de bônus
+        </div>
+
+        <form id="referral-template-form" onsubmit="saveTemplate(event, 'referral_bonus_notification')">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="referral_template">Template da Mensagem</label>
+                <textarea id="referral_template" name="template" rows="20" style="font-family: monospace;">{{ referral_bonus_template }}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate('referral_bonus_notification')">🔄 Restaurar Padrão</button>
             </div>
         </form>
     </div>
@@ -493,11 +524,13 @@
         }
     }
 
-    async function saveTemplate(event) {
+    async function saveTemplate(event, templateName) {
         event.preventDefault();
 
         const form = event.target;
         const formData = new FormData(form);
+        formData.append('template_name', templateName);
+        
         const button = form.querySelector('button[type="submit"]');
 
         button.disabled = true;
@@ -523,12 +556,16 @@
         }
     }
 
-    function resetTemplate() {
+    function resetTemplate(templateName) {
         if (!confirm('Deseja realmente restaurar o template padrão? As alterações não salvas serão perdidas.')) {
             return;
         }
 
-        const defaultTemplate = `🎉 *Pagamento Confirmado!*
+        let defaultTemplate, fieldId;
+        
+        if (templateName === 'payment_confirmation') {
+            fieldId = 'template';
+            defaultTemplate = `🎉 *Pagamento Confirmado!*
 
 Olá *{name}*!
 
@@ -549,8 +586,31 @@ Seu pagamento foi aprovado com sucesso!
 ✅ Seus números estão reservados e concorrendo ao prêmio!
 
 Boa sorte! 🍀✨`;
+        } else if (templateName === 'referral_bonus_notification') {
+            fieldId = 'referral_template';
+            defaultTemplate = `🎉 *Parabéns! Indicação Confirmada!* 🎉
 
-        document.getElementById('template').value = defaultTemplate;
+Olá *{inviter_name}*!
+
+Ótima notícia! *{invitee_name}* acabou de concluir a compra usando seu link de indicação!
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {raffle_name}
+👤 *Quem comprou:* {invitee_name}
+💰 *Quantidade:* {invitee_quantity} números
+
+🎁 *Você ganhou {total_bonus} números grátis!*
+({bonus_breakdown})
+
+🔢 *Seus números de bônus:*
+{bonus_numbers}
+━━━━━━━━━━━━━━━━━━━
+
+✨ Continue indicando amigos e ganhe mais números!
+Cada indicação bem-sucedida te dá mais chances de ganhar! 🍀`;
+        }
+
+        document.getElementById(fieldId).value = defaultTemplate;
         showAlert('Template restaurado! Não esqueça de clicar em "Salvar Template" para aplicar.', 'warning');
     }
 

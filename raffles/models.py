@@ -581,7 +581,25 @@ class Referral(models.Model):
             if progressive_bonus > 0:
                 bonus_breakdown += f" + {progressive_bonus} números de bônus progressivo ({invitee_purchase_quantity} números comprados ÷ {self.raffle.progressive_bonus_every})"
         
-        message = f"""
+        # Get custom template
+        from notifications.models import WhatsAppMessageTemplate
+        template_text = WhatsAppMessageTemplate.get_referral_bonus_template()
+        
+        # Format message with template
+        try:
+            message = template_text.format(
+                inviter_name=self.inviter.name,
+                invitee_name=self.invitee.name,
+                raffle_name=self.raffle.name,
+                invitee_quantity=invitee_purchase_quantity,
+                total_bonus=total_bonus,
+                bonus_breakdown=bonus_breakdown,
+                bonus_numbers=numbers_str
+            )
+        except Exception as e:
+            logger.error(f"Error formatting referral bonus template: {e}")
+            # Fallback to hardcoded message
+            message = f"""
 🎉 *Parabéns! Indicação Confirmada!* 🎉
 
 Olá *{self.inviter.name}*!
