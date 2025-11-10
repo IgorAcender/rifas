@@ -10,6 +10,7 @@ class Command(BaseCommand):
         whatsapp = settings.ADMIN_WHATSAPP
         password = settings.ADMIN_PASSWORD
         name = settings.ADMIN_NAME
+        email = getattr(settings, 'ADMIN_EMAIL', None)
 
         if User.objects.filter(is_superuser=True).exists():
             self.stdout.write(self.style.SUCCESS('✅ Admin user already exists'))
@@ -19,11 +20,12 @@ class Command(BaseCommand):
             user = User.objects.create_superuser(
                 whatsapp=whatsapp,
                 name=name,
-                password=password
+                password=password,
+                email=email
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'✅ Admin user created: WhatsApp={whatsapp}, Password={password}'
+                    f'✅ Admin user created: Email={email}, Password={password}'
                 )
             )
         except Exception as e:

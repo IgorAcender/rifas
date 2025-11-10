@@ -45,28 +45,26 @@ from .models import User
 
 
 def admin_login(request):
-    """Login do administrador com todos os campos"""
+    """Login do administrador - apenas email e senha"""
     if request.user.is_authenticated and request.user.is_staff:
         return redirect('dashboard')
 
     if request.method == 'POST':
-        whatsapp = request.POST.get('whatsapp')
-        name = request.POST.get('name')
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        # Normalizar WhatsApp
-        whatsapp = ''.join(filter(str.isdigit, whatsapp))
-
-        # Tentar autenticar
-        user = authenticate(request, username=whatsapp, password=password)
-
-        if user is not None and user.is_staff:
-            auth_login(request, user)
-            messages.success(request, f'Bem-vindo, {user.name}!')
-            return redirect('dashboard')
-        else:
-            messages.error(request, 'Credenciais invalidas ou voce nao e administrador.')
+        # Buscar usuário por email
+        try:
+            user = User.objects.get(email=email, is_staff=True)
+            # Verificar senha
+            if user.check_password(password):
+                auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                messages.success(request, f'Bem-vindo, {user.name}!')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Email ou senha incorretos.')
+        except User.DoesNotExist:
+            messages.error(request, 'Email ou senha incorretos.')
 
     return render(request, 'accounts/admin_login.html')
 
