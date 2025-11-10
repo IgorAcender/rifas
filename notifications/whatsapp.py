@@ -34,6 +34,17 @@ def send_whatsapp_message(phone, message):
     Send WhatsApp message with automatic fallback
     Priority: Evolution API -> Avolution API
     """
+    # Normalize phone number - ensure it has country code
+    if phone:
+        # Remove all non-numeric characters
+        phone = ''.join(filter(str.isdigit, phone))
+
+        # Add Brazil country code if not present
+        if not phone.startswith('55'):
+            phone = '55' + phone
+
+    logger.info(f"Sending WhatsApp to {phone}")
+
     # Try Evolution API first
     if settings.EVOLUTION_API_URL and settings.EVOLUTION_API_KEY:
         try:
