@@ -1,0 +1,469 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Gerenciador WhatsApp{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .whatsapp-manager {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .status-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .status-indicator.connected {
+        background-color: #4CAF50;
+        box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+    }
+
+    .status-indicator.disconnected {
+        background-color: #F44336;
+        box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+    }
+
+    .status-indicator.loading {
+        background-color: #FFC107;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .qrcode-container {
+        text-align: center;
+        padding: 30px;
+        background: #f5f5f5;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    .qrcode-container img {
+        max-width: 300px;
+        border: 4px solid #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #25D366;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #1da851;
+    }
+
+    .btn-secondary {
+        background-color: #128C7E;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #0d6d63;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800;
+    }
+
+    .test-message-form {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-top: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .alert {
+        padding: 12px 20px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .info-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        border-left: 4px solid #25D366;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        word-break: break-all;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 0, 0, 0.1);
+        border-top-color: #25D366;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="whatsapp-manager">
+    <h1>Gerenciador WhatsApp Evolution API</h1>
+
+    <div id="alert-container"></div>
+
+    {% if not api_configured %}
+    <div class="alert alert-warning">
+        <strong>Atenção!</strong> Evolution API não está configurada. Verifique as variáveis de ambiente EVOLUTION_API_URL e EVOLUTION_API_KEY.
+    </div>
+    {% else %}
+
+    <!-- Status Card -->
+    <div class="status-card">
+        <h2>Status da Conexão</h2>
+        <div>
+            <span class="status-indicator loading" id="status-indicator"></span>
+            <span id="status-text">Verificando...</span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">URL da API</div>
+                <div class="info-value">{{ evolution_url }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Instância</div>
+                <div class="info-value">{{ instance_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Estado</div>
+                <div class="info-value" id="connection-state">-</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="checkStatus()">
+                🔄 Atualizar Status
+            </button>
+            <button class="btn btn-secondary" onclick="showQRCode()">
+                📱 Mostrar QR Code
+            </button>
+            <button class="btn btn-warning" onclick="restartInstance()">
+                🔄 Reiniciar Instância
+            </button>
+            <button class="btn btn-danger" onclick="logoutInstance()">
+                🚪 Desconectar WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- QR Code Card -->
+    <div class="status-card hidden" id="qrcode-card">
+        <h2>QR Code para Conexão</h2>
+        <p>Escaneie este QR Code com o WhatsApp do seu celular</p>
+        <div class="qrcode-container">
+            <img id="qrcode-image" src="" alt="QR Code">
+        </div>
+        <p style="text-align: center; color: #666;">
+            O QR Code expira em 30 segundos. Clique em "Mostrar QR Code" para gerar um novo.
+        </p>
+    </div>
+
+    <!-- Test Message Form -->
+    <div class="test-message-form">
+        <h2>Enviar Mensagem de Teste</h2>
+        <form id="test-form" onsubmit="sendTestMessage(event)">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="phone">Número do WhatsApp (com código do país)</label>
+                <input type="text" id="phone" name="phone" placeholder="5511999999999" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Mensagem</label>
+                <textarea id="message" name="message" placeholder="Digite sua mensagem...">Olá! Esta é uma mensagem de teste do sistema de rifas. 🎉</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">📤 Enviar Mensagem</button>
+        </form>
+    </div>
+
+    {% endif %}
+</div>
+
+<script>
+    // Check status on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        checkStatus();
+    });
+
+    function showAlert(message, type = 'success') {
+        const container = document.getElementById('alert-container');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        container.appendChild(alert);
+
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+
+    async function checkStatus() {
+        const indicator = document.getElementById('status-indicator');
+        const text = document.getElementById('status-text');
+        const state = document.getElementById('connection-state');
+
+        indicator.className = 'status-indicator loading';
+        text.textContent = 'Verificando...';
+
+        try {
+            const response = await fetch('{% url "whatsapp_status" %}');
+            const data = await response.json();
+
+            if (data.success) {
+                const status = data.status;
+                const isConnected = status.state === 'open';
+
+                indicator.className = `status-indicator ${isConnected ? 'connected' : 'disconnected'}`;
+                text.textContent = isConnected ? '✅ Conectado' : '❌ Desconectado';
+                state.textContent = status.state || 'Desconhecido';
+
+                if (!isConnected) {
+                    showAlert('WhatsApp não está conectado. Clique em "Mostrar QR Code" para conectar.', 'warning');
+                }
+            } else {
+                indicator.className = 'status-indicator disconnected';
+                text.textContent = '❌ Erro ao verificar status';
+                state.textContent = 'Erro';
+                showAlert(data.error || 'Erro ao verificar status', 'error');
+            }
+        } catch (error) {
+            indicator.className = 'status-indicator disconnected';
+            text.textContent = '❌ Erro de conexão';
+            state.textContent = 'Erro';
+            showAlert('Erro ao conectar com a API: ' + error.message, 'error');
+        }
+    }
+
+    async function showQRCode() {
+        const card = document.getElementById('qrcode-card');
+        const image = document.getElementById('qrcode-image');
+
+        card.classList.remove('hidden');
+        image.src = '';
+        image.alt = 'Gerando QR Code...';
+
+        try {
+            const response = await fetch('{% url "whatsapp_qrcode" %}');
+            const data = await response.json();
+
+            if (data.success && data.qrcode) {
+                image.src = data.qrcode;
+                image.alt = 'QR Code WhatsApp';
+                showAlert('QR Code gerado! Escaneie com seu WhatsApp.', 'success');
+            } else {
+                card.classList.add('hidden');
+                showAlert(data.error || 'Erro ao gerar QR Code', 'error');
+            }
+        } catch (error) {
+            card.classList.add('hidden');
+            showAlert('Erro ao gerar QR Code: ' + error.message, 'error');
+        }
+    }
+
+    async function restartInstance() {
+        if (!confirm('Deseja realmente reiniciar a instância WhatsApp?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('{% url "whatsapp_restart" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert(data.message, 'success');
+                setTimeout(checkStatus, 2000);
+            } else {
+                showAlert(data.error || 'Erro ao reiniciar instância', 'error');
+            }
+        } catch (error) {
+            showAlert('Erro ao reiniciar instância: ' + error.message, 'error');
+        }
+    }
+
+    async function logoutInstance() {
+        if (!confirm('Deseja realmente desconectar o WhatsApp? Você precisará escanear o QR Code novamente.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch('{% url "whatsapp_logout" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert(data.message, 'success');
+                setTimeout(checkStatus, 2000);
+            } else {
+                showAlert(data.error || 'Erro ao desconectar', 'error');
+            }
+        } catch (error) {
+            showAlert('Erro ao desconectar: ' + error.message, 'error');
+        }
+    }
+
+    async function sendTestMessage(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const button = form.querySelector('button[type="submit"]');
+
+        button.disabled = true;
+        button.textContent = '📤 Enviando...';
+
+        try {
+            const response = await fetch('{% url "whatsapp_test_message" %}', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert(data.message, 'success');
+                form.reset();
+            } else {
+                showAlert(data.error || 'Erro ao enviar mensagem', 'error');
+            }
+        } catch (error) {
+            showAlert('Erro ao enviar mensagem: ' + error.message, 'error');
+        } finally {
+            button.disabled = false;
+            button.textContent = '📤 Enviar Mensagem';
+        }
+    }
+
+    // Auto-refresh status every 30 seconds
+    setInterval(checkStatus, 30000);
+</script>
+{% endblock %}

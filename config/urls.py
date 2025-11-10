@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.http import JsonResponse
 from raffles import views as raffle_views
 from accounts import views as account_views
+from notifications import views as notification_views
 
 def health_check(request):
     return JsonResponse({'status': 'ok', 'service': 'rifas'})
@@ -25,6 +26,14 @@ urlpatterns = [
     path('apoiadores/', raffle_views.supporters, name='supporters'),
     path('afiliados/', raffle_views.affiliates, name='affiliates'),
     path('configuracoes/', raffle_views.settings_view, name='settings'),
+
+    # WhatsApp Manager
+    path('whatsapp/', notification_views.whatsapp_manager, name='whatsapp_manager'),
+    path('whatsapp/status/', notification_views.get_instance_status, name='whatsapp_status'),
+    path('whatsapp/qrcode/', notification_views.get_qrcode, name='whatsapp_qrcode'),
+    path('whatsapp/restart/', notification_views.restart_instance, name='whatsapp_restart'),
+    path('whatsapp/logout/', notification_views.logout_instance, name='whatsapp_logout'),
+    path('whatsapp/test/', notification_views.send_test_message, name='whatsapp_test_message'),
 
     # API URLs
     path('health/', health_check, name='health-check'),
