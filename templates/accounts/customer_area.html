@@ -5,39 +5,61 @@
 {% block content %}
 <div class="section-title">
     <h2>Minhas Campanhas</h2>
-    <p class="subtitle">Rifas das quais você está participando</p>
+    <p class="subtitle">Rifas das quais você está participando, agrupadas por campanha</p>
 </div>
 
-<div class="raffles-grid">
-    {% for order in my_orders %}
-    {% if order.status == 'paid' %}
-    <div class="raffle-card">
-        <div class="raffle-header">
-            <h3>{{ order.raffle.name }}</h3>
-            <span class="raffle-badge">{{ order.raffle.get_status_display }}</span>
-        </div>
-        <div class="raffle-prize">
-            <span class="prize-icon">🏆</span>
-            <span class="prize-name">{{ order.raffle.prize_name }}</span>
-        </div>
-        {% if order.raffle.draw_date %}
-        <div class="raffle-date">
-            <span class="date-icon">📅</span>
-            <span>Sorteio: {{ order.raffle.draw_date|date:"d/m/Y às H:i" }}</span>
-        </div>
-        {% endif %}
-        <div class="raffle-stats">
-            <div class="stat">
-                <div class="stat-value">{{ order.quantity }}</div>
-                <div class="stat-label">Meus números</div>
+<div class="raffles-section">
+    {% regroup my_orders|dictsort:"raffle.name" by raffle as raffle_groups %}
+
+    {% for raffle_group in raffle_groups %}
+    {% with paid_orders=raffle_group.list|selectattr:"status","equalto","paid"|list %}
+    {% if paid_orders %}
+    <div class="campaign-group">
+        <div class="campaign-group-header">
+            <div class="campaign-group-title">
+                <h3>{{ raffle_group.grouper.name }}</h3>
+                <span class="campaign-group-badge">{{ raffle_group.grouper.get_status_display }}</span>
             </div>
-            <div class="stat">
-                <div class="stat-value">R$ {{ order.amount }}</div>
-                <div class="stat-label">Investido</div>
+            <div class="campaign-group-prize">
+                <span class="prize-icon">🏆</span>
+                <span class="prize-name">{{ raffle_group.grouper.prize_name }}</span>
             </div>
+            {% if raffle_group.grouper.draw_date %}
+            <div class="campaign-group-date">
+                <span class="date-icon">📅</span>
+                <span>Sorteio: {{ raffle_group.grouper.draw_date|date:"d/m/Y às H:i" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="campaign-group-stats">
+            {% with total_quantity=0 total_amount=0 %}
+            {% for order in paid_orders %}
+                {% with total_quantity=total_quantity|add:order.quantity %}
+                {% endwith %}
+                {% with total_amount=total_amount|add:order.amount %}
+                {% endwith %}
+            {% endfor %}
+
+            <div class="stat-card">
+                <div class="stat-icon">🎫</div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ paid_orders|sum:"quantity" }}</div>
+                    <div class="stat-label">Meus números</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-content">
+                    <div class="stat-value">R$ {{ paid_orders|sum:"amount"|floatformat:2 }}</div>
+                    <div class="stat-label">Investido</div>
+                </div>
+            </div>
+            {% endwith %}
         </div>
     </div>
     {% endif %}
+    {% endwith %}
     {% empty %}
     <div class="empty-state">
         <div class="empty-icon">🎫</div>
@@ -220,59 +242,53 @@
     color: #64748b;
 }
 
-/* Raffles Grid */
-.raffles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
+/* Raffles Section - Grouped by Campaign */
+.raffles-section {
     margin-bottom: 40px;
 }
 
-.raffle-card {
+.campaign-group {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 12px;
-    padding: 24px;
-    transition: all 0.2s;
+    margin-bottom: 24px;
+    overflow: hidden;
 }
 
-.raffle-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-color: #22c55e;
+.campaign-group-header {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    padding: 20px 24px;
+    color: white;
 }
 
-.raffle-header {
+.campaign-group-title {
     display: flex;
     justify-content: space-between;
-    align-items: start;
-    margin-bottom: 16px;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
-.raffle-header h3 {
-    font-size: 18px;
+.campaign-group-title h3 {
+    font-size: 20px;
     font-weight: 600;
-    color: #1e293b;
-    flex: 1;
+    margin: 0;
 }
 
-.raffle-badge {
-    padding: 4px 10px;
-    background: #dcfce7;
-    color: #16a34a;
+.campaign-group-badge {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
-.raffle-prize {
+.campaign-group-prize {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px;
-    background: #f8fafc;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .prize-icon {
@@ -281,46 +297,57 @@
 
 .prize-name {
     font-size: 14px;
-    color: #64748b;
-    font-weight: 500;
+    opacity: 0.9;
 }
 
-.raffle-date {
+.campaign-group-date {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #64748b;
-    margin-bottom: 16px;
+    opacity: 0.9;
 }
 
 .date-icon {
     font-size: 16px;
 }
 
-.raffle-stats {
+.campaign-group-stats {
+    padding: 20px 24px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e5e5;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
 }
 
-.stat {
-    text-align: center;
+.stat-card {
+    background: #f8fafc;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon {
+    font-size: 32px;
+}
+
+.stat-content {
+    flex: 1;
 }
 
 .stat-value {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     color: #22c55e;
     margin-bottom: 4px;
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: 13px;
     color: #64748b;
+    font-weight: 500;
 }
 
 /* Numbers Grid */
@@ -616,6 +643,21 @@
 }
 
 @media (max-width: 768px) {
+    .campaign-group-title {
+        flex-direction: column;
+        align-items: start;
+        gap: 8px;
+    }
+
+    .campaign-group-badge {
+        align-self: stretch;
+        text-align: center;
+    }
+
+    .campaign-group-stats {
+        grid-template-columns: 1fr;
+    }
+
     .campaign-header {
         flex-direction: column;
         align-items: start;
