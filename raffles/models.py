@@ -446,11 +446,13 @@ class Referral(models.Model):
 
         print(f"🔢 DEBUG: _allocate_numbers - user={user.name}, quantity={quantity}, source={source}")
 
+        # Get available numbers randomly to make it fair
         available = list(
             RaffleNumber.objects.filter(
                 raffle=self.raffle,
                 status=RaffleNumber.Status.AVAILABLE
-            ).values_list('id', flat=True)[:quantity]
+            ).order_by('?')  # Randomize order
+            .values_list('id', flat=True)[:quantity]
         )
 
         print(f"📊 DEBUG: Found {len(available)} available numbers (requested {quantity})")
