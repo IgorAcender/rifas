@@ -34,6 +34,10 @@
             <div class="step-number">3</div>
             <span>Configuracoes</span>
         </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <span>Numeros Premiados</span>
+        </div>
     </div>
 
     <form method="post" class="raffle-form" enctype="multipart/form-data">
@@ -248,13 +252,267 @@
                 <button type="button" class="btn-secondary" onclick="prevStep(2)">
                     ← Voltar
                 </button>
+                <button type="button" class="btn-primary btn-next" onclick="nextStep(4)">
+                    Continuar →
+                </button>
+            </div>
+        </div>
+
+        <div class="form-section" data-step="4">
+            <h2>Números Premiados (Opcional)</h2>
+            <p class="section-description">Configure números que dão prêmios instantâneos quando comprados. Os números são liberados progressivamente conforme a campanha atinge determinadas porcentagens de vendas.</p>
+
+            <div id="prize-numbers-container">
+                <!-- Prize numbers existentes serão carregados aqui -->
+                {% for prize in raffle.prize_numbers.all %}
+                <div class="prize-number-item">
+                    <div class="prize-number-header">
+                        <h4 class="prize-number-title">Número Premiado - {{ prize.number }}</h4>
+                        <button type="button" class="btn-remove-prize" onclick="removePrizeNumber(this)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Remover
+                        </button>
+                    </div>
+                    <div class="prize-number-fields">
+                        <div class="form-group">
+                            <label>Número</label>
+                            <input
+                                type="number"
+                                name="prize_numbers[{{ forloop.counter }}][number]"
+                                value="{{ prize.number }}"
+                                placeholder="Ex: 1001"
+                                min="1"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Valor do Prêmio (R$)</label>
+                            <input
+                                type="number"
+                                name="prize_numbers[{{ forloop.counter }}][prize_amount]"
+                                value="{{ prize.prize_amount|unlocalize }}"
+                                placeholder="Ex: 100.00"
+                                step="0.01"
+                                min="0.01"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Faixa de Liberação (%)</label>
+                            <div class="range-group">
+                                <input
+                                    type="number"
+                                    name="prize_numbers[{{ forloop.counter }}][release_min]"
+                                    value="{{ prize.release_percentage_min|unlocalize }}"
+                                    placeholder="18"
+                                    step="0.01"
+                                    min="0"
+                                    max="100"
+                                >
+                                <span class="range-separator">até</span>
+                                <input
+                                    type="number"
+                                    name="prize_numbers[{{ forloop.counter }}][release_max]"
+                                    value="{{ prize.release_percentage_max|unlocalize }}"
+                                    placeholder="22"
+                                    step="0.01"
+                                    min="0"
+                                    max="100"
+                                >
+                            </div>
+                            <span class="field-hint">O número será liberado quando as vendas estiverem nessa faixa</span>
+                            {% if prize.is_released %}
+                            <span class="field-hint" style="color: #16a34a; font-weight: 600;">✅ Este número já foi liberado!</span>
+                            {% endif %}
+                            {% if prize.is_won %}
+                            <span class="field-hint" style="color: #f59e0b; font-weight: 600;">🏆 Ganho por: {{ prize.winner.name }} ({{ prize.winner.whatsapp }})</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="button" class="btn-add-prize" onclick="addPrizeNumber()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Adicionar Número Premiado
+            </button>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="prevStep(3)">
+                    ← Voltar
+                </button>
                 <button type="submit" class="btn-primary">
-                    Salvar alteracoes
+                    Salvar alterações
                 </button>
             </div>
         </div>
     </form>
 </div>
+
+<style>
+.section-description {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+#prize-numbers-container {
+    margin-bottom: 20px;
+}
+
+.prize-number-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.prize-number-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.prize-number-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.btn-remove-prize {
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-remove-prize:hover {
+    background: #fecaca;
+}
+
+.prize-number-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.btn-add-prize {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px dashed #16a34a;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 24px;
+}
+
+.btn-add-prize:hover {
+    background: #dcfce7;
+}
+
+.range-group {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.range-separator {
+    color: #94a3b8;
+    font-weight: 500;
+}
+</style>
+
+<script>
+let prizeNumberCount = {{ raffle.prize_numbers.count }};
+
+function addPrizeNumber() {
+    prizeNumberCount++;
+    const container = document.getElementById('prize-numbers-container');
+    const item = document.createElement('div');
+    item.className = 'prize-number-item';
+    item.innerHTML = `
+        <div class="prize-number-header">
+            <h4 class="prize-number-title">Número Premiado #${prizeNumberCount}</h4>
+            <button type="button" class="btn-remove-prize" onclick="removePrizeNumber(this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Remover
+            </button>
+        </div>
+        <div class="prize-number-fields">
+            <div class="form-group">
+                <label>Número</label>
+                <input
+                    type="number"
+                    name="prize_numbers[${prizeNumberCount}][number]"
+                    placeholder="Ex: 1001"
+                    min="1"
+                >
+            </div>
+            <div class="form-group">
+                <label>Valor do Prêmio (R$)</label>
+                <input
+                    type="number"
+                    name="prize_numbers[${prizeNumberCount}][prize_amount]"
+                    placeholder="Ex: 100.00"
+                    step="0.01"
+                    min="0.01"
+                >
+            </div>
+            <div class="form-group">
+                <label>Faixa de Liberação (%)</label>
+                <div class="range-group">
+                    <input
+                        type="number"
+                        name="prize_numbers[${prizeNumberCount}][release_min]"
+                        placeholder="18"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                    >
+                    <span class="range-separator">até</span>
+                    <input
+                        type="number"
+                        name="prize_numbers[${prizeNumberCount}][release_max]"
+                        placeholder="22"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                    >
+                </div>
+                <span class="field-hint">O número será liberado quando as vendas estiverem nessa faixa</span>
+            </div>
+        </div>
+    `;
+    container.appendChild(item);
+}
+
+function removePrizeNumber(button) {
+    button.closest('.prize-number-item').remove();
+}
+</script>
 
 <script>
 // Inicializar calculo da arrecadacao
