@@ -48,6 +48,57 @@
 </div>
 
 <div class="section-title">
+    <h2>Minhas Indicações</h2>
+    <p class="subtitle">Pessoas que usaram seu link e completaram compra</p>
+</div>
+
+<div class="referrals-section">
+    {% if my_referrals %}
+    <div class="referrals-summary">
+        <div class="summary-card">
+            <div class="summary-icon">🎁</div>
+            <div class="summary-content">
+                <div class="summary-value">{{ my_referrals|length }}</div>
+                <div class="summary-label">Indicações bem-sucedidas</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon">🎫</div>
+            <div class="summary-content">
+                <div class="summary-value">{{ bonus_numbers_count }}</div>
+                <div class="summary-label">Números bônus ganhos</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="referrals-list">
+        {% for referral in my_referrals %}
+        <div class="referral-card">
+            <div class="referral-avatar">👤</div>
+            <div class="referral-info">
+                <div class="referral-name">{{ referral.invitee.name }}</div>
+                <div class="referral-details">
+                    <span class="referral-raffle">{{ referral.raffle.name }}</span>
+                    <span class="referral-separator">•</span>
+                    <span class="referral-date">{{ referral.redeemed_at|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+            <div class="referral-badge">
+                ✅ Resgatou seu bilhete
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🔗</div>
+        <h3>Nenhuma indicação ainda</h3>
+        <p>Compartilhe seu link de indicação após fazer uma compra e ganhe números grátis!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="section-title">
     <h2>Meus Números</h2>
     <p class="subtitle">Todos os seus números da sorte</p>
 </div>
@@ -415,6 +466,136 @@
 .empty-state p {
     font-size: 14px;
     color: #94a3b8;
+}
+
+/* Referrals Section */
+.referrals-section {
+    margin-bottom: 40px;
+}
+
+.referrals-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: white;
+}
+
+.summary-icon {
+    font-size: 36px;
+    opacity: 0.9;
+}
+
+.summary-content {
+    flex: 1;
+}
+
+.summary-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.summary-label {
+    font-size: 13px;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.referrals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.referral-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s;
+}
+
+.referral-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-color: #667eea;
+}
+
+.referral-avatar {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.referral-info {
+    flex: 1;
+}
+
+.referral-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.referral-details {
+    font-size: 13px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.referral-separator {
+    color: #cbd5e1;
+}
+
+.referral-badge {
+    padding: 8px 16px;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .referral-card {
+        flex-direction: column;
+        align-items: start;
+        gap: 12px;
+    }
+
+    .referral-badge {
+        align-self: stretch;
+        text-align: center;
+    }
+
+    .summary-card {
+        padding: 20px;
+    }
+
+    .summary-value {
+        font-size: 28px;
+    }
 }
 </style>
 {% endblock %}

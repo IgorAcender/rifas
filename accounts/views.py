@@ -96,7 +96,7 @@ def customer_login(request):
 @login_required
 def customer_area(request):
     """Area do cliente - ver seus numeros e historico"""
-    from raffles.models import RaffleNumber, RaffleOrder
+    from raffles.models import RaffleNumber, RaffleOrder, Referral
 
     my_numbers = RaffleNumber.objects.filter(
         user=request.user,
@@ -107,9 +107,23 @@ def customer_area(request):
         user=request.user
     ).select_related('raffle').order_by('-created_at')
 
+    # Get successful referrals (people who used my code and completed purchase)
+    my_referrals = Referral.objects.filter(
+        inviter=request.user,
+        status=Referral.Status.REDEEMED
+    ).select_related('invitee', 'raffle').order_by('-redeemed_at')
+
+    # Count total bonus numbers earned from referrals
+    bonus_numbers_count = RaffleNumber.objects.filter(
+        user=request.user,
+        source=RaffleNumber.Source.REFERRAL_INVITER
+    ).count()
+
     context = {
         'my_numbers': my_numbers,
         'my_orders': my_orders,
+        'my_referrals': my_referrals,
+        'bonus_numbers_count': bonus_numbers_count,
     }
     return render(request, 'accounts/customer_area.html', context)
 
