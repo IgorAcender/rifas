@@ -76,7 +76,7 @@
                 {% for number in my_numbers %}
                 {% if number.raffle.id == campaign.raffle.id %}
                 {% with has_numbers=True %}
-                <div class="number-item">
+                <div class="number-item {% if number.source != 'purchase' %}bonus-number{% endif %}">
                     <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
                     <div class="number-badge status-{{ number.status }}">
                         {{ number.get_status_display }}
@@ -505,10 +505,20 @@
     transition: all 0.2s;
 }
 
+.number-item.bonus-number {
+    background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+    border: 2px solid #60a5fa;
+}
+
 .number-item:hover {
     border-color: #22c55e;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+}
+
+.number-item.bonus-number:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
 .number-value {
