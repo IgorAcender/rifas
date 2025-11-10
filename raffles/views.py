@@ -193,6 +193,7 @@ def raffle_create(request):
                 prize_image_base64=prize_image_base64,
                 total_numbers=int(request.POST.get('total_numbers')),
                 price_per_number=float(request.POST.get('price_per_number')),
+                fee_percentage=float(request.POST.get('fee_percentage', 0)),
                 status=request.POST.get('status', 'draft'),
                 draw_date=request.POST.get('draw_date') if request.POST.get('draw_date') else None,
                 inviter_bonus=int(request.POST.get('inviter_bonus', 2)),
@@ -230,6 +231,7 @@ def raffle_edit(request, pk):
             raffle.prize_name = request.POST.get('prize_name')
             raffle.prize_description = request.POST.get('prize_description', '')
             raffle.price_per_number = float(request.POST.get('price_per_number'))
+            raffle.fee_percentage = float(request.POST.get('fee_percentage', 0))
             raffle.status = request.POST.get('status', 'draft')
             raffle.inviter_bonus = int(request.POST.get('inviter_bonus', 2))
             raffle.invitee_bonus = int(request.POST.get('invitee_bonus', 1))

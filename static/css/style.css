@@ -305,9 +305,25 @@ body {
     border-right: 1px solid #e5e5e5;
 }
 
+.input-suffix {
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: #6366f1;
+    border-left: 1px solid #e5e5e5;
+}
+
 .input-group input {
     border: none;
     flex: 1;
+}
+
+.input-help {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+    font-style: italic;
 }
 
 .field-hint {
