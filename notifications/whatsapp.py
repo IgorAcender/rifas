@@ -34,6 +34,8 @@ def send_whatsapp_message(phone, message):
     Send WhatsApp message with automatic fallback
     Priority: Evolution API -> Avolution API
     """
+    original_phone = phone
+
     # Normalize phone number - ensure it has country code
     if phone:
         # Remove all non-numeric characters
@@ -43,24 +45,28 @@ def send_whatsapp_message(phone, message):
         if not phone.startswith('55'):
             phone = '55' + phone
 
-    logger.info(f"Sending WhatsApp to {phone}")
+    logger.info(f"📱 Normalizing phone: '{original_phone}' -> '{phone}'")
+    logger.info(f"📤 Sending WhatsApp to {phone}")
 
     # Try Evolution API first
     if settings.EVOLUTION_API_URL and settings.EVOLUTION_API_KEY:
+        logger.info(f"🔄 Trying Evolution API: {settings.EVOLUTION_API_URL}")
         try:
             from notifications.evolution import send_whatsapp_message as send_evolution
             result = send_evolution(phone, message)
             if result:
+                logger.info(f"✅ Evolution API success")
                 return result
-            logger.warning("Evolution API failed, trying Avolution fallback...")
+            logger.warning("⚠️  Evolution API failed, trying Avolution fallback...")
         except Exception as e:
-            logger.error(f"Evolution API error: {e}, trying Avolution fallback...")
+            logger.error(f"❌ Evolution API error: {e}, trying Avolution fallback...")
 
     # Fallback to Avolution
     if settings.AVOLUTION_API_URL and settings.AVOLUTION_API_KEY:
+        logger.info(f"🔄 Trying Avolution API: {settings.AVOLUTION_API_URL}")
         return send_whatsapp_message_avolution(phone, message)
 
-    logger.error("No WhatsApp API configured!")
+    logger.error("❌ No WhatsApp API configured!")
     return None
 
 

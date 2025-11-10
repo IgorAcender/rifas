@@ -143,22 +143,31 @@ def mercadopago_webhook(request):
 
     # Check payment status and mark as paid if approved
     if payment_data["status"] == "approved" and order.status != RaffleOrder.Status.PAID:
+        logger.info(f"✅ Payment approved for order {order.id}")
+        logger.info(f"👤 User: {order.user.name} (ID: {order.user.id})")
+        logger.info(f"📱 WhatsApp: {order.user.whatsapp}")
+
+        # Mark as paid (this also allocates bonus numbers if referral was used)
         order.mark_as_paid()
+        logger.info(f"💰 Order {order.id} marked as paid")
+
+        # Get allocated numbers
+        numbers = list(order.allocated_numbers.values_list('number', flat=True))
+        logger.info(f"🔢 Allocated numbers: {numbers}")
 
         # Send WhatsApp notification with numbers
         from notifications.whatsapp import send_payment_confirmation
-        import logging
-        logger = logging.getLogger(__name__)
 
-        logger.info(f"Payment approved for order {order.id}, sending WhatsApp to {order.user.whatsapp}")
+        logger.info(f"📤 Attempting to send WhatsApp to {order.user.whatsapp}")
         try:
             result = send_payment_confirmation(order)
             if result:
-                logger.info(f"WhatsApp sent successfully to {order.user.whatsapp}")
+                logger.info(f"✅ WhatsApp sent successfully to {order.user.whatsapp}")
+                logger.info(f"📋 Response: {result}")
             else:
-                logger.error(f"WhatsApp sending failed for order {order.id}")
+                logger.error(f"❌ WhatsApp sending failed for order {order.id} - No result returned")
         except Exception as e:
-            logger.error(f"Error sending WhatsApp notification: {e}", exc_info=True)
+            logger.error(f"❌ Error sending WhatsApp notification: {e}", exc_info=True)
 
     # Save the latest payment data for reference
     order.payment_data = payment_data
