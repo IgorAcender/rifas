@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}Editar campanha | Sistema de Rifas{% endblock %}
 
@@ -97,10 +98,10 @@
                             type="number"
                             id="price_per_number"
                             name="price_per_number"
-                            value="{{ raffle.price_per_number|floatformat:2|cut:',' }}"
+                            value="{{ raffle.price_per_number|unlocalize }}"
                             step="0.01"
                             min="0.01"
-                            placeholder="0,00"
+                            placeholder="0.00"
                             required
                         >
                     </div>
@@ -113,11 +114,11 @@
                             type="number"
                             id="fee_percentage"
                             name="fee_percentage"
-                            value="{{ raffle.fee_percentage|floatformat:2|cut:',' }}"
+                            value="{{ raffle.fee_percentage|unlocalize }}"
                             step="0.01"
                             min="0"
                             max="100"
-                            placeholder="0,00"
+                            placeholder="0.00"
                         >
                         <span class="input-suffix">%</span>
                     </div>
