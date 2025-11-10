@@ -181,6 +181,11 @@ AVOLUTION_API_URL = config('AVOLUTION_API_URL', default='')
 AVOLUTION_API_KEY = config('AVOLUTION_API_KEY', default='')
 AVOLUTION_INSTANCE_ID = config('AVOLUTION_INSTANCE_ID', default='')
 
+# Evolution API
+EVOLUTION_API_URL = config('EVOLUTION_API_URL', default='')
+EVOLUTION_API_KEY = config('EVOLUTION_API_KEY', default='')
+EVOLUTION_INSTANCE_NAME = config('EVOLUTION_INSTANCE_NAME', default='')
+
 # Admin credentials (from ENV)
 ADMIN_WHATSAPP = config('ADMIN_WHATSAPP', default='5511999999999')
 ADMIN_PASSWORD = config('ADMIN_PASSWORD', default='admin123')

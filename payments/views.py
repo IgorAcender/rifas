@@ -137,9 +137,12 @@ def mercadopago_webhook(request):
     if payment_data["status"] == "approved" and order.status != RaffleOrder.Status.PAID:
         order.mark_as_paid()
 
-        # TODO: Send WhatsApp notification with numbers
-        # from notifications.tasks import send_whatsapp_notification
-        # send_whatsapp_notification.delay(order.id)
+        # Send WhatsApp notification with numbers
+        from notifications.whatsapp import send_payment_confirmation
+        try:
+            send_payment_confirmation(order)
+        except Exception as e:
+            print(f"Error sending WhatsApp notification: {e}")
 
     # Save the latest payment data for reference
     order.payment_data = payment_data

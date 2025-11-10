@@ -1,0 +1,302 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║              📱 EVOLUTION API + WHATSAPP - SISTEMA DE RIFAS                ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🎯 O QUE FOI IMPLEMENTADO                                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  ✅ Integração completa com Evolution API
+  ✅ Envio AUTOMÁTICO de WhatsApp após pagamento aprovado
+  ✅ Mensagem com todos os números da sorte do comprador
+  ✅ Sistema de fallback (Evolution → Avolution)
+  ✅ Compartilhamento de PostgreSQL e Redis (zero conflito)
+  ✅ Scripts de setup automatizados
+  ✅ Documentação completa em 5 guias
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 📚 DOCUMENTAÇÃO                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  🚀 QUICK_START_EVOLUTION.md
+     → Setup em 3 passos
+     → Checklist completo
+     → Comandos prontos
+
+  🔧 EVOLUTION_API_INSTALL.md
+     → Instalação detalhada
+     → Docker + Manual
+     → Compartilhamento de bancos
+
+  ⚙️  EVOLUTION_API_SETUP.md
+     → Configuração da API
+     → Endpoints e testes
+     → Troubleshooting
+
+  📨 WHATSAPP_NOTIFICATION_GUIDE.md
+     → Como funciona o envio
+     → Personalizar mensagens
+     → Logs e monitoramento
+
+  📄 README_EVOLUTION.md
+     → Visão geral completa
+     → Arquitetura
+     → Recursos e melhorias
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🗄️  ARQUITETURA DE BANCOS (COMPARTILHADA)                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  PostgreSQL Server (mesma instância)
+  ├─ seu_database_django ← Django (rifas, users, orders, etc)
+  └─ evolution          ← Evolution API (WhatsApp sessions)
+
+  Redis Server (mesma instância)
+  ├─ DB 0 → Celery Broker     ← Django
+  ├─ DB 1 → Celery Results    ← Django
+  └─ DB 2 → Evolution Cache   ← Evolution API
+
+  ✅ ZERO CONFLITO entre sistemas!
+  ✅ Mesma infraestrutura = economia de recursos
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ⚡ QUICK START                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  1️⃣  Prepare o database
+      ./setup_evolution_database.sh
+
+  2️⃣  Configure Evolution API
+      vim docker-compose.evolution.yml
+      # Cole as configs geradas pelo script
+
+  3️⃣  Inicie
+      docker-compose -f docker-compose.evolution.yml up -d
+
+  4️⃣  Conecte WhatsApp
+      open http://localhost:8080/instance/qrcode/rifas-whatsapp
+
+  5️⃣  Configure Django (.env)
+      EVOLUTION_API_URL=http://localhost:8080
+      EVOLUTION_API_KEY=sua-api-key
+      EVOLUTION_INSTANCE_NAME=rifas-whatsapp
+
+  6️⃣  Teste
+      python test_evolution.py
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🔄 FLUXO COMPLETO (AUTOMÁTICO)                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  Cliente compra
+       ↓
+  Gera PIX (MercadoPago)
+       ↓
+  Cliente paga
+       ↓
+  MercadoPago envia webhook
+       ↓
+  Django marca como PAGO
+       ↓
+  Evolution API envia WhatsApp ← AUTOMÁTICO!
+       ↓
+  Cliente recebe confirmação com números
+
+  ⚡ SEM INTERVENÇÃO MANUAL!
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 📱 MENSAGEM ENVIADA                                                        │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  🎉 Pagamento Confirmado!
+
+  Olá João Silva!
+
+  Seu pagamento foi aprovado com sucesso!
+
+  ━━━━━━━━━━━━━━━━━━━
+  🎫 Rifa: iPhone 15 Pro Max
+  🏆 Prêmio: iPhone 15 Pro Max 256GB
+  📅 Data do sorteio: 25/12/2024 às 20:00
+
+  🔢 Seus números da sorte:
+  0001, 0042, 0123, 0456, 0789
+
+  💰 Valor pago: R$ 50,00
+  📦 Pedido: #123
+  ━━━━━━━━━━━━━━━━━━━
+
+  ✅ Seus números estão reservados e concorrendo ao prêmio!
+
+  Boa sorte! 🍀✨
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 📦 ARQUIVOS CRIADOS                                                        │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  📄 Documentação
+     ├─ README_EVOLUTION.md
+     ├─ QUICK_START_EVOLUTION.md
+     ├─ EVOLUTION_API_INSTALL.md
+     ├─ EVOLUTION_API_SETUP.md
+     ├─ WHATSAPP_NOTIFICATION_GUIDE.md
+     └─ OVERVIEW.txt (este arquivo)
+
+  🔧 Setup & Config
+     ├─ setup_evolution_database.sh
+     ├─ docker-compose.evolution.yml
+     └─ test_evolution.py
+
+  💻 Código
+     ├─ notifications/evolution.py
+     ├─ notifications/whatsapp.py
+     └─ payments/views.py (atualizado)
+
+  ⚙️  Config
+     ├─ config/settings.py (atualizado)
+     └─ .env.example (atualizado)
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🔑 VARIÁVEIS DE AMBIENTE                                                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  Django (.env)
+  ─────────────
+  EVOLUTION_API_URL=http://localhost:8080
+  EVOLUTION_API_KEY=gere-uma-chave-forte-32-chars
+  EVOLUTION_INSTANCE_NAME=rifas-whatsapp
+
+  Evolution API (docker-compose.evolution.yml)
+  ────────────────────────────────────────────
+  AUTHENTICATION_API_KEY=mesma-chave-do-django
+  DATABASE_CONNECTION_URI=postgresql://user:pass@host:5432/evolution
+  REDIS_URI=redis://localhost:6379/2
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🧪 COMANDOS DE TESTE                                                       │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  # Teste integração completa
+  python test_evolution.py
+
+  # Teste envio manual
+  python manage.py shell
+  >>> from notifications.whatsapp import send_whatsapp_message
+  >>> send_whatsapp_message('5511999999999', 'Teste!')
+
+  # Verificar status Evolution
+  curl http://localhost:8080/
+
+  # Verificar instância WhatsApp
+  curl -H "apikey: SUA-KEY" \
+       http://localhost:8080/instance/connectionState/rifas-whatsapp
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🛠️  COMANDOS ÚTEIS                                                         │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  # Iniciar Evolution API
+  docker-compose -f docker-compose.evolution.yml up -d
+
+  # Ver logs
+  docker-compose -f docker-compose.evolution.yml logs -f
+
+  # Reiniciar
+  docker-compose -f docker-compose.evolution.yml restart
+
+  # Parar
+  docker-compose -f docker-compose.evolution.yml down
+
+  # Atualizar imagem
+  docker-compose -f docker-compose.evolution.yml pull
+  docker-compose -f docker-compose.evolution.yml up -d
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ✅ CHECKLIST                                                               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  Setup
+  ─────
+  ☐ Script setup_evolution_database.sh executado
+  ☐ Database 'evolution' criado no PostgreSQL
+  ☐ API Key gerada (32+ caracteres)
+  ☐ docker-compose.evolution.yml configurado
+
+  Execução
+  ────────
+  ☐ Evolution API iniciada
+  ☐ Instância 'rifas-whatsapp' criada
+  ☐ QR Code gerado
+  ☐ WhatsApp conectado (QR Code escaneado)
+
+  Integração
+  ──────────
+  ☐ Variáveis no .env do Django configuradas
+  ☐ test_evolution.py executado com sucesso
+  ☐ Mensagem de teste recebida no WhatsApp
+
+  Produção
+  ────────
+  ☐ Teste E2E: compra → pagamento → WhatsApp ✅
+  ☐ Webhook MercadoPago configurado (HTTPS)
+  ☐ HTTPS configurado (Let's Encrypt)
+  ☐ Firewall/segurança configurados
+  ☐ Monitoramento/logs ativos
+  ☐ Backup automático dos databases
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🚨 TROUBLESHOOTING RÁPIDO                                                  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  Mensagens não chegam
+  ────────────────────
+  ✓ Evolution API rodando? → docker ps
+  ✓ WhatsApp conectado? → verificar QR Code
+  ✓ API Key correta? → checar .env
+  ✓ Logs com erro? → docker-compose logs -f
+
+  WhatsApp desconecta
+  ───────────────────
+  → Reconectar: curl http://localhost:8080/instance/connect/rifas-whatsapp
+
+  Database não conecta
+  ────────────────────
+  → Testar: psql -U user -d evolution
+  → Verificar: DATABASE_CONNECTION_URI
+
+  Redis não conecta
+  ─────────────────
+  → Testar: redis-cli -n 2 ping
+  → Verificar: REDIS_URI
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 📞 RECURSOS                                                                │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  📚 Leia primeiro: QUICK_START_EVOLUTION.md
+  🔧 Instalação: EVOLUTION_API_INSTALL.md
+  📖 Docs oficiais: https://doc.evolution-api.com
+  🐙 GitHub: https://github.com/EvolutionAPI/evolution-api
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ 🎉 PRONTO!                                                                 │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  Seu sistema está COMPLETO e pronto para:
+
+  ✅ Receber pagamentos via MercadoPago
+  ✅ Alocar números automaticamente
+  ✅ Enviar WhatsApp com confirmação e números
+  ✅ Sistema redundante com fallback
+  ✅ Compartilhar PostgreSQL e Redis
+  ✅ Monitorar e fazer debug
+
+  🚀 TUDO AUTOMÁTICO - ZERO INTERVENÇÃO MANUAL!
+
+  Próximo passo: ./setup_evolution_database.sh
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                          Happy Coding! 💻✨                                ║
+╚════════════════════════════════════════════════════════════════════════════╝

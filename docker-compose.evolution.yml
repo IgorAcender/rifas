@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: evolution-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Server Configuration
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - SERVER_URL=${EVOLUTION_SERVER_URL:-http://localhost:8080}
+      - SERVER_PORT=8080
+
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Authentication
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # ⚠️ IMPORTANTE: Use o script setup_evolution_database.sh para gerar uma chave
+      # Ou gere manualmente: openssl rand -hex 32
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY:-CHANGE-THIS-USE-SETUP-SCRIPT}
+
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Database - PostgreSQL
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=postgresql
+      # ⚠️ CONFIGURE AQUI: Use o output do script setup_evolution_database.sh
+      # Formato: postgresql://user:password@host:port/evolution
+      - DATABASE_CONNECTION_URI=${EVOLUTION_DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/evolution}
+      - DATABASE_CONNECTION_POOL_SIZE=10
+      - DATABASE_CONNECTION_POOL_TIMEOUT=60000
+
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Redis
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - REDIS_ENABLED=true
+      # ⚠️ IMPORTANTE: Usa DB 2 para não conflitar com Django (DB 0 e 1)
+      - REDIS_URI=${EVOLUTION_REDIS_URL:-redis://localhost:6379/2}
+      - REDIS_PREFIX=evolution
+
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # WhatsApp Settings
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - QRCODE_COLOR=#198754
+      - QRCODE_LIMIT=30
+
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Logs
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - LOG_LEVEL=INFO
+      - LOG_COLOR=true
+      - LOG_BAILEYS=error
+
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Instance Settings
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - DEL_INSTANCE=false
+      - DEL_TEMP_INSTANCES=true
+
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      # Webhook (desabilitado por padrão)
+      # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      - WEBHOOK_GLOBAL_ENABLED=false
+      - WEBHOOK_EVENTS_APPLICATION_STARTUP=false
+      - WEBHOOK_EVENTS_QRCODE_UPDATED=true
+      - WEBHOOK_EVENTS_MESSAGES_SET=true
+      - WEBHOOK_EVENTS_MESSAGES_UPSERT=true
+      - WEBHOOK_EVENTS_MESSAGES_UPDATE=true
+      - WEBHOOK_EVENTS_MESSAGES_DELETE=true
+      - WEBHOOK_EVENTS_SEND_MESSAGE=true
+      - WEBHOOK_EVENTS_CONNECTION_UPDATE=true
+
+    volumes:
+      # Persistir dados das instâncias WhatsApp
+      - evolution_instances:/evolution/instances
+      - evolution_store:/evolution/store
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Network Mode
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Use network_mode: "host" se PostgreSQL e Redis estão no host
+    # Ou use networks se estão em containers
+    network_mode: "host"
+
+    # Se PostgreSQL e Redis estão em containers Docker, use isto:
+    # networks:
+    #   - app-network
+    # depends_on:
+    #   - postgres
+    #   - redis
+
+volumes:
+  evolution_instances:
+    driver: local
+  evolution_store:
+    driver: local
+
+# Se PostgreSQL e Redis estão em containers, descomente:
+# networks:
+#   app-network:
+#     driver: bridge
