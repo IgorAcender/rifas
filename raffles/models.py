@@ -282,6 +282,8 @@ class RaffleOrder(models.Model):
         import logging
         logger = logging.getLogger(__name__)
 
+        logger.info(f"🔄 Marking order {self.id} as paid. Referral code: {self.referral_code}")
+
         self.status = self.Status.PAID
         self.paid_at = timezone.now()
         self.save()
@@ -291,19 +293,27 @@ class RaffleOrder(models.Model):
             status=RaffleNumber.Status.SOLD,
             sold_at=timezone.now()
         )
+        logger.info(f"✅ Marked {self.allocated_numbers.count()} numbers as sold")
 
         # Allocate bonus numbers if referral was used
         if self.referral_code:
+            logger.info(f"🎁 Processing referral code: {self.referral_code}")
             try:
                 referral = Referral.objects.get(
                     code=self.referral_code,
-                    raffle=self.raffle,
-                    status=Referral.Status.REDEEMED
+                    raffle=self.raffle
                 )
-                referral.allocate_bonus_numbers()
-                logger.info(f"✅ Allocated bonus numbers for referral {self.referral_code}")
+                logger.info(f"📋 Referral found: status={referral.status}, inviter={referral.inviter.name}, invitee={referral.invitee.name if referral.invitee else 'None'}")
+                
+                if referral.status == Referral.Status.REDEEMED:
+                    logger.info(f"🎯 Calling allocate_bonus_numbers()")
+                    referral.allocate_bonus_numbers()
+                    logger.info(f"✅ Allocated bonus numbers for referral {self.referral_code}")
+                else:
+                    logger.warning(f"⚠️  Referral status is {referral.status}, not REDEEMED")
+                    
             except Referral.DoesNotExist:
-                logger.warning(f"⚠️  Referral {self.referral_code} not found")
+                logger.error(f"❌ Referral {self.referral_code} not found in database")
 
         # Create referral code for this user if eligible
         if (self.raffle.enable_referral and
@@ -394,32 +404,54 @@ class Referral(models.Model):
     @transaction.atomic
     def allocate_bonus_numbers(self):
         """Allocate bonus numbers for both inviter and invitee"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"🎁 allocate_bonus_numbers called for referral {self.code}")
+        logger.info(f"   Inviter: {self.inviter.name}, Invitee: {self.invitee.name if self.invitee else 'None'}")
+        logger.info(f"   Status: {self.status}")
+        logger.info(f"   Inviter allocated: {self.inviter_numbers_allocated}, Invitee allocated: {self.invitee_numbers_allocated}")
+        
         if not self.invitee:
+            logger.warning("⚠️  No invitee found, cannot allocate bonus numbers")
             return
 
         # Allocate for inviter
         if not self.inviter_numbers_allocated:
+            logger.info(f"🎯 Allocating {self.raffle.inviter_bonus} numbers for inviter {self.inviter.name}")
             self._allocate_numbers(
                 user=self.inviter,
                 quantity=self.raffle.inviter_bonus,
                 source=RaffleNumber.Source.REFERRAL_INVITER
             )
             self.inviter_numbers_allocated = True
+            logger.info(f"✅ Inviter numbers allocated")
+        else:
+            logger.info(f"ℹ️  Inviter already has bonus numbers allocated")
 
         # Allocate for invitee
         if not self.invitee_numbers_allocated:
+            logger.info(f"🎯 Allocating {self.raffle.invitee_bonus} numbers for invitee {self.invitee.name}")
             self._allocate_numbers(
                 user=self.invitee,
                 quantity=self.raffle.invitee_bonus,
                 source=RaffleNumber.Source.REFERRAL_INVITEE
             )
             self.invitee_numbers_allocated = True
+            logger.info(f"✅ Invitee numbers allocated")
+        else:
+            logger.info(f"ℹ️  Invitee already has bonus numbers allocated")
 
         self.save()
+        logger.info(f"✅ Bonus allocation complete for referral {self.code}")
 
     def _allocate_numbers(self, user, quantity, source):
         """Helper to allocate numbers"""
         from django.utils import timezone
+        import logging
+        logger = logging.getLogger(__name__)
+
+        logger.info(f"🔢 _allocate_numbers: user={user.name}, quantity={quantity}, source={source}")
 
         available = list(
             RaffleNumber.objects.filter(
@@ -428,7 +460,10 @@ class Referral(models.Model):
             ).values_list('id', flat=True)[:quantity]
         )
 
+        logger.info(f"📊 Found {len(available)} available numbers (requested {quantity})")
+
         if len(available) < quantity:
+            logger.warning(f"⚠️  Not enough available numbers: found {len(available)}, need {quantity}")
             return
 
         RaffleNumber.objects.filter(id__in=available).update(
@@ -437,3 +472,5 @@ class Referral(models.Model):
             source=source,
             sold_at=timezone.now()
         )
+        
+        logger.info(f"✅ Successfully allocated {len(available)} numbers to {user.name}")
