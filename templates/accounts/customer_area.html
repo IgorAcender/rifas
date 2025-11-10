@@ -3,6 +3,15 @@
 {% block title %}Minha Área{% endblock %}
 
 {% block content %}
+<!-- DEBUG: Mostrando my_referral_codes -->
+<div style="display:none;">
+    DEBUG: Total de referral codes: {{ my_referral_codes|length }}
+    {% for ref in my_referral_codes %}
+        <br>- Referral {{ ref.code }} para campanha {{ ref.raffle.name }} (ID: {{ ref.raffle.id }}) - {{ ref.total_tickets }} tickets
+    {% endfor %}
+</div>
+<!-- FIM DEBUG -->
+
 <div class="page-header">
     <h1>Minha Área</h1>
     <p class="subtitle">Selecione uma campanha para ver todos os detalhes</p>
@@ -185,6 +194,17 @@
 
         <!-- Section: Compartilhar -->
         <div class="section-content" id="share-{{ forloop.counter }}">
+            <!-- DEBUG -->
+            <div style="background: yellow; padding: 10px; margin-bottom: 10px; font-size: 11px;">
+                <strong>DEBUG Compartilhar:</strong><br>
+                Campanha atual ID: {{ campaign.raffle.id }} - {{ campaign.raffle.name }}<br>
+                Total de referral_codes: {{ my_referral_codes|length }}<br>
+                {% for referral in my_referral_codes %}
+                    Referral: {{ referral.raffle.id }} vs {{ campaign.raffle.id }} = {% if referral.raffle.id == campaign.raffle.id %}MATCH!{% else %}no match{% endif %}<br>
+                {% endfor %}
+            </div>
+            <!-- FIM DEBUG -->
+            
             {% for referral in my_referral_codes %}
                 {% if referral.raffle.id == campaign.raffle.id %}
                     <div class="share-box">
