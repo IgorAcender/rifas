@@ -59,17 +59,16 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="total_numbers">Quantidade de titulos</label>
-                    <select id="total_numbers" name="total_numbers" required>
-                        <option value="">Selecionar</option>
-                        <option value="100">100 titulos</option>
-                        <option value="200">200 titulos</option>
-                        <option value="500">500 titulos</option>
-                        <option value="1000">1.000 titulos</option>
-                        <option value="2000">2.000 titulos</option>
-                        <option value="5000">5.000 titulos</option>
-                        <option value="10000">10.000 titulos</option>
-                        <option value="20000">20.000 titulos - (00000 a 19999)</option>
-                    </select>
+                    <input
+                        type="number"
+                        id="total_numbers"
+                        name="total_numbers"
+                        min="1"
+                        step="1"
+                        placeholder="Digite a quantidade de títulos"
+                        required
+                    >
+                    <span class="field-hint">Digite qualquer quantidade (ex: 100, 500, 1000, etc)</span>
                 </div>
 
                 <div class="form-group">
