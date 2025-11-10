@@ -89,46 +89,43 @@
 
 <div class="section-title">
     <h2>Minhas Indicações</h2>
-    <p class="subtitle">Pessoas que usaram seu link e completaram compra</p>
+    <p class="subtitle">Pessoas que usaram seu link e completaram compra, agrupadas por campanha</p>
 </div>
 
 <div class="referrals-section">
-    {% if my_referrals %}
-    <div class="referrals-summary">
-        <div class="summary-card">
-            <div class="summary-icon">🎁</div>
-            <div class="summary-content">
-                <div class="summary-value">{{ my_referrals|length }}</div>
-                <div class="summary-label">Indicações bem-sucedidas</div>
+    {% if my_referrals_grouped %}
+    {% for group in my_referrals_grouped %}
+    <div class="campaign-referral-group">
+        <div class="campaign-header">
+            <div class="campaign-title">
+                <h3>{{ group.raffle.name }}</h3>
+                <span class="campaign-stats">{{ group.count }} indicações • {{ group.bonus_numbers }} números bônus ganhos</span>
+            </div>
+            <div class="campaign-badge">
+                🎯 {{ group.raffle.get_status_display }}
             </div>
         </div>
-        <div class="summary-card">
-            <div class="summary-icon">🎫</div>
-            <div class="summary-content">
-                <div class="summary-value">{{ bonus_numbers_count }}</div>
-                <div class="summary-label">Números bônus ganhos</div>
-            </div>
-        </div>
-    </div>
 
-    <div class="referrals-list">
-        {% for referral in my_referrals %}
-        <div class="referral-card">
-            <div class="referral-avatar">👤</div>
-            <div class="referral-info">
-                <div class="referral-name">{{ referral.invitee.name }}</div>
-                <div class="referral-details">
-                    <span class="referral-raffle">{{ referral.raffle.name }}</span>
-                    <span class="referral-separator">•</span>
-                    <span class="referral-date">{{ referral.redeemed_at|date:"d/m/Y" }}</span>
+        <div class="referrals-list">
+            {% for referral in group.referrals %}
+            <div class="referral-card">
+                <div class="referral-avatar">👤</div>
+                <div class="referral-info">
+                    <div class="referral-name">{{ referral.invitee.name }}</div>
+                    <div class="referral-details">
+                        <span class="referral-phone">{{ referral.invitee.whatsapp }}</span>
+                        <span class="referral-separator">•</span>
+                        <span class="referral-date">{{ referral.redeemed_at|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+                <div class="referral-badge">
+                    ✅ Resgatou seu bilhete
                 </div>
             </div>
-            <div class="referral-badge">
-                ✅ Resgatou seu bilhete
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
     {% else %}
     <div class="empty-state">
         <div class="empty-icon">🔗</div>
@@ -513,55 +510,55 @@
     margin-bottom: 40px;
 }
 
-.referrals-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+.campaign-referral-group {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
     margin-bottom: 24px;
+    overflow: hidden;
 }
 
-.summary-card {
+.campaign-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    padding: 24px;
+    padding: 20px 24px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 16px;
     color: white;
 }
 
-.summary-icon {
-    font-size: 36px;
-    opacity: 0.9;
+.campaign-title h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
 }
 
-.summary-content {
-    flex: 1;
-}
-
-.summary-value {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.summary-label {
+.campaign-stats {
     font-size: 13px;
     opacity: 0.9;
-    font-weight: 500;
+}
+
+.campaign-badge {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .referrals-list {
+    padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
 .referral-card {
-    background: white;
+    background: #f8fafc;
     border: 1px solid #e5e5e5;
-    border-radius: 12px;
-    padding: 16px 20px;
+    border-radius: 8px;
+    padding: 16px;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -569,6 +566,7 @@
 }
 
 .referral-card:hover {
+    background: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border-color: #667eea;
 }
@@ -618,6 +616,17 @@
 }
 
 @media (max-width: 768px) {
+    .campaign-header {
+        flex-direction: column;
+        align-items: start;
+        gap: 12px;
+    }
+
+    .campaign-badge {
+        align-self: stretch;
+        text-align: center;
+    }
+
     .referral-card {
         flex-direction: column;
         align-items: start;
@@ -627,14 +636,6 @@
     .referral-badge {
         align-self: stretch;
         text-align: center;
-    }
-
-    .summary-card {
-        padding: 20px;
-    }
-
-    .summary-value {
-        font-size: 28px;
     }
 }
 

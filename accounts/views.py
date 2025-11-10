@@ -107,13 +107,37 @@ def customer_area(request):
         user=request.user
     ).select_related('raffle').order_by('-created_at')
 
-    # Get successful referrals (people who used my code and completed purchase)
-    my_referrals = Referral.objects.filter(
+    # Get successful referrals grouped by campaign
+    from collections import defaultdict
+
+    all_referrals = Referral.objects.filter(
         inviter=request.user,
         status=Referral.Status.REDEEMED
-    ).select_related('invitee', 'raffle').order_by('-redeemed_at')
+    ).select_related('invitee', 'raffle').order_by('raffle', '-redeemed_at')
 
-    # Count total bonus numbers earned from referrals
+    # Group referrals by raffle
+    referrals_by_raffle = defaultdict(list)
+    for referral in all_referrals:
+        referrals_by_raffle[referral.raffle].append(referral)
+
+    # Convert to list of dicts for template
+    my_referrals_grouped = []
+    for raffle, referrals in referrals_by_raffle.items():
+        # Count bonus numbers for this specific raffle
+        bonus_count = RaffleNumber.objects.filter(
+            user=request.user,
+            raffle=raffle,
+            source=RaffleNumber.Source.REFERRAL_INVITER
+        ).count()
+
+        my_referrals_grouped.append({
+            'raffle': raffle,
+            'referrals': referrals,
+            'count': len(referrals),
+            'bonus_numbers': bonus_count
+        })
+
+    # Count total bonus numbers earned from all referrals
     bonus_numbers_count = RaffleNumber.objects.filter(
         user=request.user,
         source=RaffleNumber.Source.REFERRAL_INVITER
@@ -146,7 +170,7 @@ def customer_area(request):
     context = {
         'my_numbers': my_numbers,
         'my_orders': my_orders,
-        'my_referrals': my_referrals,
+        'my_referrals_grouped': my_referrals_grouped,
         'bonus_numbers_count': bonus_numbers_count,
         'my_referral_codes': my_referral_codes,
     }
