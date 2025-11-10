@@ -164,6 +164,19 @@ def customer_area(request):
     ).count()
 
     # Get user's referral codes with ticket counts per campaign
+    # First, check all campaigns where user has 10+ paid tickets and create referral code if needed
+    for raffle, orders in orders_by_raffle.items():
+        total_tickets = sum(order.quantity for order in orders)
+        if total_tickets >= 10:
+            # Check if referral code exists, if not create one
+            referral, created = Referral.objects.get_or_create(
+                inviter=request.user,
+                raffle=raffle,
+                defaults={'status': Referral.Status.ACTIVE}
+            )
+            if created:
+                print(f"Created new referral code {referral.code} for user {request.user.whatsapp} on raffle {raffle.name}")
+    
     # Get all referral codes for this user
     all_referral_codes = Referral.objects.filter(
         inviter=request.user
