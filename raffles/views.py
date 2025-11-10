@@ -228,6 +228,9 @@ def campaign_details(request, pk):
     from django.db.models import Sum, Count
     from collections import defaultdict
 
+    # Obter filtro da query string
+    filter_by = request.GET.get('filter', 'total_amount')  # Padrão: maiores compradores
+
     # Estatísticas da campanha
     numbers_sold = raffle.numbers.filter(status=RaffleNumber.Status.SOLD).count()
     numbers_reserved = raffle.numbers.filter(status=RaffleNumber.Status.RESERVED).count()
@@ -252,6 +255,7 @@ def campaign_details(request, pk):
         'purchased_numbers': [],
         'bonus_numbers': [],
         'referral_bonus_count': 0,
+        'successful_referrals': 0,
     })
 
     for order in paid_orders:
@@ -261,7 +265,7 @@ def campaign_details(request, pk):
         buyers_data[buyer_key]['total_quantity'] += order.quantity
         buyers_data[buyer_key]['orders_count'] += 1
 
-    # Adicionar números de cada comprador
+    # Adicionar números de cada comprador e estatísticas de indicações
     for buyer_id, data in buyers_data.items():
         # Números comprados
         purchased = RaffleNumber.objects.filter(
@@ -282,16 +286,57 @@ def campaign_details(request, pk):
         data['bonus_numbers'] = sorted(list(bonus))
         data['referral_bonus_count'] = len(data['bonus_numbers'])
 
-    # Converter para lista e ordenar por valor total
-    buyers_list = sorted(
-        buyers_data.values(),
-        key=lambda x: x['total_amount'],
-        reverse=True
-    )
+        # Contar quantas pessoas esse usuário indicou com sucesso (nesta campanha)
+        successful_referrals = Referral.objects.filter(
+            raffle=raffle,
+            inviter=data['user'],
+            status=Referral.Status.REDEEMED
+        ).count()
+        data['successful_referrals'] = successful_referrals
+
+    # Converter para lista
+    buyers_list = list(buyers_data.values())
+
+    # Aplicar ordenação baseada no filtro
+    if filter_by == 'total_amount':
+        buyers_list = sorted(buyers_list, key=lambda x: x['total_amount'], reverse=True)
+    elif filter_by == 'total_quantity':
+        buyers_list = sorted(buyers_list, key=lambda x: x['total_quantity'], reverse=True)
+    elif filter_by == 'referral_bonus':
+        buyers_list = sorted(buyers_list, key=lambda x: x['referral_bonus_count'], reverse=True)
+    elif filter_by == 'successful_referrals':
+        buyers_list = sorted(buyers_list, key=lambda x: x['successful_referrals'], reverse=True)
+    elif filter_by == 'name':
+        buyers_list = sorted(buyers_list, key=lambda x: x['user'].name.lower())
 
     # Estatísticas de indicações
     referrals = Referral.objects.filter(raffle=raffle, status=Referral.Status.REDEEMED)
     total_referrals = referrals.count()
+
+    # Top 5 indicadores
+    top_inviters = []
+    inviter_stats = {}
+    for referral in referrals:
+        inviter_id = referral.inviter.id
+        if inviter_id not in inviter_stats:
+            inviter_stats[inviter_id] = {
+                'user': referral.inviter,
+                'referral_count': 0,
+                'bonus_numbers': 0
+            }
+        inviter_stats[inviter_id]['referral_count'] += 1
+
+    # Adicionar contagem de números bônus
+    for inviter_id, stats in inviter_stats.items():
+        bonus_count = RaffleNumber.objects.filter(
+            raffle=raffle,
+            user=stats['user'],
+            source=RaffleNumber.Source.REFERRAL_INVITER,
+            status=RaffleNumber.Status.SOLD
+        ).count()
+        stats['bonus_numbers'] = bonus_count
+
+    top_inviters = sorted(inviter_stats.values(), key=lambda x: x['referral_count'], reverse=True)[:5]
 
     context = {
         'raffle': raffle,
@@ -305,6 +350,8 @@ def campaign_details(request, pk):
         'buyers_list': buyers_list,
         'total_buyers': len(buyers_list),
         'total_referrals': total_referrals,
+        'top_inviters': top_inviters,
+        'current_filter': filter_by,
     }
     return render(request, 'raffles/campaign_details.html', context)
 

@@ -75,12 +75,92 @@
     </div>
 </div>
 
+<!-- Top Indicadores -->
+{% if top_inviters %}
+<div class="top-inviters-section">
+    <h2 class="section-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>
+        </svg>
+        Top 5 Indicadores
+    </h2>
+    <div class="top-inviters-grid">
+        {% for inviter in top_inviters %}
+        <div class="inviter-card">
+            <div class="inviter-rank">{{ forloop.counter }}</div>
+            <div class="inviter-info">
+                <h4 class="inviter-name">{{ inviter.user.name }}</h4>
+                <p class="inviter-whatsapp">{{ inviter.user.whatsapp }}</p>
+            </div>
+            <div class="inviter-stats">
+                <div class="inviter-stat">
+                    <p class="inviter-stat-value">{{ inviter.referral_count }}</p>
+                    <p class="inviter-stat-label">Indicações</p>
+                </div>
+                <div class="inviter-stat">
+                    <p class="inviter-stat-value">+{{ inviter.bonus_numbers }}</p>
+                    <p class="inviter-stat-label">Números Bônus</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Lista de Compradores -->
 <div class="buyers-section">
-    <h2 class="section-title">
-        Compradores ({{ total_buyers }})
-        <span class="title-detail">Ordenados por valor total investido</span>
-    </h2>
+    <div class="buyers-header">
+        <h2 class="section-title">
+            Compradores ({{ total_buyers }})
+        </h2>
+        <div class="filter-buttons">
+            <a href="?filter=total_amount" class="filter-btn {% if current_filter == 'total_amount' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                Maiores Compradores
+            </a>
+            <a href="?filter=total_quantity" class="filter-btn {% if current_filter == 'total_quantity' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Mais Números
+            </a>
+            <a href="?filter=successful_referrals" class="filter-btn {% if current_filter == 'successful_referrals' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Maiores Indicadores
+            </a>
+            <a href="?filter=referral_bonus" class="filter-btn {% if current_filter == 'referral_bonus' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 12v10H4V12"></path>
+                    <path d="M22 7H2v5h20V7z"></path>
+                    <path d="M12 22V7"></path>
+                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                </svg>
+                Mais Bônus
+            </a>
+            <a href="?filter=name" class="filter-btn {% if current_filter == 'name' %}active{% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="21" y1="10" x2="3" y2="10"></line>
+                    <line x1="21" y1="6" x2="3" y2="6"></line>
+                    <line x1="21" y1="14" x2="3" y2="14"></line>
+                    <line x1="21" y1="18" x2="3" y2="18"></line>
+                </svg>
+                A-Z
+            </a>
+        </div>
+    </div>
 
     {% if buyers_list %}
         <div class="buyers-table">
@@ -123,6 +203,10 @@
                         <div class="summary-item">
                             <p class="summary-label">Números Comprados</p>
                             <p class="summary-value">{{ buyer.total_quantity }}</p>
+                        </div>
+                        <div class="summary-item">
+                            <p class="summary-label">Pessoas Indicadas</p>
+                            <p class="summary-value referral">{{ buyer.successful_referrals }}</p>
                         </div>
                         <div class="summary-item">
                             <p class="summary-label">Bônus Indicação</p>
@@ -383,19 +467,156 @@
     margin: 0;
 }
 
+/* Top Inviters Section */
+.top-inviters-section {
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.top-inviters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.inviter-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.inviter-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #fbbf24, #f59e0b);
+}
+
+.inviter-rank {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border: 2px solid #fbbf24;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #b45309;
+    flex-shrink: 0;
+}
+
+.inviter-info {
+    flex: 1;
+}
+
+.inviter-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.inviter-whatsapp {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.inviter-stats {
+    display: flex;
+    gap: 16px;
+}
+
+.inviter-stat {
+    text-align: center;
+}
+
+.inviter-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #8b5cf6;
+    margin: 0 0 4px 0;
+}
+
+.inviter-stat-label {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* Buyers Section */
 .buyers-section {
     margin-top: 40px;
+}
+
+.buyers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .section-title {
     font-size: 20px;
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 20px;
+    margin: 0;
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #335268;
+}
+
+.filter-btn.active {
+    background: #335268;
+    border-color: #335268;
+    color: white;
+}
+
+.filter-btn.active svg {
+    stroke: white;
 }
 
 .title-detail {
@@ -493,6 +714,10 @@
 
 .summary-value.highlight {
     color: #f59e0b;
+}
+
+.summary-value.referral {
+    color: #10b981;
 }
 
 .summary-value.bonus {
