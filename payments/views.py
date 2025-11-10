@@ -107,13 +107,21 @@ def get_order_status(request, order_id):
 @permission_classes([AllowAny])
 def mercadopago_webhook(request):
     """MercadoPago webhook handler"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"Webhook received: {request.data}")
+
     if request.data.get("action") == "payment.updated":
         payment_id = request.data.get('data', {}).get('id')
+        logger.info(f"Payment updated: {payment_id}")
     else:
         # Not a payment update, ignore
+        logger.info(f"Ignoring webhook action: {request.data.get('action')}")
         return Response(status=status.HTTP_200_OK)
 
     if not payment_id:
+        logger.warning("No payment_id in webhook data")
         return Response(status=status.HTTP_200_OK)
 
     sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
