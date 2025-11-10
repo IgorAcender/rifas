@@ -71,9 +71,11 @@
 
         <!-- Section: Meus Números -->
         <div class="section-content active" id="numbers-{{ forloop.counter }}">
+            {% with has_numbers=False %}
             <div class="numbers-grid">
                 {% for number in my_numbers %}
                 {% if number.raffle.id == campaign.raffle.id %}
+                {% with has_numbers=True %}
                 <div class="number-item">
                     <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
                     <div class="number-badge status-{{ number.status }}">
@@ -83,16 +85,27 @@
                     <div class="bonus-label">🎁 {{ number.get_source_display }}</div>
                     {% endif %}
                 </div>
+                {% endwith %}
                 {% endif %}
                 {% endfor %}
             </div>
+            {% if not has_numbers %}
+            <div class="empty-state-mini">
+                <div class="empty-icon-mini">🎫</div>
+                <h4>Nenhum número nesta campanha</h4>
+                <p>Você ainda não possui números nesta campanha.</p>
+            </div>
+            {% endif %}
+            {% endwith %}
         </div>
 
         <!-- Section: Compras -->
         <div class="section-content" id="orders-{{ forloop.counter }}">
+            {% with has_orders=False %}
             <div class="orders-container">
                 {% for order in my_orders %}
                 {% if order.raffle.id == campaign.raffle.id %}
+                {% with has_orders=True %}
                 <div class="order-item">
                     <div class="order-header-row">
                         <div>
@@ -114,15 +127,26 @@
                         </div>
                     </div>
                 </div>
+                {% endwith %}
                 {% endif %}
                 {% endfor %}
             </div>
+            {% if not has_orders %}
+            <div class="empty-state-mini">
+                <div class="empty-icon-mini">📦</div>
+                <h4>Nenhuma compra nesta campanha</h4>
+                <p>Você ainda não realizou compras nesta campanha.</p>
+            </div>
+            {% endif %}
+            {% endwith %}
         </div>
 
         <!-- Section: Indicações -->
         <div class="section-content" id="referrals-{{ forloop.counter }}">
+            {% with has_referrals=False %}
             {% for group in my_referrals_grouped %}
             {% if group.raffle.id == campaign.raffle.id %}
+            {% with has_referrals=True %}
             <div class="referrals-box">
                 <div class="referrals-box-header">
                     <h4>{{ group.count }} indicações realizadas</h4>
@@ -145,14 +169,26 @@
                     {% endfor %}
                 </div>
             </div>
+            {% endwith %}
             {% endif %}
             {% endfor %}
+            
+            {% if not has_referrals %}
+            <div class="empty-state-mini">
+                <div class="empty-icon-mini">🔗</div>
+                <h4>Nenhuma indicação ainda</h4>
+                <p>Compartilhe seu link de indicação e ganhe números grátis quando alguém usar seu link!</p>
+            </div>
+            {% endif %}
+            {% endwith %}
         </div>
 
         <!-- Section: Compartilhar -->
         <div class="section-content" id="share-{{ forloop.counter }}">
+            {% with has_share_link=False %}
             {% for referral in my_referral_codes %}
             {% if referral.raffle.id == campaign.raffle.id %}
+            {% with has_share_link=True %}
             <div class="share-box">
                 <div class="share-box-header">
                     <div class="share-icon">🔗</div>
@@ -166,9 +202,9 @@
                            class="share-input" 
                            readonly 
                            value="{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}"
-                           id="share-input-{{ forloop.counter }}">
+                           id="share-input-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
                     <div class="share-buttons-row">
-                        <button class="share-btn copy-btn" onclick="copyLink('share-input-{{ forloop.counter }}')">
+                        <button class="share-btn copy-btn" onclick="copyLink('share-input-{{ forloop.parentloop.counter }}-{{ forloop.counter }}')">
                             📋 Copiar Link
                         </button>
                         <button class="share-btn share-btn-primary" onclick="shareLink('{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}', '{{ referral.raffle.name }}')">
@@ -177,8 +213,18 @@
                     </div>
                 </div>
             </div>
+            {% endwith %}
             {% endif %}
             {% endfor %}
+            
+            {% if not has_share_link %}
+            <div class="empty-state-mini">
+                <div class="empty-icon-mini">📤</div>
+                <h4>Link de indicação não disponível</h4>
+                <p>Compre 10 ou mais bilhetes nesta campanha para desbloquear seu link de indicação e ganhar números grátis!</p>
+            </div>
+            {% endif %}
+            {% endwith %}
         </div>
 
     </div>
@@ -801,6 +847,35 @@
 .empty-message p {
     font-size: 14px;
     color: #94a3b8;
+}
+
+/* Empty State Mini (inside sections) */
+.empty-state-mini {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+}
+
+.empty-icon-mini {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.empty-state-mini h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+}
+
+.empty-state-mini p {
+    font-size: 14px;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.5;
 }
 
 /* Responsive */
