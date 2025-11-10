@@ -128,7 +128,6 @@
             <div class="estimate-box">
                 <p class="estimate-text">A sua arrecadacao estimada e de: <strong class="estimate-value">--</strong></p>
                 <p class="tax-text">Taxa: <strong class="tax-value">--</strong></p>
-                <a href="#" class="tax-link">Ver tabela de taxa →</a>
             </div>
 
             <button type="button" class="btn-primary btn-next" onclick="nextStep(2)">
@@ -278,18 +277,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const totalNumbersSelect = document.getElementById('total_numbers');
     const priceInput = document.getElementById('price_per_number');
+    const feeInput = document.getElementById('fee_percentage');
 
     function calculateEstimate() {
         const totalNumbers = parseInt(totalNumbersSelect.value) || 0;
         const price = parseFloat(priceInput.value) || 0;
+        const feePercentage = parseFloat(feeInput.value) || 0;
         const total = totalNumbers * price;
 
-        // Simple tax calculation (same as create form)
-        let tax = 0;
-        if (total <= 1000) tax = total * 0.05;
-        else if (total <= 5000) tax = total * 0.04;
-        else tax = total * 0.03;
-
+        // Calculate tax based on fee_percentage field
+        const tax = total * (feePercentage / 100);
         const estimate = total - tax;
 
         document.querySelector('.estimate-value').textContent =
@@ -300,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     totalNumbersSelect.addEventListener('change', calculateEstimate);
     priceInput.addEventListener('input', calculateEstimate);
+    feeInput.addEventListener('input', calculateEstimate);
     calculateEstimate();
 });
 </script>
