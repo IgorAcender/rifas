@@ -108,7 +108,7 @@ Olá *{order.user.name}*!
 Seu pagamento foi aprovado com sucesso!
 
 ━━━━━━━━━━━━━━━━━━━
-🎫 *Rifa:* {order.raffle.name}
+🎫 *Campanha:* {order.raffle.name}
 🏆 *Prêmio:* {order.raffle.prize_name}
 {draw_date_str}
 
