@@ -1071,7 +1071,20 @@
         }
 
         async function createRaffleOrder(quantity) {
-            const data = { raffle: config.raffleId, quantity: quantity, payment_method: 'mercadopago' };
+            const data = { 
+                raffle: config.raffleId, 
+                quantity: quantity, 
+                payment_method: 'mercadopago' 
+            };
+            
+            // Capture referral code from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralCode = urlParams.get('ref');
+            if (referralCode) {
+                data.referral_code = referralCode;
+                console.log('🎁 Using referral code:', referralCode);
+            }
+            
             return await apiFetch(`/api/raffles/${config.raffleId}/buy/`, 'POST', data);
         }
 
