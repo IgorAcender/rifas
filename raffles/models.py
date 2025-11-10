@@ -229,6 +229,8 @@ class RaffleOrder(models.Model):
     payment_id = models.CharField('ID do Pagamento', max_length=200, blank=True)
     payment_data = models.JSONField('Dados do Pagamento', default=dict, blank=True)
 
+    referral_code = models.CharField('Codigo de Indicacao', max_length=10, blank=True)
+
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     paid_at = models.DateTimeField('Pago em', null=True, blank=True)
     expires_at = models.DateTimeField('Expira em', null=True, blank=True)
@@ -287,6 +289,18 @@ class RaffleOrder(models.Model):
             status=RaffleNumber.Status.SOLD,
             sold_at=timezone.now()
         )
+
+        # Allocate bonus numbers if referral was used
+        if self.referral_code:
+            try:
+                referral = Referral.objects.get(
+                    code=self.referral_code,
+                    raffle=self.raffle,
+                    status=Referral.Status.REDEEMED
+                )
+                referral.allocate_bonus_numbers()
+            except Referral.DoesNotExist:
+                pass
 
         return list(self.allocated_numbers.values_list('number', flat=True))
 

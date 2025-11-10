@@ -80,10 +80,26 @@ class RaffleOrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Set user from request
         validated_data['user'] = self.context['request'].user
+
+        # Check if there's a referral code
+        referral_code = self.context.get('referral_code')
+
         order = super().create(validated_data)
 
         # Allocate numbers
         order.allocate_numbers()
+
+        # Handle referral if present
+        if referral_code:
+            try:
+                referral = Referral.objects.get(code=referral_code, raffle=order.raffle)
+                if referral.status == Referral.Status.PENDING:
+                    referral.redeem(order.user)
+                    # Store referral in order for later bonus allocation
+                    order.referral_code = referral_code
+                    order.save(update_fields=['referral_code'])
+            except Referral.DoesNotExist:
+                pass
 
         return order
 

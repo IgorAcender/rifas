@@ -22,7 +22,13 @@ class RaffleViewSet(viewsets.ReadOnlyModelViewSet):
             'payment_method': request.data.get('payment_method', 'mercadopago')
         }
 
-        serializer = RaffleOrderSerializer(data=data, context={'request': request})
+        # Pass referral code to serializer context
+        context = {
+            'request': request,
+            'referral_code': request.data.get('referral_code')
+        }
+
+        serializer = RaffleOrderSerializer(data=data, context=context)
         if serializer.is_valid():
             order = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
