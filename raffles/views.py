@@ -34,6 +34,59 @@ class RaffleViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['get'], url_path='my-referral')
+    def my_referral(self, request, pk=None):
+        """Get user's referral code for this raffle"""
+        raffle = self.get_object()
+
+        # Find user's referral for this raffle
+        referral = Referral.objects.filter(
+            inviter=request.user,
+            raffle=raffle
+        ).first()
+
+        if not referral:
+            # Check if user is eligible (has purchased enough)
+            user_orders = RaffleOrder.objects.filter(
+                user=request.user,
+                raffle=raffle,
+                status=RaffleOrder.Status.PAID
+            )
+            total_quantity = sum(order.quantity for order in user_orders)
+
+            return Response({
+                'has_referral': False,
+                'eligible': total_quantity >= raffle.referral_min_purchase,
+                'total_purchased': total_quantity,
+                'min_required': raffle.referral_min_purchase,
+                'message': f'Compre pelo menos {raffle.referral_min_purchase} números para ganhar seu link de indicação'
+            })
+
+        # Build full URL
+        referral_url = request.build_absolute_uri(raffle.get_public_url())
+        if '?' in referral_url:
+            referral_url += f'&ref={referral.code}'
+        else:
+            referral_url += f'?ref={referral.code}'
+
+        # Count successful referrals
+        successful_referrals = Referral.objects.filter(
+            inviter=request.user,
+            raffle=raffle,
+            status=Referral.Status.REDEEMED
+        ).count()
+
+        return Response({
+            'has_referral': True,
+            'code': referral.code,
+            'link': referral_url,
+            'clicks': referral.clicks,
+            'successful_referrals': successful_referrals,
+            'inviter_bonus': raffle.inviter_bonus,
+            'invitee_bonus': raffle.invitee_bonus,
+            'created_at': referral.created_at
+        })
+
 
 class RaffleOrderViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for user's orders"""

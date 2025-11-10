@@ -911,7 +911,7 @@
 
         async function showSuccess(orderId) {
             const modalContent = document.getElementById('pixModalContent');
-            
+
             // Buscar detalhes do pedido com os números
             let numbers = [];
             let quantity = 0;
@@ -922,8 +922,8 @@
             } catch (error) {
                 console.error('Error fetching order details:', error);
             }
-            
-            const numbersHTML = numbers.length > 0 
+
+            const numbersHTML = numbers.length > 0
                 ? `<div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 20px; margin: 20px 0;">
                        <h4 style="margin: 0 0 15px 0; color: #15803d;">🎉 Seus Números da Sorte:</h4>
                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
@@ -931,24 +931,56 @@
                        </div>
                    </div>`
                 : '';
-            
-            // Verificar se deve mostrar botão de indicação
-            const canRefer = config.enableReferral && quantity >= config.referralMinPurchase;
-            const minText = config.referralMinPurchase > 0 
-                ? `*Válido para compras acima de ${config.referralMinPurchase} números` 
-                : '*Compartilhe e ganhe!';
-            
-            const referralHTML = canRefer ? `
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; text-align: center;">
-                    <h4 style="margin: 0 0 10px 0; font-size: 20px;">🎁 Ganhe ${config.inviterBonus} Números Grátis!</h4>
-                    <p style="margin: 0 0 15px 0; font-size: 14px;">Indique um amigo e vocês dois ganham números extras*</p>
-                    <button onclick="shareReferral('${window.location.href}')" style="background: white; color: #667eea; border: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">
-                        📤 Indicar Amigo
-                    </button>
-                    <p style="margin: 15px 0 0 0; font-size: 11px; opacity: 0.9;">${minText}</p>
-                </div>
-            ` : '';
-            
+
+            // Buscar código de indicação do usuário
+            let referralHTML = '';
+            if (config.enableReferral && quantity >= config.referralMinPurchase) {
+                try {
+                    const response = await fetch(`/api/raffles/${config.raffleId}/my-referral/`, {
+                        headers: {
+                            'Authorization': `Bearer ${state.accessToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const referralData = await response.json();
+
+                    if (referralData.has_referral) {
+                        referralHTML = `
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; text-align: center;">
+                                <h4 style="margin: 0 0 10px 0; font-size: 20px;">🎁 Ganhe ${referralData.inviter_bonus} Números Grátis!</h4>
+                                <p style="margin: 0 0 10px 0; font-size: 14px;">Indique um amigo e vocês dois ganham números extras!</p>
+                                <p style="margin: 0 0 15px 0; font-size: 12px; opacity: 0.9;">Você ganha ${referralData.inviter_bonus} e seu amigo ganha ${referralData.invitee_bonus} números</p>
+
+                                <div style="background: rgba(255,255,255,0.15); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+                                    <input
+                                        id="referralLink"
+                                        type="text"
+                                        value="${referralData.link}"
+                                        readonly
+                                        style="width: 100%; padding: 10px; border: none; border-radius: 6px; font-size: 13px; text-align: center;"
+                                    >
+                                </div>
+
+                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                    <button onclick="copyReferralLink('${referralData.link}')" style="background: white; color: #667eea; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; flex: 1; max-width: 150px;">
+                                        📋 Copiar Link
+                                    </button>
+                                    <button onclick="shareReferral('${referralData.link}')" style="background: white; color: #667eea; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; flex: 1; max-width: 150px;">
+                                        📤 Compartilhar
+                                    </button>
+                                </div>
+
+                                <p style="margin: 15px 0 0 0; font-size: 11px; opacity: 0.8;">
+                                    ${referralData.clicks} cliques • ${referralData.successful_referrals} indicações bem-sucedidas
+                                </p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error fetching referral:', error);
+                }
+            }
+
             modalContent.innerHTML = `
                 <div class="success-checkmark">
                     <svg class="success-checkmark__circle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -960,19 +992,34 @@
                 </div>
                 <h3 class="modal-title">Pagamento Aprovado!</h3>
                 <p>Seus números foram garantidos e enviados para seu WhatsApp.</p>
-                
+
                 ${numbersHTML}
                 ${referralHTML}
-                
+
                 <div class="modal-actions">
                     <button class="btn-confirm" onclick="closeModal('pixModal'); location.reload()">Fechar</button>
                 </div>
             `;
         }
         
+        function copyReferralLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ Link copiado! Compartilhe com seus amigos para ganhar números grátis 🎉');
+            }).catch(err => {
+                console.error('Error copying:', err);
+                // Fallback para navegadores mais antigos
+                const input = document.getElementById('referralLink');
+                if (input) {
+                    input.select();
+                    document.execCommand('copy');
+                    alert('✅ Link copiado!');
+                }
+            });
+        }
+
         function shareReferral(url) {
             const text = `🎉 Participe desta rifa incrível e concorra a prêmios! Use meu link e ganhe ${config.inviteeBonus} números grátis: ${url}`;
-            
+
             if (navigator.share) {
                 navigator.share({
                     title: 'Participe da Rifa',

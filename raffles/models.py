@@ -279,6 +279,8 @@ class RaffleOrder(models.Model):
     def mark_as_paid(self):
         """Mark order as paid and allocate numbers permanently"""
         from django.utils import timezone
+        import logging
+        logger = logging.getLogger(__name__)
 
         self.status = self.Status.PAID
         self.paid_at = timezone.now()
@@ -299,8 +301,25 @@ class RaffleOrder(models.Model):
                     status=Referral.Status.REDEEMED
                 )
                 referral.allocate_bonus_numbers()
+                logger.info(f"✅ Allocated bonus numbers for referral {self.referral_code}")
             except Referral.DoesNotExist:
-                pass
+                logger.warning(f"⚠️  Referral {self.referral_code} not found")
+
+        # Create referral code for this user if eligible
+        if (self.raffle.enable_referral and
+            self.quantity >= self.raffle.referral_min_purchase):
+            # Check if user already has a referral code for this raffle
+            existing_referral = Referral.objects.filter(
+                inviter=self.user,
+                raffle=self.raffle
+            ).first()
+
+            if not existing_referral:
+                new_referral = Referral.objects.create(
+                    inviter=self.user,
+                    raffle=self.raffle
+                )
+                logger.info(f"🎁 Created referral code {new_referral.code} for user {self.user.name}")
 
         return list(self.allocated_numbers.values_list('number', flat=True))
 
