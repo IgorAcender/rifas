@@ -505,6 +505,9 @@ class Referral(models.Model):
             )
             self.inviter_numbers_allocated = True
             print(f"✅ DEBUG: Inviter numbers allocated")
+            
+            # Send WhatsApp notification to inviter
+            self._send_inviter_notification(inviter_total_bonus, invitee_purchase_quantity)
         else:
             print(f"ℹ️  DEBUG: Inviter already has bonus numbers allocated")
 
@@ -553,6 +556,66 @@ class Referral(models.Model):
         )
         
         print(f"✅ DEBUG: Successfully allocated {len(available)} numbers to {user.name}")
+
+    def _send_inviter_notification(self, total_bonus, invitee_purchase_quantity):
+        """Send WhatsApp notification to inviter about successful referral"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        if not self.inviter.whatsapp or not self.invitee:
+            return
+        
+        # Get the allocated bonus numbers
+        bonus_numbers = RaffleNumber.objects.filter(
+            raffle=self.raffle,
+            user=self.inviter,
+            source=RaffleNumber.Source.REFERRAL_INVITER
+        ).order_by('number').values_list('number', flat=True)
+        
+        numbers_str = ', '.join([f"{n:04d}" for n in bonus_numbers])
+        
+        # Build bonus breakdown message
+        bonus_breakdown = f"{self.raffle.inviter_bonus} números de bônus base"
+        if self.raffle.enable_progressive_bonus and invitee_purchase_quantity > 0:
+            progressive_bonus = invitee_purchase_quantity // self.raffle.progressive_bonus_every
+            if progressive_bonus > 0:
+                bonus_breakdown += f" + {progressive_bonus} números de bônus progressivo ({invitee_purchase_quantity} números comprados ÷ {self.raffle.progressive_bonus_every})"
+        
+        message = f"""
+🎉 *Parabéns! Indicação Confirmada!* 🎉
+
+Olá *{self.inviter.name}*!
+
+Ótima notícia! *{self.invitee.name}* acabou de concluir a compra usando seu link de indicação!
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {self.raffle.name}
+👤 *Quem comprou:* {self.invitee.name}
+💰 *Quantidade:* {invitee_purchase_quantity} números
+
+🎁 *Você ganhou {total_bonus} números grátis!*
+({bonus_breakdown})
+
+🔢 *Seus números de bônus:*
+{numbers_str}
+━━━━━━━━━━━━━━━━━━━
+
+✨ Continue indicando amigos e ganhe mais números!
+Cada indicação bem-sucedida te dá mais chances de ganhar! 🍀
+        """.strip()
+        
+        # Send via WhatsApp
+        from notifications.whatsapp import send_whatsapp_message
+        
+        logger.info(f"📤 Sending referral bonus notification to inviter {self.inviter.whatsapp}")
+        try:
+            result = send_whatsapp_message(self.inviter.whatsapp, message)
+            if result:
+                logger.info(f"✅ Referral notification sent successfully to {self.inviter.name}")
+            else:
+                logger.error(f"❌ Failed to send referral notification to {self.inviter.name}")
+        except Exception as e:
+            logger.error(f"❌ Error sending referral notification: {e}", exc_info=True)
 
 
 class PrizeNumber(models.Model):
