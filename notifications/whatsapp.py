@@ -153,6 +153,8 @@ def send_referral_share_invitation(order):
     from raffles.models import Referral, RaffleNumber
     from django.urls import reverse
     from django.conf import settings
+    import threading
+    import time
 
     # Check if user is eligible for referral
     if not order.raffle.enable_referral:
@@ -161,56 +163,71 @@ def send_referral_share_invitation(order):
     if order.quantity < order.raffle.referral_min_purchase:
         return None
 
-    # Get or create user's referral code
-    referral, created = Referral.objects.get_or_create(
-        inviter=order.user,
-        raffle=order.raffle
-    )
+    # Get delay from template settings
+    template_obj = WhatsAppMessageTemplate.get_referral_share_template()
+    delay_seconds = template_obj.delay_seconds if hasattr(template_obj, 'delay_seconds') else 30
 
-    # Build referral URL
-    base_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000'
-    public_path = reverse('raffle_public', kwargs={'slug': order.raffle.slug})
-    referral_url = f"{base_url}{public_path}?ref={referral.code}"
+    def send_delayed():
+        """Internal function to send message after delay"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        try:
+            # Wait for the configured delay
+            if delay_seconds > 0:
+                logger.info(f"⏳ Waiting {delay_seconds} seconds before sending referral invitation to {order.user.whatsapp}")
+                time.sleep(delay_seconds)
+            
+            # Get or create user's referral code
+            referral, created = Referral.objects.get_or_create(
+                inviter=order.user,
+                raffle=order.raffle
+            )
 
-    # Count successful referrals
-    successful_referrals = Referral.objects.filter(
-        inviter=order.user,
-        raffle=order.raffle,
-        status=Referral.Status.REDEEMED
-    ).count()
+            # Build referral URL
+            base_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000'
+            public_path = reverse('raffle_public', kwargs={'slug': order.raffle.slug})
+            referral_url = f"{base_url}{public_path}?ref={referral.code}"
 
-    # Count total bonus numbers earned
-    total_bonus_earned = RaffleNumber.objects.filter(
-        raffle=order.raffle,
-        user=order.user,
-        source=RaffleNumber.Source.REFERRAL_INVITER
-    ).count()
+            # Count successful referrals
+            successful_referrals = Referral.objects.filter(
+                inviter=order.user,
+                raffle=order.raffle,
+                status=Referral.Status.REDEEMED
+            ).count()
 
-    # Build progressive bonus message
-    progressive_message = ""
-    if order.raffle.enable_progressive_bonus:
-        progressive_message = f"\n• *Bônus Progressivo:* +1 número a cada {order.raffle.progressive_bonus_every} que seu amigo comprar!"
+            # Count total bonus numbers earned
+            total_bonus_earned = RaffleNumber.objects.filter(
+                raffle=order.raffle,
+                user=order.user,
+                source=RaffleNumber.Source.REFERRAL_INVITER
+            ).count()
 
-    # Get custom template
-    template_text = WhatsAppMessageTemplate.get_referral_share_template()
+            # Build progressive bonus message
+            progressive_message = ""
+            if order.raffle.enable_progressive_bonus:
+                progressive_message = f"\n• *Bônus Progressivo:* +1 número a cada {order.raffle.progressive_bonus_every} que seu amigo comprar!"
 
-    # Format message with template
-    try:
-        message = template_text.format(
-            name=order.user.name,
-            raffle_name=order.raffle.name,
-            prize_name=order.raffle.prize_name,
-            inviter_bonus=order.raffle.inviter_bonus,
-            invitee_bonus=order.raffle.invitee_bonus,
-            progressive_message=progressive_message,
-            referral_link=referral_url,
-            successful_referrals=successful_referrals,
-            total_bonus_earned=total_bonus_earned
-        )
-    except Exception as e:
-        logger.error(f"Error formatting referral share template: {e}")
-        # Fallback to simple message
-        message = f"""
+            # Get custom template text
+            template_text = template_obj.template if hasattr(template_obj, 'template') else template_obj
+
+            # Format message with template
+            try:
+                message = template_text.format(
+                    name=order.user.name,
+                    raffle_name=order.raffle.name,
+                    prize_name=order.raffle.prize_name,
+                    inviter_bonus=order.raffle.inviter_bonus,
+                    invitee_bonus=order.raffle.invitee_bonus,
+                    progressive_message=progressive_message,
+                    referral_link=referral_url,
+                    successful_referrals=successful_referrals,
+                    total_bonus_earned=total_bonus_earned
+                )
+            except Exception as e:
+                logger.error(f"Error formatting referral share template: {e}")
+                # Fallback to simple message
+                message = f"""
 🎁 *Ganhe Números Grátis Indicando Amigos!*
 
 Olá *{order.user.name}*!
@@ -223,6 +240,20 @@ Compartilhe seu link e ganhe *{order.raffle.inviter_bonus} números grátis* a c
 Seu amigo também ganha *{order.raffle.invitee_bonus} números extras*!
 
 Quanto mais você indica, mais chances de ganhar! 🍀
-        """.strip()
+                """.strip()
 
-    return send_whatsapp_message(order.user.whatsapp, message)
+            # Send the message
+            result = send_whatsapp_message(order.user.whatsapp, message)
+            if result:
+                logger.info(f"✅ Referral invitation sent successfully to {order.user.whatsapp} (after {delay_seconds}s delay)")
+            else:
+                logger.error(f"❌ Failed to send referral invitation to {order.user.whatsapp}")
+                
+        except Exception as e:
+            logger.error(f"❌ Error in delayed referral invitation: {e}", exc_info=True)
+
+    # Start background thread to send after delay
+    thread = threading.Thread(target=send_delayed, daemon=True)
+    thread.start()
+    
+    return True  # Return immediately, message will be sent in background

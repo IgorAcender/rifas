@@ -13,7 +13,11 @@ def whatsapp_manager(request):
     # Get current message templates
     payment_template = WhatsAppMessageTemplate.get_default_template()
     referral_template = WhatsAppMessageTemplate.get_referral_bonus_template()
-    referral_share_template = WhatsAppMessageTemplate.get_referral_share_template()
+    referral_share_template_obj = WhatsAppMessageTemplate.get_referral_share_template()
+    
+    # Get template text and delay
+    referral_share_template = referral_share_template_obj.template if hasattr(referral_share_template_obj, 'template') else referral_share_template_obj
+    referral_share_delay = referral_share_template_obj.delay_seconds if hasattr(referral_share_template_obj, 'delay_seconds') else 30
 
     context = {
         'evolution_url': settings.EVOLUTION_API_URL,
@@ -22,6 +26,7 @@ def whatsapp_manager(request):
         'message_template': payment_template,
         'referral_bonus_template': referral_template,
         'referral_share_template': referral_share_template,
+        'referral_share_delay': referral_share_delay,
     }
     return render(request, 'admin/whatsapp_manager.html', context)
 
@@ -165,6 +170,7 @@ def save_message_template(request):
     if request.method == 'POST':
         template_text = request.POST.get('template')
         template_name = request.POST.get('template_name', 'payment_confirmation')
+        delay_seconds = request.POST.get('delay_seconds', 0)
 
         if not template_text:
             return JsonResponse({
@@ -179,13 +185,22 @@ def save_message_template(request):
                 'error': 'Nome de template inválido'
             })
 
+        # Convert delay to integer
+        try:
+            delay_seconds = int(delay_seconds)
+            if delay_seconds < 0:
+                delay_seconds = 0
+        except (ValueError, TypeError):
+            delay_seconds = 0
+
         try:
             template, created = WhatsAppMessageTemplate.objects.get_or_create(
                 name=template_name,
-                defaults={"template": template_text}
+                defaults={"template": template_text, "delay_seconds": delay_seconds}
             )
             if not created:
                 template.template = template_text
+                template.delay_seconds = delay_seconds
                 template.save()
 
             return JsonResponse({

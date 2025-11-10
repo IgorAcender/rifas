@@ -382,6 +382,21 @@
         <form id="referral-share-template-form" onsubmit="saveTemplate(event, 'referral_share_invitation')">
             {% csrf_token %}
             <div class="form-group">
+                <label for="referral_share_delay">⏱️ Delay antes de enviar (segundos)</label>
+                <input 
+                    type="number" 
+                    id="referral_share_delay" 
+                    name="delay_seconds" 
+                    value="{{ referral_share_delay }}" 
+                    min="0" 
+                    max="300"
+                    style="width: 150px; padding: 8px; border: 1px solid #ddd; border-radius: 6px;"
+                >
+                <span style="color: #666; font-size: 13px; margin-left: 10px;">
+                    Tempo de espera antes de enviar esta mensagem (0-300 segundos)
+                </span>
+            </div>
+            <div class="form-group">
                 <label for="referral_share_template">Template da Mensagem</label>
                 <textarea id="referral_share_template" name="template" rows="20" style="font-family: monospace;">{{ referral_share_template }}</textarea>
             </div>
@@ -669,6 +684,8 @@ Você sabia que pode ganhar *{inviter_bonus} números grátis* a cada amigo que 
 💡 *Dica:* Copie o link acima e compartilhe no WhatsApp, Instagram ou Facebook!
 
 Quanto mais você indica, mais chances de ganhar! 🍀✨`;
+            // Reset delay field for referral share
+            document.getElementById('referral_share_delay').value = 30;
         }
 
         document.getElementById(fieldId).value = defaultTemplate;

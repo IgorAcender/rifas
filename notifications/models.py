@@ -7,6 +7,11 @@ class WhatsAppMessageTemplate(models.Model):
     template = models.TextField(
         help_text="Use placeholders: {name}, {raffle_name}, {prize_name}, {draw_date}, {numbers}, {amount}, {order_id}"
     )
+    delay_seconds = models.IntegerField(
+        'Delay (segundos)',
+        default=0,
+        help_text='Tempo de espera antes de enviar a mensagem (em segundos)'
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -109,6 +114,12 @@ Quanto mais você indica, mais chances de ganhar! 🍀✨"""
 
         template, created = cls.objects.get_or_create(
             name="referral_share_invitation",
-            defaults={"template": default_template}
+            defaults={"template": default_template, "delay_seconds": 30}
         )
-        return template.template
+        return template
+
+    @classmethod
+    def get_referral_share_delay(cls):
+        """Get delay in seconds for referral share invitation"""
+        template = cls.objects.filter(name="referral_share_invitation").first()
+        return template.delay_seconds if template else 30
