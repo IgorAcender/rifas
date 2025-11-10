@@ -29,6 +29,9 @@ class Raffle(models.Model):
 
     total_numbers = models.PositiveIntegerField('Total de Numeros')
     price_per_number = models.DecimalField('Preco por Numero', max_digits=10, decimal_places=2)
+    
+    # Fee/Tax settings
+    fee_percentage = models.DecimalField('Taxa (%)', max_digits=5, decimal_places=2, default=0, help_text='Porcentagem de taxa sobre o valor (ex: 5.00 para 5%)')
 
     status = models.CharField('Status', max_length=20, choices=Status.choices, default=Status.DRAFT)
 

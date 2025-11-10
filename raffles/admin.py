@@ -18,7 +18,7 @@ class RaffleAdmin(ModelAdmin):
             'fields': ('prize_name', 'prize_description', 'prize_image_base64')
         }),
         ('Configuracoes', {
-            'fields': ('total_numbers', 'price_per_number', 'draw_date')
+            'fields': ('total_numbers', 'price_per_number', 'fee_percentage', 'draw_date')
         }),
         ('Resultado', {
             'fields': ('winner_number', 'winner')
