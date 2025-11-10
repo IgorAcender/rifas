@@ -237,6 +237,35 @@
                 </div>
             </div>
 
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="enable_progressive_bonus">
+                        <input
+                            type="checkbox"
+                            id="enable_progressive_bonus"
+                            name="enable_progressive_bonus"
+                            value="1"
+                            onchange="toggleProgressiveBonus()"
+                            style="width: auto; display: inline-block; margin-right: 8px;"
+                        >
+                        Ativar Bônus Progressivo
+                    </label>
+                    <span class="field-hint">Indicador ganha números extras baseado na quantidade que o indicado compra</span>
+                </div>
+
+                <div class="form-group" id="progressive_bonus_field" style="display: none;">
+                    <label for="progressive_bonus_every">Bônus a cada X números</label>
+                    <input
+                        type="number"
+                        id="progressive_bonus_every"
+                        name="progressive_bonus_every"
+                        value="20"
+                        min="1"
+                    >
+                    <span class="field-hint">Ex: 20 = ganha 1 número a cada 20 comprados pelo indicado</span>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="prevStep(2)">
                     ← Voltar
@@ -436,6 +465,12 @@ function addPrizeNumber() {
 
 function removePrizeNumber(button) {
     button.closest('.prize-number-item').remove();
+}
+
+function toggleProgressiveBonus() {
+    const checkbox = document.getElementById('enable_progressive_bonus');
+    const field = document.getElementById('progressive_bonus_field');
+    field.style.display = checkbox.checked ? 'block' : 'none';
 }
 </script>
 {% endblock %}

@@ -24,8 +24,16 @@ class RaffleAdmin(ModelAdmin):
             'fields': ('winner_number', 'winner')
         }),
         ('Indicacoes', {
-            'fields': ('enable_referral', 'referral_min_purchase', 'inviter_bonus', 'invitee_bonus', 'invitee_min_purchase'),
-            'description': 'Configure o sistema de indicação de amigos. Defina se está ativo, quantidade mínima de números para indicar, quantos números extras ganham e a compra mínima do indicado.'
+            'fields': (
+                'enable_referral', 
+                'referral_min_purchase', 
+                'inviter_bonus', 
+                'invitee_bonus', 
+                'invitee_min_purchase',
+                'enable_progressive_bonus',
+                'progressive_bonus_every'
+            ),
+            'description': 'Configure o sistema de indicação de amigos. O bônus progressivo permite que o indicador ganhe números extras baseado na quantidade que o indicado compra (ex: 1 número a cada 20 comprados).'
         }),
         ('Estatisticas', {
             'fields': ('numbers_sold', 'numbers_reserved', 'numbers_available', 'created_at', 'updated_at')

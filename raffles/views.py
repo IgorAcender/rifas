@@ -85,6 +85,8 @@ class RaffleViewSet(viewsets.ReadOnlyModelViewSet):
             'successful_referrals': successful_referrals,
             'inviter_bonus': raffle.inviter_bonus,
             'invitee_bonus': raffle.invitee_bonus,
+            'enable_progressive_bonus': raffle.enable_progressive_bonus,
+            'progressive_bonus_every': raffle.progressive_bonus_every,
             'created_at': referral.created_at
         })
 
@@ -395,6 +397,8 @@ def raffle_create(request):
                 draw_date=request.POST.get('draw_date') if request.POST.get('draw_date') else None,
                 inviter_bonus=int(request.POST.get('inviter_bonus', 2)),
                 invitee_bonus=int(request.POST.get('invitee_bonus', 1)),
+                enable_progressive_bonus=request.POST.get('enable_progressive_bonus') == '1',
+                progressive_bonus_every=int(request.POST.get('progressive_bonus_every', 20)),
             )
 
             raffle.initialize_numbers()
@@ -454,6 +458,8 @@ def raffle_edit(request, pk):
             raffle.status = request.POST.get('status', 'draft')
             raffle.inviter_bonus = int(request.POST.get('inviter_bonus', 2))
             raffle.invitee_bonus = int(request.POST.get('invitee_bonus', 1))
+            raffle.enable_progressive_bonus = request.POST.get('enable_progressive_bonus') == '1'
+            raffle.progressive_bonus_every = int(request.POST.get('progressive_bonus_every', 20))
 
             # Update draw_date if provided
             if request.POST.get('draw_date'):

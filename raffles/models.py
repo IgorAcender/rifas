@@ -52,6 +52,11 @@ class Raffle(models.Model):
     inviter_bonus = models.PositiveIntegerField('Bonus do Indicante', default=2, help_text='Numeros gratis para quem indica')
     invitee_bonus = models.PositiveIntegerField('Bonus do Indicado', default=1, help_text='Numeros gratis para quem foi indicado')
     invitee_min_purchase = models.PositiveIntegerField('Compra Mínima do Indicado', default=5, help_text='Quantidade mínima que o indicado precisa comprar para ganhar o bônus')
+    
+    # Progressive bonus
+    enable_progressive_bonus = models.BooleanField('Ativar Bônus Progressivo', default=False, help_text='Indicador ganha números extras baseado na quantidade que o indicado compra')
+    progressive_bonus_every = models.PositiveIntegerField('Bônus a Cada X Números', default=20, help_text='A cada X números que o indicado compra, o indicador ganha 1 número extra (ex: 20 = ganha 1 número a cada 20 comprados)')
+
 
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
@@ -368,8 +373,8 @@ class RaffleOrder(models.Model):
                 print(f"📋 DEBUG: Referral found - status={referral.status}, inviter={referral.inviter.name}, invitee={referral.invitee.name if referral.invitee else 'None'}")
                 
                 if referral.status == Referral.Status.REDEEMED:
-                    print(f"🎯 DEBUG: Calling allocate_bonus_numbers()")
-                    referral.allocate_bonus_numbers()
+                    print(f"🎯 DEBUG: Calling allocate_bonus_numbers() with quantity={self.quantity}")
+                    referral.allocate_bonus_numbers(invitee_purchase_quantity=self.quantity)
                     print(f"✅ DEBUG: Allocated bonus numbers for referral {self.referral_code}")
                 else:
                     print(f"⚠️  DEBUG: Referral status is {referral.status}, not REDEEMED")
@@ -464,23 +469,38 @@ class Referral(models.Model):
         return self
 
     @transaction.atomic
-    def allocate_bonus_numbers(self):
+    def allocate_bonus_numbers(self, invitee_purchase_quantity=0):
         """Allocate bonus numbers for both inviter and invitee"""
         print(f"🎁 DEBUG: allocate_bonus_numbers called for referral {self.code}")
         print(f"   Inviter: {self.inviter.name}, Invitee: {self.invitee.name if self.invitee else 'None'}")
         print(f"   Status: {self.status}")
         print(f"   Inviter allocated: {self.inviter_numbers_allocated}, Invitee allocated: {self.invitee_numbers_allocated}")
+        print(f"   Invitee purchase quantity: {invitee_purchase_quantity}")
         
         if not self.invitee:
             print("⚠️  DEBUG: No invitee found, cannot allocate bonus numbers")
             return
 
+        # Calculate inviter bonus (base + progressive)
+        inviter_total_bonus = self.raffle.inviter_bonus
+        
+        # Add progressive bonus if enabled
+        if self.raffle.enable_progressive_bonus and invitee_purchase_quantity > 0:
+            progressive_bonus = invitee_purchase_quantity // self.raffle.progressive_bonus_every
+            if progressive_bonus > 0:
+                inviter_total_bonus += progressive_bonus
+                print(f"📈 DEBUG: Progressive bonus activated!")
+                print(f"   Invitee bought: {invitee_purchase_quantity} numbers")
+                print(f"   Progressive every: {self.raffle.progressive_bonus_every} numbers")
+                print(f"   Progressive bonus: {progressive_bonus} extra numbers")
+                print(f"   Total inviter bonus: {self.raffle.inviter_bonus} (base) + {progressive_bonus} (progressive) = {inviter_total_bonus}")
+
         # Allocate for inviter
         if not self.inviter_numbers_allocated:
-            print(f"🎯 DEBUG: Allocating {self.raffle.inviter_bonus} numbers for inviter {self.inviter.name}")
+            print(f"🎯 DEBUG: Allocating {inviter_total_bonus} numbers for inviter {self.inviter.name}")
             self._allocate_numbers(
                 user=self.inviter,
-                quantity=self.raffle.inviter_bonus,
+                quantity=inviter_total_bonus,
                 source=RaffleNumber.Source.REFERRAL_INVITER
             )
             self.inviter_numbers_allocated = True

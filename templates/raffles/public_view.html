@@ -1115,11 +1115,19 @@
                     const referralData = await response.json();
 
                     if (referralData.has_referral) {
+                        let progressiveBonus = '';
+                        if (referralData.enable_progressive_bonus) {
+                            progressiveBonus = `<p style="margin: 5px 0 15px 0; font-size: 12px; opacity: 0.9; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 6px;">
+                                📈 <strong>Bônus Progressivo:</strong> +1 número a cada ${referralData.progressive_bonus_every} que seu amigo comprar!
+                            </p>`;
+                        }
+                        
                         referralHTML = `
                             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; text-align: center;">
                                 <h4 style="margin: 0 0 10px 0; font-size: 20px;">🎁 Ganhe ${referralData.inviter_bonus} Números Grátis!</h4>
                                 <p style="margin: 0 0 10px 0; font-size: 14px;">Indique um amigo e vocês dois ganham números extras!</p>
-                                <p style="margin: 0 0 15px 0; font-size: 12px; opacity: 0.9;">Você ganha ${referralData.inviter_bonus} e seu amigo ganha ${referralData.invitee_bonus} números</p>
+                                <p style="margin: 0 0 10px 0; font-size: 12px; opacity: 0.9;">Você ganha ${referralData.inviter_bonus} e seu amigo ganha ${referralData.invitee_bonus} números</p>
+                                ${progressiveBonus}
 
                                 <div style="background: rgba(255,255,255,0.15); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
                                     <input
