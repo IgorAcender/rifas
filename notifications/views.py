@@ -3,16 +3,21 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.conf import settings
 from notifications.evolution import evolution_api
+from notifications.models import WhatsAppMessageTemplate
 import requests
 
 
 @staff_member_required
 def whatsapp_manager(request):
     """WhatsApp Evolution API Manager"""
+    # Get current message template
+    template = WhatsAppMessageTemplate.get_default_template()
+
     context = {
         'evolution_url': settings.EVOLUTION_API_URL,
         'instance_name': settings.EVOLUTION_INSTANCE_NAME,
         'api_configured': bool(settings.EVOLUTION_API_URL and settings.EVOLUTION_API_KEY),
+        'message_template': template,
     }
     return render(request, 'admin/whatsapp_manager.html', context)
 
@@ -142,6 +147,43 @@ def send_test_message(request):
             return JsonResponse({
                 'success': False,
                 'error': f'Erro ao enviar: {str(e)}'
+            })
+
+    return JsonResponse({
+        'success': False,
+        'error': 'Método não permitido'
+    })
+
+
+@staff_member_required
+def save_message_template(request):
+    """Save WhatsApp message template"""
+    if request.method == 'POST':
+        template_text = request.POST.get('template')
+
+        if not template_text:
+            return JsonResponse({
+                'success': False,
+                'error': 'Template é obrigatório'
+            })
+
+        try:
+            template, created = WhatsAppMessageTemplate.objects.get_or_create(
+                name="payment_confirmation",
+                defaults={"template": template_text}
+            )
+            if not created:
+                template.template = template_text
+                template.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Template salvo com sucesso!'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Erro ao salvar: {str(e)}'
             })
 
     return JsonResponse({

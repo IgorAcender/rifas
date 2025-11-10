@@ -298,6 +298,37 @@
         </form>
     </div>
 
+    <!-- Message Template Editor -->
+    <div class="test-message-form">
+        <h2>📝 Editor de Mensagem de Confirmação</h2>
+        <p style="color: #666; margin-bottom: 15px;">
+            Esta mensagem será enviada automaticamente quando um pagamento for aprovado.
+        </p>
+
+        <div class="alert alert-warning" style="margin-bottom: 15px;">
+            <strong>Placeholders disponíveis:</strong><br>
+            <code>{name}</code> - Nome do comprador<br>
+            <code>{raffle_name}</code> - Nome da rifa<br>
+            <code>{prize_name}</code> - Nome do prêmio<br>
+            <code>{draw_date}</code> - Data do sorteio<br>
+            <code>{numbers}</code> - Números da sorte<br>
+            <code>{amount}</code> - Valor pago<br>
+            <code>{order_id}</code> - ID do pedido
+        </div>
+
+        <form id="template-form" onsubmit="saveTemplate(event)">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="template">Template da Mensagem</label>
+                <textarea id="template" name="template" rows="20" style="font-family: monospace;">{{ message_template }}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate()">🔄 Restaurar Padrão</button>
+            </div>
+        </form>
+    </div>
+
     {% endif %}
 </div>
 
@@ -461,6 +492,67 @@
             button.disabled = false;
             button.textContent = '📤 Enviar Mensagem';
         }
+    }
+
+    async function saveTemplate(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const button = form.querySelector('button[type="submit"]');
+
+        button.disabled = true;
+        button.textContent = '💾 Salvando...';
+
+        try {
+            const response = await fetch('{% url "whatsapp_save_template" %}', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert(data.message, 'success');
+            } else {
+                showAlert(data.error || 'Erro ao salvar template', 'error');
+            }
+        } catch (error) {
+            showAlert('Erro ao salvar template: ' + error.message, 'error');
+        } finally {
+            button.disabled = false;
+            button.textContent = '💾 Salvar Template';
+        }
+    }
+
+    function resetTemplate() {
+        if (!confirm('Deseja realmente restaurar o template padrão? As alterações não salvas serão perdidas.')) {
+            return;
+        }
+
+        const defaultTemplate = `🎉 *Pagamento Confirmado!*
+
+Olá *{name}*!
+
+Seu pagamento foi aprovado com sucesso!
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Rifa:* {raffle_name}
+🏆 *Prêmio:* {prize_name}
+{draw_date}
+
+🔢 *Seus números da sorte:*
+{numbers}
+
+💰 *Valor pago:* R$ {amount}
+📦 *Pedido:* #{order_id}
+━━━━━━━━━━━━━━━━━━━
+
+✅ Seus números estão reservados e concorrendo ao prêmio!
+
+Boa sorte! 🍀✨`;
+
+        document.getElementById('template').value = defaultTemplate;
+        showAlert('Template restaurado! Não esqueça de clicar em "Salvar Template" para aplicar.', 'warning');
     }
 
     // Auto-refresh status every 30 seconds

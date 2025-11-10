@@ -34,6 +34,7 @@ urlpatterns = [
     path('whatsapp/restart/', notification_views.restart_instance, name='whatsapp_restart'),
     path('whatsapp/logout/', notification_views.logout_instance, name='whatsapp_logout'),
     path('whatsapp/test/', notification_views.send_test_message, name='whatsapp_test_message'),
+    path('whatsapp/template/save/', notification_views.save_message_template, name='whatsapp_save_template'),
 
     # API URLs
     path('health/', health_check, name='health-check'),

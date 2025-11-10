@@ -144,37 +144,30 @@ def send_payment_confirmation(order):
     Returns:
         dict: API response or None if error
     """
+    from notifications.models import WhatsAppMessageTemplate
+
+    # Get custom template
+    template_text = WhatsAppMessageTemplate.get_default_template()
+
+    # Prepare data for template
     numbers = sorted(order.allocated_numbers.values_list('number', flat=True))
     numbers_str = ', '.join([f"{n:04d}" for n in numbers])
 
     # Format draw date if available
     draw_date_str = ""
     if order.raffle.draw_date:
-        draw_date_str = f"\n📅 *Data do sorteio:* {order.raffle.draw_date.strftime('%d/%m/%Y às %H:%M')}"
+        draw_date_str = f"📅 *Data do sorteio:* {order.raffle.draw_date.strftime('%d/%m/%Y às %H:%M')}"
 
-    message = f"""
-🎉 *Pagamento Confirmado!*
-
-Olá *{order.user.name}*!
-
-Seu pagamento foi aprovado com sucesso!
-
-━━━━━━━━━━━━━━━━━━━
-🎫 *Rifa:* {order.raffle.name}
-🏆 *Prêmio:* {order.raffle.prize_name}
-{draw_date_str}
-
-🔢 *Seus números da sorte:*
-{numbers_str}
-
-💰 *Valor pago:* R$ {order.amount}
-📦 *Pedido:* #{order.id}
-━━━━━━━━━━━━━━━━━━━
-
-✅ Seus números estão reservados e concorrendo ao prêmio!
-
-Boa sorte! 🍀✨
-    """.strip()
+    # Replace placeholders in template
+    message = template_text.format(
+        name=order.user.name,
+        raffle_name=order.raffle.name,
+        prize_name=order.raffle.prize_name,
+        draw_date=draw_date_str,
+        numbers=numbers_str,
+        amount=order.amount,
+        order_id=order.id
+    )
 
     return send_whatsapp_message(order.user.whatsapp, message)
 
