@@ -185,46 +185,41 @@
 
         <!-- Section: Compartilhar -->
         <div class="section-content" id="share-{{ forloop.counter }}">
-            {% with has_share_link=False %}
             {% for referral in my_referral_codes %}
-            {% if referral.raffle.id == campaign.raffle.id %}
-            {% with has_share_link=True %}
-            <div class="share-box">
-                <div class="share-box-header">
-                    <div class="share-icon">🔗</div>
-                    <div class="share-text">
-                        <h4>Compartilhe e ganhe números grátis!</h4>
-                        <p>{{ referral.total_tickets }} bilhetes • {{ referral.clicks }} cliques • {{ referral.raffle.inviter_bonus }} números por indicação</p>
+                {% if referral.raffle.id == campaign.raffle.id %}
+                    <div class="share-box">
+                        <div class="share-box-header">
+                            <div class="share-icon">🔗</div>
+                            <div class="share-text">
+                                <h4>Compartilhe e ganhe números grátis!</h4>
+                                <p>{{ referral.total_tickets }} bilhetes • {{ referral.clicks }} cliques • {{ referral.raffle.inviter_bonus }} números por indicação</p>
+                            </div>
+                        </div>
+                        <div class="share-actions">
+                            <input type="text" 
+                                   class="share-input" 
+                                   readonly 
+                                   value="{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}"
+                                   id="share-input-{{ campaign.raffle.id }}">
+                            <div class="share-buttons-row">
+                                <button class="share-btn copy-btn" onclick="copyLink('share-input-{{ campaign.raffle.id }}')">
+                                    📋 Copiar Link
+                                </button>
+                                <button class="share-btn share-btn-primary" onclick="shareLink('{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}', '{{ referral.raffle.name }}')">
+                                    📤 Compartilhar
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="share-actions">
-                    <input type="text" 
-                           class="share-input" 
-                           readonly 
-                           value="{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}"
-                           id="share-input-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
-                    <div class="share-buttons-row">
-                        <button class="share-btn copy-btn" onclick="copyLink('share-input-{{ forloop.parentloop.counter }}-{{ forloop.counter }}')">
-                            📋 Copiar Link
-                        </button>
-                        <button class="share-btn share-btn-primary" onclick="shareLink('{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}', '{{ referral.raffle.name }}')">
-                            📤 Compartilhar
-                        </button>
-                    </div>
-                </div>
-            </div>
-            {% endwith %}
-            {% endif %}
+                {% endif %}
             {% endfor %}
             
-            {% if not has_share_link %}
-            <div class="empty-state-mini">
+            <!-- Check if no link was found for this campaign -->
+            <div class="empty-state-mini" style="display: none;" data-campaign-id="{{ campaign.raffle.id }}">
                 <div class="empty-icon-mini">📤</div>
                 <h4>Link de indicação não disponível</h4>
                 <p>Compre 10 ou mais bilhetes nesta campanha para desbloquear seu link de indicação e ganhar números grátis!</p>
             </div>
-            {% endif %}
-            {% endwith %}
         </div>
 
     </div>
@@ -945,6 +940,18 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
             document.getElementById(targetId).classList.add('active');
         });
+    });
+    
+    // Check for empty share sections and show empty state
+    document.querySelectorAll('.section-content').forEach(section => {
+        if (section.id && section.id.startsWith('share-')) {
+            const shareBox = section.querySelector('.share-box');
+            const emptyState = section.querySelector('.empty-state-mini');
+            
+            if (!shareBox && emptyState) {
+                emptyState.style.display = 'block';
+            }
+        }
     });
 });
 
