@@ -13,6 +13,7 @@ def whatsapp_manager(request):
     # Get current message templates
     payment_template = WhatsAppMessageTemplate.get_default_template()
     referral_template = WhatsAppMessageTemplate.get_referral_bonus_template()
+    referral_share_template = WhatsAppMessageTemplate.get_referral_share_template()
 
     context = {
         'evolution_url': settings.EVOLUTION_API_URL,
@@ -20,6 +21,7 @@ def whatsapp_manager(request):
         'api_configured': bool(settings.EVOLUTION_API_URL and settings.EVOLUTION_API_KEY),
         'message_template': payment_template,
         'referral_bonus_template': referral_template,
+        'referral_share_template': referral_share_template,
     }
     return render(request, 'admin/whatsapp_manager.html', context)
 
@@ -171,7 +173,7 @@ def save_message_template(request):
             })
 
         # Validate template_name
-        if template_name not in ['payment_confirmation', 'referral_bonus_notification']:
+        if template_name not in ['payment_confirmation', 'referral_bonus_notification', 'referral_share_invitation']:
             return JsonResponse({
                 'success': False,
                 'error': 'Nome de template inválido'

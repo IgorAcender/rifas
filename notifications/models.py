@@ -76,3 +76,39 @@ Cada indicação bem-sucedida te dá mais chances de ganhar! 🍀"""
             defaults={"template": default_template}
         )
         return template.template
+
+    @classmethod
+    def get_referral_share_template(cls):
+        """Get or create referral share invitation template"""
+        default_template = """🎁 *Ganhe Números Grátis Indicando Amigos!* 🎁
+
+Olá *{name}*!
+
+Você sabia que pode ganhar *{inviter_bonus} números grátis* a cada amigo que comprar usando seu link?
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {raffle_name}
+🏆 *Prêmio:* {prize_name}
+
+🎁 *Como funciona:*
+• Compartilhe seu link personalizado
+• Seu amigo ganha *{invitee_bonus} números extras*
+• Você ganha *{inviter_bonus} números grátis*{progressive_message}
+
+🔗 *Seu link de indicação:*
+{referral_link}
+
+📊 *Suas indicações:*
+• {successful_referrals} pessoas já compraram com seu link
+• {total_bonus_earned} números de bônus ganhos
+━━━━━━━━━━━━━━━━━━━
+
+💡 *Dica:* Copie o link acima e compartilhe no WhatsApp, Instagram ou Facebook!
+
+Quanto mais você indica, mais chances de ganhar! 🍀✨"""
+
+        template, created = cls.objects.get_or_create(
+            name="referral_share_invitation",
+            defaults={"template": default_template}
+        )
+        return template.template

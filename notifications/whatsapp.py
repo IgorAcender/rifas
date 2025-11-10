@@ -145,3 +145,84 @@ Boa sorte! 🍀✨
         """.strip()
 
     return send_whatsapp_message(order.user.whatsapp, message)
+
+
+def send_referral_share_invitation(order):
+    """Send referral share invitation with user's referral link"""
+    from notifications.models import WhatsAppMessageTemplate
+    from raffles.models import Referral, RaffleNumber
+    from django.urls import reverse
+    from django.conf import settings
+
+    # Check if user is eligible for referral
+    if not order.raffle.enable_referral:
+        return None
+    
+    if order.quantity < order.raffle.referral_min_purchase:
+        return None
+
+    # Get or create user's referral code
+    referral, created = Referral.objects.get_or_create(
+        inviter=order.user,
+        raffle=order.raffle
+    )
+
+    # Build referral URL
+    base_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000'
+    public_path = reverse('raffle_public', kwargs={'slug': order.raffle.slug})
+    referral_url = f"{base_url}{public_path}?ref={referral.code}"
+
+    # Count successful referrals
+    successful_referrals = Referral.objects.filter(
+        inviter=order.user,
+        raffle=order.raffle,
+        status=Referral.Status.REDEEMED
+    ).count()
+
+    # Count total bonus numbers earned
+    total_bonus_earned = RaffleNumber.objects.filter(
+        raffle=order.raffle,
+        user=order.user,
+        source=RaffleNumber.Source.REFERRAL_INVITER
+    ).count()
+
+    # Build progressive bonus message
+    progressive_message = ""
+    if order.raffle.enable_progressive_bonus:
+        progressive_message = f"\n• *Bônus Progressivo:* +1 número a cada {order.raffle.progressive_bonus_every} que seu amigo comprar!"
+
+    # Get custom template
+    template_text = WhatsAppMessageTemplate.get_referral_share_template()
+
+    # Format message with template
+    try:
+        message = template_text.format(
+            name=order.user.name,
+            raffle_name=order.raffle.name,
+            prize_name=order.raffle.prize_name,
+            inviter_bonus=order.raffle.inviter_bonus,
+            invitee_bonus=order.raffle.invitee_bonus,
+            progressive_message=progressive_message,
+            referral_link=referral_url,
+            successful_referrals=successful_referrals,
+            total_bonus_earned=total_bonus_earned
+        )
+    except Exception as e:
+        logger.error(f"Error formatting referral share template: {e}")
+        # Fallback to simple message
+        message = f"""
+🎁 *Ganhe Números Grátis Indicando Amigos!*
+
+Olá *{order.user.name}*!
+
+Compartilhe seu link e ganhe *{order.raffle.inviter_bonus} números grátis* a cada amigo que comprar!
+
+🔗 *Seu link:*
+{referral_url}
+
+Seu amigo também ganha *{order.raffle.invitee_bonus} números extras*!
+
+Quanto mais você indica, mais chances de ganhar! 🍀
+        """.strip()
+
+    return send_whatsapp_message(order.user.whatsapp, message)

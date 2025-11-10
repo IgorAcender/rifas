@@ -359,6 +359,39 @@
         </form>
     </div>
 
+    <!-- Referral Share Invitation Template Editor -->
+    <div class="test-message-form" style="margin-top: 30px;">
+        <h2>📲 Editor de Convite para Compartilhar Indicação</h2>
+        <p style="color: #666; margin-bottom: 15px;">
+            Esta mensagem será enviada automaticamente após a confirmação de pagamento, convidando o comprador a compartilhar seu link de indicação.
+        </p>
+
+        <div class="alert alert-warning" style="margin-bottom: 15px;">
+            <strong>Placeholders disponíveis:</strong><br>
+            <code>{name}</code> - Nome do comprador<br>
+            <code>{raffle_name}</code> - Nome da campanha<br>
+            <code>{prize_name}</code> - Nome do prêmio<br>
+            <code>{inviter_bonus}</code> - Números que o indicador ganha<br>
+            <code>{invitee_bonus}</code> - Números que o indicado ganha<br>
+            <code>{progressive_message}</code> - Mensagem sobre bônus progressivo (se ativado)<br>
+            <code>{referral_link}</code> - Link de indicação do usuário<br>
+            <code>{successful_referrals}</code> - Quantidade de indicações bem-sucedidas<br>
+            <code>{total_bonus_earned}</code> - Total de números de bônus ganhos
+        </div>
+
+        <form id="referral-share-template-form" onsubmit="saveTemplate(event, 'referral_share_invitation')">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="referral_share_template">Template da Mensagem</label>
+                <textarea id="referral_share_template" name="template" rows="20" style="font-family: monospace;">{{ referral_share_template }}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate('referral_share_invitation')">🔄 Restaurar Padrão</button>
+            </div>
+        </form>
+    </div>
+
     {% endif %}
 </div>
 
@@ -608,6 +641,34 @@ Olá *{inviter_name}*!
 
 ✨ Continue indicando amigos e ganhe mais números!
 Cada indicação bem-sucedida te dá mais chances de ganhar! 🍀`;
+        } else if (templateName === 'referral_share_invitation') {
+            fieldId = 'referral_share_template';
+            defaultTemplate = `🎁 *Ganhe Números Grátis Indicando Amigos!* 🎁
+
+Olá *{name}*!
+
+Você sabia que pode ganhar *{inviter_bonus} números grátis* a cada amigo que comprar usando seu link?
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {raffle_name}
+🏆 *Prêmio:* {prize_name}
+
+🎁 *Como funciona:*
+• Compartilhe seu link personalizado
+• Seu amigo ganha *{invitee_bonus} números extras*
+• Você ganha *{inviter_bonus} números grátis*{progressive_message}
+
+🔗 *Seu link de indicação:*
+{referral_link}
+
+📊 *Suas indicações:*
+• {successful_referrals} pessoas já compraram com seu link
+• {total_bonus_earned} números de bônus ganhos
+━━━━━━━━━━━━━━━━━━━
+
+💡 *Dica:* Copie o link acima e compartilhe no WhatsApp, Instagram ou Facebook!
+
+Quanto mais você indica, mais chances de ganhar! 🍀✨`;
         }
 
         document.getElementById(fieldId).value = defaultTemplate;

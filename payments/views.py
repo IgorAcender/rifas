@@ -165,7 +165,7 @@ def mercadopago_webhook(request):
         logger.info(f"🔢 Allocated numbers: {numbers}")
 
         # Send WhatsApp notification with numbers
-        from notifications.whatsapp import send_payment_confirmation
+        from notifications.whatsapp import send_payment_confirmation, send_referral_share_invitation
 
         logger.info(f"📤 Attempting to send WhatsApp to {order.user.whatsapp}")
         try:
@@ -177,6 +177,19 @@ def mercadopago_webhook(request):
                 logger.error(f"❌ WhatsApp sending failed for order {order.id} - No result returned")
         except Exception as e:
             logger.error(f"❌ Error sending WhatsApp notification: {e}", exc_info=True)
+
+        # Send referral share invitation if eligible
+        if (order.raffle.enable_referral and
+            order.quantity >= order.raffle.referral_min_purchase):
+            logger.info(f"📤 Sending referral share invitation to {order.user.whatsapp}")
+            try:
+                result = send_referral_share_invitation(order)
+                if result:
+                    logger.info(f"✅ Referral invitation sent successfully")
+                else:
+                    logger.error(f"❌ Failed to send referral invitation")
+            except Exception as e:
+                logger.error(f"❌ Error sending referral invitation: {e}", exc_info=True)
 
     # Save the latest payment data for reference
     order.payment_data = payment_data
