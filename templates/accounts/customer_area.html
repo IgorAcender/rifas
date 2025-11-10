@@ -1,28 +1,55 @@
-{% extends 'base.html' %}
+{% extends 'customer_base.html' %}
 
-{% block title %}Minha Area | Sistema de Rifas{% endblock %}
+{% block title %}Minha Área{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div class="page-header-left">
-        <svg class="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        <h1>Minha Area</h1>
-    </div>
+<div class="section-title">
+    <h2>Minhas Campanhas</h2>
+    <p class="subtitle">Rifas das quais você está participando</p>
 </div>
 
-<div class="customer-info">
-    <div class="info-card">
-        <h3>Meus Dados</h3>
-        <p><strong>Nome:</strong> {{ request.user.name }}</p>
-        <p><strong>WhatsApp:</strong> {{ request.user.whatsapp }}</p>
+<div class="raffles-grid">
+    {% for order in my_orders %}
+    {% if order.status == 'paid' %}
+    <div class="raffle-card">
+        <div class="raffle-header">
+            <h3>{{ order.raffle.name }}</h3>
+            <span class="raffle-badge">{{ order.raffle.get_status_display }}</span>
+        </div>
+        <div class="raffle-prize">
+            <span class="prize-icon">🏆</span>
+            <span class="prize-name">{{ order.raffle.prize_name }}</span>
+        </div>
+        {% if order.raffle.draw_date %}
+        <div class="raffle-date">
+            <span class="date-icon">📅</span>
+            <span>Sorteio: {{ order.raffle.draw_date|date:"d/m/Y às H:i" }}</span>
+        </div>
+        {% endif %}
+        <div class="raffle-stats">
+            <div class="stat">
+                <div class="stat-value">{{ order.quantity }}</div>
+                <div class="stat-label">Meus números</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">R$ {{ order.amount }}</div>
+                <div class="stat-label">Investido</div>
+            </div>
+        </div>
     </div>
+    {% endif %}
+    {% empty %}
+    <div class="empty-state">
+        <div class="empty-icon">🎫</div>
+        <h3>Nenhuma campanha ativa</h3>
+        <p>Você ainda não está participando de nenhuma rifa.</p>
+    </div>
+    {% endfor %}
 </div>
 
 <div class="section-title">
-    <h2>Meus Numeros</h2>
+    <h2>Meus Números</h2>
+    <p class="subtitle">Todos os seus números da sorte</p>
 </div>
 
 <div class="numbers-grid">
@@ -43,68 +70,178 @@
 </div>
 
 <div class="section-title">
-    <h2>Historico de Compras</h2>
+    <h2>Histórico de Compras</h2>
+    <p class="subtitle">Todas as suas transações</p>
 </div>
 
 <div class="orders-list">
     {% for order in my_orders %}
     <div class="order-card">
         <div class="order-header">
-            <h3>{{ order.raffle.name }}</h3>
+            <div class="order-title">
+                <h3>{{ order.raffle.name }}</h3>
+                <span class="order-date">{{ order.created_at|date:"d/m/Y às H:i" }}</span>
+            </div>
             <span class="order-status status-{{ order.status }}">
                 {{ order.get_status_display }}
             </span>
         </div>
         <div class="order-details">
-            <p><strong>Quantidade:</strong> {{ order.quantity }} numeros</p>
-            <p><strong>Valor:</strong> R$ {{ order.amount }}</p>
-            <p><strong>Data:</strong> {{ order.created_at|date:"d/m/Y H:i" }}</p>
+            <div class="detail-item">
+                <span class="detail-label">Quantidade:</span>
+                <span class="detail-value">{{ order.quantity }} números</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Valor:</span>
+                <span class="detail-value">R$ {{ order.amount }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Pedido:</span>
+                <span class="detail-value">#{{ order.id }}</span>
+            </div>
         </div>
     </div>
     {% empty %}
-    <p class="empty-state">Nenhuma compra realizada ainda.</p>
+    <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>Nenhuma compra realizada</h3>
+        <p>Seu histórico aparecerá aqui.</p>
+    </div>
     {% endfor %}
 </div>
 
 <style>
-.customer-info {
-    margin-bottom: 32px;
+/* Section Title */
+.section-title {
+    margin: 40px 0 24px;
 }
 
-.info-card {
+.section-title:first-child {
+    margin-top: 0;
+}
+
+.section-title h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.section-title .subtitle {
+    font-size: 14px;
+    color: #64748b;
+}
+
+/* Raffles Grid */
+.raffles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.raffle-card {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 12px;
     padding: 24px;
+    transition: all 0.2s;
 }
 
-.info-card h3 {
-    font-size: 18px;
+.raffle-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #22c55e;
+}
+
+.raffle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
     margin-bottom: 16px;
-    color: #1e293b;
 }
 
-.info-card p {
-    font-size: 14px;
-    color: #64748b;
-    margin-bottom: 8px;
-}
-
-.section-title {
-    margin: 32px 0 16px;
-}
-
-.section-title h2 {
-    font-size: 20px;
+.raffle-header h3 {
+    font-size: 18px;
     font-weight: 600;
     color: #1e293b;
+    flex: 1;
 }
+
+.raffle-badge {
+    padding: 4px 10px;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.raffle-prize {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.prize-icon {
+    font-size: 20px;
+}
+
+.prize-name {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.raffle-date {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 16px;
+}
+
+.date-icon {
+    font-size: 16px;
+}
+
+.raffle-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #22c55e;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* Numbers Grid */
 
 .numbers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 16px;
-    margin-bottom: 32px;
+    margin-bottom: 40px;
 }
 
 .number-card {
@@ -118,13 +255,16 @@
 
 .number-card:hover {
     border-color: #22c55e;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
 }
 
 .raffle-name {
-    font-size: 12px;
+    font-size: 11px;
     color: #64748b;
     margin-bottom: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
 .number-display {
@@ -132,14 +272,16 @@
     font-weight: 700;
     color: #1e293b;
     margin-bottom: 12px;
+    font-family: monospace;
 }
 
 .number-status {
     padding: 6px 12px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     display: inline-block;
+    text-transform: uppercase;
 }
 
 .status-vendido {
@@ -156,12 +298,15 @@
     margin-top: 8px;
     font-size: 11px;
     color: #ef4444;
+    font-weight: 600;
 }
 
+/* Orders List */
 .orders-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    margin-bottom: 40px;
 }
 
 .order-card {
@@ -169,25 +314,40 @@
     border: 1px solid #e5e5e5;
     border-radius: 12px;
     padding: 20px;
+    transition: all 0.2s;
+}
+
+.order-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .order-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: start;
     margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e5e5;
 }
 
-.order-header h3 {
+.order-title h3 {
     font-size: 16px;
     font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.order-date {
+    font-size: 12px;
+    color: #94a3b8;
 }
 
 .order-status {
     padding: 6px 12px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
+    text-transform: uppercase;
 }
 
 .status-paid {
@@ -200,17 +360,61 @@
     color: #d97706;
 }
 
-.order-details p {
-    font-size: 14px;
-    color: #64748b;
-    margin-bottom: 4px;
+.status-cancelled {
+    background: #fee2e2;
+    color: #dc2626;
 }
 
+.order-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+}
+
+.detail-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* Empty State */
 .empty-state {
     text-align: center;
-    padding: 40px;
-    color: #94a3b8;
+    padding: 60px 20px;
     grid-column: 1 / -1;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #94a3b8;
 }
 </style>
 {% endblock %}
