@@ -107,9 +107,29 @@ def customer_area(request):
         user=request.user
     ).select_related('raffle').order_by('-created_at')
 
-    # Get successful referrals grouped by campaign
+    # Group orders by campaign with totals
     from collections import defaultdict
+    from django.db.models import Sum
 
+    orders_by_raffle = defaultdict(list)
+    for order in my_orders:
+        if order.status == RaffleOrder.Status.PAID:
+            orders_by_raffle[order.raffle].append(order)
+
+    # Create grouped campaigns structure
+    my_campaigns_grouped = []
+    for raffle, orders in orders_by_raffle.items():
+        total_quantity = sum(order.quantity for order in orders)
+        total_amount = sum(order.amount for order in orders)
+
+        my_campaigns_grouped.append({
+            'raffle': raffle,
+            'orders': orders,
+            'total_quantity': total_quantity,
+            'total_amount': total_amount
+        })
+
+    # Get successful referrals grouped by campaign
     all_referrals = Referral.objects.filter(
         inviter=request.user,
         status=Referral.Status.REDEEMED
@@ -144,9 +164,6 @@ def customer_area(request):
     ).count()
 
     # Get user's referral codes with ticket counts per campaign
-    from django.db.models import Sum
-    from raffles.models import Referral, Raffle
-
     # Get all referral codes for this user
     all_referral_codes = Referral.objects.filter(
         inviter=request.user
@@ -170,6 +187,7 @@ def customer_area(request):
     context = {
         'my_numbers': my_numbers,
         'my_orders': my_orders,
+        'my_campaigns_grouped': my_campaigns_grouped,
         'my_referrals_grouped': my_referrals_grouped,
         'bonus_numbers_count': bonus_numbers_count,
         'my_referral_codes': my_referral_codes,

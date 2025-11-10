@@ -9,64 +9,51 @@
 </div>
 
 <div class="raffles-section">
-    {% regroup my_orders|dictsort:"raffle.name" by raffle as raffle_groups %}
-
-    {% for raffle_group in raffle_groups %}
-    {% with paid_orders=raffle_group.list|selectattr:"status","equalto","paid"|list %}
-    {% if paid_orders %}
-    <div class="campaign-group">
-        <div class="campaign-group-header">
-            <div class="campaign-group-title">
-                <h3>{{ raffle_group.grouper.name }}</h3>
-                <span class="campaign-group-badge">{{ raffle_group.grouper.get_status_display }}</span>
+    {% if my_campaigns_grouped %}
+        {% for campaign in my_campaigns_grouped %}
+        <div class="campaign-group">
+            <div class="campaign-group-header">
+                <div class="campaign-group-title">
+                    <h3>{{ campaign.raffle.name }}</h3>
+                    <span class="campaign-group-badge">{{ campaign.raffle.get_status_display }}</span>
+                </div>
+                <div class="campaign-group-prize">
+                    <span class="prize-icon">🏆</span>
+                    <span class="prize-name">{{ campaign.raffle.prize_name }}</span>
+                </div>
+                {% if campaign.raffle.draw_date %}
+                <div class="campaign-group-date">
+                    <span class="date-icon">📅</span>
+                    <span>Sorteio: {{ campaign.raffle.draw_date|date:"d/m/Y às H:i" }}</span>
+                </div>
+                {% endif %}
             </div>
-            <div class="campaign-group-prize">
-                <span class="prize-icon">🏆</span>
-                <span class="prize-name">{{ raffle_group.grouper.prize_name }}</span>
-            </div>
-            {% if raffle_group.grouper.draw_date %}
-            <div class="campaign-group-date">
-                <span class="date-icon">📅</span>
-                <span>Sorteio: {{ raffle_group.grouper.draw_date|date:"d/m/Y às H:i" }}</span>
-            </div>
-            {% endif %}
-        </div>
 
-        <div class="campaign-group-stats">
-            {% with total_quantity=0 total_amount=0 %}
-            {% for order in paid_orders %}
-                {% with total_quantity=total_quantity|add:order.quantity %}
-                {% endwith %}
-                {% with total_amount=total_amount|add:order.amount %}
-                {% endwith %}
-            {% endfor %}
-
-            <div class="stat-card">
-                <div class="stat-icon">🎫</div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ paid_orders|sum:"quantity" }}</div>
-                    <div class="stat-label">Meus números</div>
+            <div class="campaign-group-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">🎫</div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ campaign.total_quantity }}</div>
+                        <div class="stat-label">Meus números</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-content">
+                        <div class="stat-value">R$ {{ campaign.total_amount|floatformat:2 }}</div>
+                        <div class="stat-label">Investido</div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-content">
-                    <div class="stat-value">R$ {{ paid_orders|sum:"amount"|floatformat:2 }}</div>
-                    <div class="stat-label">Investido</div>
-                </div>
-            </div>
-            {% endwith %}
         </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-    {% empty %}
+        {% endfor %}
+    {% else %}
     <div class="empty-state">
         <div class="empty-icon">🎫</div>
         <h3>Nenhuma campanha ativa</h3>
         <p>Você ainda não está participando de nenhuma rifa.</p>
     </div>
-    {% endfor %}
+    {% endif %}
 </div>
 
 {% if my_referral_codes %}
