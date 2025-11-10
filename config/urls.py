@@ -21,6 +21,7 @@ urlpatterns = [
     # Frontend URLs (Admin)
     path('', raffle_views.dashboard, name='dashboard'),
     path('campanhas/', raffle_views.raffle_list, name='raffle_list'),
+    path('campanha/<int:pk>/', raffle_views.campaign_details, name='campaign_details'),
     path('criar-campanha/', raffle_views.raffle_create, name='raffle_create'),
     path('editar-campanha/<int:pk>/', raffle_views.raffle_edit, name='raffle_edit'),
     path('apoiadores/', raffle_views.supporters, name='supporters'),

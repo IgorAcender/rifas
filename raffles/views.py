@@ -149,15 +149,164 @@ import base64
 
 @login_required
 def dashboard(request):
-    """Dashboard principal"""
-    user_raffles = Raffle.objects.filter(winner=request.user).count()
-    user_orders = RaffleOrder.objects.filter(user=request.user, status=RaffleOrder.Status.PAID).count()
+    """Dashboard principal - Admin vê estatísticas completas de todas as campanhas"""
+    if request.user.is_staff:
+        # Admin Dashboard - Estatísticas de todas as campanhas
+        from django.db.models import Sum, Count, Q
+
+        raffles = Raffle.objects.all().order_by('-created_at')
+
+        # Calcular estatísticas para cada campanha
+        campaigns_stats = []
+        for raffle in raffles:
+            # Contar números vendidos e reservados
+            numbers_sold = raffle.numbers.filter(status=RaffleNumber.Status.SOLD).count()
+            numbers_reserved = raffle.numbers.filter(status=RaffleNumber.Status.RESERVED).count()
+            numbers_available = raffle.total_numbers - numbers_sold - numbers_reserved
+
+            # Calcular valor arrecadado (apenas pagos)
+            paid_orders = RaffleOrder.objects.filter(
+                raffle=raffle,
+                status=RaffleOrder.Status.PAID
+            )
+            total_revenue = paid_orders.aggregate(total=Sum('amount'))['total'] or 0
+
+            # Contar compradores únicos (apenas pagos)
+            unique_buyers = paid_orders.values('user').distinct().count()
+
+            # Calcular taxa total arrecadada
+            fee_amount = total_revenue * (raffle.fee_percentage / 100)
+            net_revenue = total_revenue - fee_amount
+
+            campaigns_stats.append({
+                'raffle': raffle,
+                'numbers_sold': numbers_sold,
+                'numbers_reserved': numbers_reserved,
+                'numbers_available': numbers_available,
+                'total_revenue': total_revenue,
+                'fee_amount': fee_amount,
+                'net_revenue': net_revenue,
+                'unique_buyers': unique_buyers,
+                'percentage_sold': round((numbers_sold / raffle.total_numbers) * 100, 1) if raffle.total_numbers > 0 else 0,
+            })
+
+        # Estatísticas gerais
+        total_campaigns = raffles.count()
+        active_campaigns = raffles.filter(status=Raffle.Status.ACTIVE).count()
+        total_buyers = RaffleOrder.objects.filter(status=RaffleOrder.Status.PAID).values('user').distinct().count()
+        total_revenue_all = RaffleOrder.objects.filter(status=RaffleOrder.Status.PAID).aggregate(total=Sum('amount'))['total'] or 0
+
+        context = {
+            'campaigns_stats': campaigns_stats,
+            'total_campaigns': total_campaigns,
+            'active_campaigns': active_campaigns,
+            'total_buyers': total_buyers,
+            'total_revenue_all': total_revenue_all,
+        }
+        return render(request, 'raffles/admin_dashboard.html', context)
+    else:
+        # User Dashboard - Estatísticas do usuário
+        user_raffles = Raffle.objects.filter(winner=request.user).count()
+        user_orders = RaffleOrder.objects.filter(user=request.user, status=RaffleOrder.Status.PAID).count()
+
+        context = {
+            'user_raffles': user_raffles,
+            'user_orders': user_orders,
+        }
+        return render(request, 'raffles/dashboard.html', context)
+
+
+@login_required
+def campaign_details(request, pk):
+    """Detalhes completos de uma campanha - Admin only"""
+    if not request.user.is_staff:
+        messages.error(request, 'Acesso negado.')
+        return redirect('dashboard')
+
+    raffle = get_object_or_404(Raffle, pk=pk)
+
+    from django.db.models import Sum, Count
+    from collections import defaultdict
+
+    # Estatísticas da campanha
+    numbers_sold = raffle.numbers.filter(status=RaffleNumber.Status.SOLD).count()
+    numbers_reserved = raffle.numbers.filter(status=RaffleNumber.Status.RESERVED).count()
+    numbers_available = raffle.total_numbers - numbers_sold - numbers_reserved
+
+    # Pedidos pagos
+    paid_orders = RaffleOrder.objects.filter(
+        raffle=raffle,
+        status=RaffleOrder.Status.PAID
+    ).select_related('user').order_by('-paid_at')
+
+    total_revenue = paid_orders.aggregate(total=Sum('amount'))['total'] or 0
+    fee_amount = total_revenue * (raffle.fee_percentage / 100)
+    net_revenue = total_revenue - fee_amount
+
+    # Agrupar por comprador
+    buyers_data = defaultdict(lambda: {
+        'user': None,
+        'total_amount': 0,
+        'total_quantity': 0,
+        'orders_count': 0,
+        'purchased_numbers': [],
+        'bonus_numbers': [],
+        'referral_bonus_count': 0,
+    })
+
+    for order in paid_orders:
+        buyer_key = order.user.id
+        buyers_data[buyer_key]['user'] = order.user
+        buyers_data[buyer_key]['total_amount'] += order.amount
+        buyers_data[buyer_key]['total_quantity'] += order.quantity
+        buyers_data[buyer_key]['orders_count'] += 1
+
+    # Adicionar números de cada comprador
+    for buyer_id, data in buyers_data.items():
+        # Números comprados
+        purchased = RaffleNumber.objects.filter(
+            raffle=raffle,
+            user=data['user'],
+            source=RaffleNumber.Source.PURCHASE,
+            status=RaffleNumber.Status.SOLD
+        ).values_list('number', flat=True)
+        data['purchased_numbers'] = sorted(list(purchased))
+
+        # Números ganhos por indicação
+        bonus = RaffleNumber.objects.filter(
+            raffle=raffle,
+            user=data['user'],
+            source__in=[RaffleNumber.Source.REFERRAL_INVITER, RaffleNumber.Source.REFERRAL_INVITEE],
+            status=RaffleNumber.Status.SOLD
+        ).values_list('number', flat=True)
+        data['bonus_numbers'] = sorted(list(bonus))
+        data['referral_bonus_count'] = len(data['bonus_numbers'])
+
+    # Converter para lista e ordenar por valor total
+    buyers_list = sorted(
+        buyers_data.values(),
+        key=lambda x: x['total_amount'],
+        reverse=True
+    )
+
+    # Estatísticas de indicações
+    referrals = Referral.objects.filter(raffle=raffle, status=Referral.Status.REDEEMED)
+    total_referrals = referrals.count()
 
     context = {
-        'user_raffles': user_raffles,
-        'user_orders': user_orders,
+        'raffle': raffle,
+        'numbers_sold': numbers_sold,
+        'numbers_reserved': numbers_reserved,
+        'numbers_available': numbers_available,
+        'total_revenue': total_revenue,
+        'fee_amount': fee_amount,
+        'net_revenue': net_revenue,
+        'percentage_sold': round((numbers_sold / raffle.total_numbers) * 100, 1) if raffle.total_numbers > 0 else 0,
+        'buyers_list': buyers_list,
+        'total_buyers': len(buyers_list),
+        'total_referrals': total_referrals,
     }
-    return render(request, 'raffles/dashboard.html', context)
+    return render(request, 'raffles/campaign_details.html', context)
 
 
 @login_required
