@@ -118,6 +118,13 @@ def send_test_message(request):
                 'error': 'Número de telefone é obrigatório'
             })
 
+        # Remove caracteres não numéricos
+        phone = ''.join(filter(str.isdigit, phone))
+
+        # Adiciona código do Brasil se não tiver
+        if not phone.startswith('55'):
+            phone = '55' + phone
+
         try:
             result = evolution_api.send_text_message(phone, message)
             if result:
@@ -129,12 +136,12 @@ def send_test_message(request):
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Falha ao enviar mensagem'
+                    'error': 'Falha ao enviar mensagem. Verifique se o número está correto e se o WhatsApp está conectado.'
                 })
         except Exception as e:
             return JsonResponse({
                 'success': False,
-                'error': str(e)
+                'error': f'Erro ao enviar: {str(e)}'
             })
 
     return JsonResponse({
