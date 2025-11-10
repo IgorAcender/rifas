@@ -119,11 +119,36 @@ def customer_area(request):
         source=RaffleNumber.Source.REFERRAL_INVITER
     ).count()
 
+    # Get user's referral codes with ticket counts per campaign
+    from django.db.models import Sum
+    from raffles.models import Referral, Raffle
+
+    # Get all referral codes for this user
+    all_referral_codes = Referral.objects.filter(
+        inviter=request.user
+    ).select_related('raffle')
+
+    # For each referral, calculate total tickets bought in that specific raffle
+    my_referral_codes = []
+    for referral in all_referral_codes:
+        total_tickets = RaffleOrder.objects.filter(
+            user=request.user,
+            raffle=referral.raffle,
+            status=RaffleOrder.Status.PAID
+        ).aggregate(total=Sum('quantity'))['total'] or 0
+
+        # Only include if user bought 10+ tickets in THIS specific raffle
+        if total_tickets >= 10:
+            # Add total_tickets as an attribute for display
+            referral.total_tickets = total_tickets
+            my_referral_codes.append(referral)
+
     context = {
         'my_numbers': my_numbers,
         'my_orders': my_orders,
         'my_referrals': my_referrals,
         'bonus_numbers_count': bonus_numbers_count,
+        'my_referral_codes': my_referral_codes,
     }
     return render(request, 'accounts/customer_area.html', context)
 

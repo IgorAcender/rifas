@@ -47,6 +47,46 @@
     {% endfor %}
 </div>
 
+{% if my_referral_codes %}
+<div class="section-title">
+    <h2>Compartilhar Link de Indicação</h2>
+    <p class="subtitle">Compartilhe o link das campanhas onde você comprou 10+ bilhetes</p>
+</div>
+
+<div class="share-referral-section">
+    {% for referral in my_referral_codes %}
+    <div class="share-card">
+        <div class="share-header">
+            <div class="share-icon">🔗</div>
+            <div class="share-info">
+                <h4>{{ referral.raffle.name }}</h4>
+                <p class="share-stats">{{ referral.total_tickets }} bilhetes comprados • {{ referral.clicks }} cliques no link • Ganhe {{ referral.raffle.inviter_bonus }} números grátis por indicação</p>
+            </div>
+        </div>
+        <div class="share-content">
+            <div class="share-link-wrapper">
+                <input
+                    type="text"
+                    class="share-link-input"
+                    value="{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}"
+                    readonly
+                    id="referral-link-{{ referral.id }}"
+                >
+            </div>
+            <div class="share-buttons">
+                <button class="btn-copy" onclick="copyReferralLink('referral-link-{{ referral.id }}')">
+                    📋 Copiar Link
+                </button>
+                <button class="btn-share" onclick="shareReferral('{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}', '{{ referral.raffle.name }}')">
+                    📤 Compartilhar
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="section-title">
     <h2>Minhas Indicações</h2>
     <p class="subtitle">Pessoas que usaram seu link e completaram compra</p>
@@ -597,5 +637,253 @@
         font-size: 28px;
     }
 }
+
+/* Share Referral Section */
+.share-referral-section {
+    margin-bottom: 40px;
+}
+
+.share-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+}
+
+.share-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #22c55e;
+}
+
+.share-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.share-icon {
+    font-size: 32px;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.share-info {
+    flex: 1;
+}
+
+.share-info h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.share-stats {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+.share-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.share-link-wrapper {
+    width: 100%;
+}
+
+.share-link-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: monospace;
+    color: #1e293b;
+    background: #f8fafc;
+    transition: all 0.2s;
+}
+
+.share-link-input:focus {
+    outline: none;
+    border-color: #22c55e;
+    background: white;
+}
+
+.share-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.btn-copy,
+.btn-share {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-copy {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.btn-copy:hover {
+    background: #e2e8f0;
+    transform: translateY(-1px);
+}
+
+.btn-share {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+}
+
+.btn-share:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+@media (max-width: 768px) {
+    .share-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .share-header {
+        flex-direction: column;
+        align-items: start;
+    }
+
+    .share-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 28px;
+    }
+}
 </style>
+
+<script>
+function copyReferralLink(inputId) {
+    const input = document.getElementById(inputId);
+
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            showCopySuccess();
+        }).catch(() => {
+            fallbackCopy(input);
+        });
+    } else {
+        fallbackCopy(input);
+    }
+}
+
+function fallbackCopy(input) {
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile
+
+    try {
+        document.execCommand('copy');
+        showCopySuccess();
+    } catch (err) {
+        alert('Erro ao copiar. Por favor, copie manualmente.');
+    }
+}
+
+function showCopySuccess() {
+    // Create temporary success message
+    const message = document.createElement('div');
+    message.textContent = '✅ Link copiado!';
+    message.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #22c55e;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideIn 0.3s ease-out;
+    `;
+
+    document.body.appendChild(message);
+
+    setTimeout(() => {
+        message.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => message.remove(), 300);
+    }, 2000);
+}
+
+function shareReferral(link, raffleName) {
+    const shareData = {
+        title: 'Participe da Rifa!',
+        text: `Participe da rifa "${raffleName}" usando meu link e ganhe números grátis!`,
+        url: link
+    };
+
+    // Check if Web Share API is available
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => console.log('Shared successfully'))
+            .catch((error) => {
+                // If user cancels, just do nothing
+                if (error.name !== 'AbortError') {
+                    fallbackShare(link);
+                }
+            });
+    } else {
+        fallbackShare(link);
+    }
+}
+
+function fallbackShare(link) {
+    // Copy to clipboard as fallback
+    navigator.clipboard.writeText(link).then(() => {
+        alert('Link copiado! Cole e compartilhe onde preferir.');
+    }).catch(() => {
+        alert('Compartilhamento não disponível. Use o botão "Copiar Link".');
+    });
+}
+
+// Add CSS animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}
