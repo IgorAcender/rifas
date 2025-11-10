@@ -37,7 +37,7 @@ def create_mercadopago_payment(request):
     # Create PIX payment data
     payment_data = {
         "transaction_amount": float(order.amount),
-        "description": f"{order.raffle.name} - Pedido #{order.id}",
+        "description": f"Instituto Acender - Pedido #{order.id}",
         "payment_method_id": "pix",
         "payer": {
             "email": payer_email,
