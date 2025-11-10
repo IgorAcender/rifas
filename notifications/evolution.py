@@ -99,7 +99,17 @@ class EvolutionAPI:
         try:
             response = requests.get(url, headers=self._get_headers(), timeout=10)
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+
+            # Normalize the response format
+            if isinstance(data, dict):
+                # Se vier com 'instance' wrapper
+                if 'instance' in data:
+                    return data['instance']
+                # Se vier direto com 'state'
+                return data
+
+            return data
         except requests.exceptions.RequestException as e:
             logger.error(f"Error checking Evolution API status: {e}")
             return None
