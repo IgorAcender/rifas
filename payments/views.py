@@ -139,10 +139,18 @@ def mercadopago_webhook(request):
 
         # Send WhatsApp notification with numbers
         from notifications.whatsapp import send_payment_confirmation
+        import logging
+        logger = logging.getLogger(__name__)
+
+        logger.info(f"Payment approved for order {order.id}, sending WhatsApp to {order.user.whatsapp}")
         try:
-            send_payment_confirmation(order)
+            result = send_payment_confirmation(order)
+            if result:
+                logger.info(f"WhatsApp sent successfully to {order.user.whatsapp}")
+            else:
+                logger.error(f"WhatsApp sending failed for order {order.id}")
         except Exception as e:
-            print(f"Error sending WhatsApp notification: {e}")
+            logger.error(f"Error sending WhatsApp notification: {e}", exc_info=True)
 
     # Save the latest payment data for reference
     order.payment_data = payment_data
