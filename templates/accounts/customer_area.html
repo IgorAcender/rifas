@@ -3,315 +3,302 @@
 {% block title %}Minha Área{% endblock %}
 
 {% block content %}
-<div class="section-title">
-    <h2>Minhas Campanhas</h2>
-    <p class="subtitle">Rifas das quais você está participando, agrupadas por campanha</p>
+<div class="page-header">
+    <h1>Minha Área</h1>
+    <p class="subtitle">Selecione uma campanha para ver todos os detalhes</p>
 </div>
 
-<div class="raffles-section">
-    {% if my_campaigns_grouped %}
-        <!-- Tabs Header -->
-        <div class="tabs-header">
-            {% for campaign in my_campaigns_grouped %}
-            <button class="tab-button {% if forloop.first %}active{% endif %}"
-                    onclick="openCampaignTab(event, 'campaign-{{ forloop.counter }}')">
-                <span class="tab-name">{{ campaign.raffle.name }}</span>
-                <span class="tab-badge">{{ campaign.total_quantity }} números</span>
-            </button>
-            {% endfor %}
+{% if my_campaigns_grouped %}
+<!-- Campaign Tabs Navigation -->
+<div class="campaign-tabs-nav">
+    {% for campaign in my_campaigns_grouped %}
+    <button class="campaign-tab {% if forloop.first %}active{% endif %}" 
+            data-campaign="campaign-{{ forloop.counter }}">
+        <div class="tab-info">
+            <span class="campaign-name">{{ campaign.raffle.name }}</span>
+            <span class="campaign-count">{{ campaign.total_quantity }} números</span>
+        </div>
+    </button>
+    {% endfor %}
+</div>
+
+<!-- Campaign Content Panels -->
+<div class="campaign-panels">
+    {% for campaign in my_campaigns_grouped %}
+    <div class="campaign-panel {% if forloop.first %}active{% endif %}" id="campaign-{{ forloop.counter }}">
+        
+        <!-- Campaign Header Info -->
+        <div class="campaign-hero">
+            <div class="hero-content">
+                <div class="hero-title-row">
+                    <h2>{{ campaign.raffle.name }}</h2>
+                    <span class="status-badge">{{ campaign.raffle.get_status_display }}</span>
+                </div>
+                <div class="hero-details">
+                    <span class="detail">🏆 {{ campaign.raffle.prize_name }}</span>
+                    {% if campaign.raffle.draw_date %}
+                    <span class="detail">📅 {{ campaign.raffle.draw_date|date:"d/m/Y às H:i" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-box">
+                    <div class="stat-value">{{ campaign.total_quantity }}</div>
+                    <div class="stat-label">Meus números</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">R$ {{ campaign.total_amount|floatformat:2 }}</div>
+                    <div class="stat-label">Investido</div>
+                </div>
+            </div>
         </div>
 
-        <!-- Tabs Content -->
-        <div class="tabs-content">
-            {% for campaign in my_campaigns_grouped %}
-            <div id="campaign-{{ forloop.counter }}" class="tab-panel {% if forloop.first %}active{% endif %}">
-                <div class="campaign-group">
-                    <div class="campaign-group-header">
-                        <div class="campaign-group-title">
-                            <h3>{{ campaign.raffle.name }}</h3>
-                            <span class="campaign-group-badge">{{ campaign.raffle.get_status_display }}</span>
-                        </div>
-                        <div class="campaign-group-prize">
-                            <span class="prize-icon">🏆</span>
-                            <span class="prize-name">{{ campaign.raffle.prize_name }}</span>
-                        </div>
-                        {% if campaign.raffle.draw_date %}
-                        <div class="campaign-group-date">
-                            <span class="date-icon">📅</span>
-                            <span>Sorteio: {{ campaign.raffle.draw_date|date:"d/m/Y às H:i" }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
+        <!-- Section Tabs -->
+        <div class="section-tabs">
+            <button class="section-tab active" data-section="numbers-{{ forloop.counter }}">
+                🎫 Meus Números
+            </button>
+            <button class="section-tab" data-section="orders-{{ forloop.counter }}">
+                📦 Compras
+            </button>
+            <button class="section-tab" data-section="referrals-{{ forloop.counter }}">
+                🔗 Indicações
+            </button>
+            <button class="section-tab" data-section="share-{{ forloop.counter }}">
+                📤 Compartilhar
+            </button>
+        </div>
 
-                    <div class="campaign-group-stats">
-                        <div class="stat-card">
-                            <div class="stat-icon">🎫</div>
-                            <div class="stat-content">
-                                <div class="stat-value">{{ campaign.total_quantity }}</div>
-                                <div class="stat-label">Meus números</div>
-                            </div>
+        <!-- Section: Meus Números -->
+        <div class="section-content active" id="numbers-{{ forloop.counter }}">
+            <div class="numbers-grid">
+                {% for number in my_numbers %}
+                {% if number.raffle.id == campaign.raffle.id %}
+                <div class="number-item">
+                    <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
+                    <div class="number-badge status-{{ number.status }}">
+                        {{ number.get_status_display }}
+                    </div>
+                    {% if number.source != 'purchase' %}
+                    <div class="bonus-label">🎁 {{ number.get_source_display }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Section: Compras -->
+        <div class="section-content" id="orders-{{ forloop.counter }}">
+            <div class="orders-container">
+                {% for order in my_orders %}
+                {% if order.raffle.id == campaign.raffle.id %}
+                <div class="order-item">
+                    <div class="order-header-row">
+                        <div>
+                            <h4>Pedido #{{ order.id }}</h4>
+                            <span class="order-time">{{ order.created_at|date:"d/m/Y às H:i" }}</span>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">💰</div>
-                            <div class="stat-content">
-                                <div class="stat-value">R$ {{ campaign.total_amount|floatformat:2 }}</div>
-                                <div class="stat-label">Investido</div>
-                            </div>
+                        <span class="order-badge status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="order-info-grid">
+                        <div class="info-cell">
+                            <span class="label">Quantidade:</span>
+                            <span class="value">{{ order.quantity }} números</span>
+                        </div>
+                        <div class="info-cell">
+                            <span class="label">Valor:</span>
+                            <span class="value">R$ {{ order.amount }}</span>
                         </div>
                     </div>
                 </div>
+                {% endif %}
+                {% endfor %}
             </div>
+        </div>
+
+        <!-- Section: Indicações -->
+        <div class="section-content" id="referrals-{{ forloop.counter }}">
+            {% for group in my_referrals_grouped %}
+            {% if group.raffle.id == campaign.raffle.id %}
+            <div class="referrals-box">
+                <div class="referrals-box-header">
+                    <h4>{{ group.count }} indicações realizadas</h4>
+                    <span class="bonus-tag">🎁 {{ group.bonus_numbers }} números bônus</span>
+                </div>
+                <div class="referrals-items">
+                    {% for referral in group.referrals %}
+                    <div class="referral-item">
+                        <div class="referral-avatar">👤</div>
+                        <div class="referral-data">
+                            <div class="referral-name">{{ referral.invitee.name }}</div>
+                            <div class="referral-meta">
+                                <span>{{ referral.invitee.whatsapp }}</span>
+                                <span class="separator">•</span>
+                                <span>{{ referral.redeemed_at|date:"d/m/Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="referral-status">✅ Resgatou</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             {% endfor %}
         </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon">🎫</div>
-        <h3>Nenhuma campanha ativa</h3>
-        <p>Você ainda não está participando de nenhuma rifa.</p>
-    </div>
-    {% endif %}
-</div>
 
-{% if my_referral_codes %}
-<div class="section-title">
-    <h2>Compartilhar Link de Indicação</h2>
-    <p class="subtitle">Compartilhe o link das campanhas onde você comprou 10+ bilhetes</p>
-</div>
+        <!-- Section: Compartilhar -->
+        <div class="section-content" id="share-{{ forloop.counter }}">
+            {% for referral in my_referral_codes %}
+            {% if referral.raffle.id == campaign.raffle.id %}
+            <div class="share-box">
+                <div class="share-box-header">
+                    <div class="share-icon">🔗</div>
+                    <div class="share-text">
+                        <h4>Compartilhe e ganhe números grátis!</h4>
+                        <p>{{ referral.total_tickets }} bilhetes • {{ referral.clicks }} cliques • {{ referral.raffle.inviter_bonus }} números por indicação</p>
+                    </div>
+                </div>
+                <div class="share-actions">
+                    <input type="text" 
+                           class="share-input" 
+                           readonly 
+                           value="{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}"
+                           id="share-input-{{ forloop.counter }}">
+                    <div class="share-buttons-row">
+                        <button class="share-btn copy-btn" onclick="copyLink('share-input-{{ forloop.counter }}')">
+                            📋 Copiar Link
+                        </button>
+                        <button class="share-btn share-btn-primary" onclick="shareLink('{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}', '{{ referral.raffle.name }}')">
+                            📤 Compartilhar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
 
-<div class="share-referral-section">
-    {% for referral in my_referral_codes %}
-    <div class="share-card">
-        <div class="share-header">
-            <div class="share-icon">🔗</div>
-            <div class="share-info">
-                <h4>{{ referral.raffle.name }}</h4>
-                <p class="share-stats">{{ referral.total_tickets }} bilhetes comprados • {{ referral.clicks }} cliques no link • Ganhe {{ referral.raffle.inviter_bonus }} números grátis por indicação</p>
-            </div>
-        </div>
-        <div class="share-content">
-            <div class="share-link-wrapper">
-                <input
-                    type="text"
-                    class="share-link-input"
-                    value="{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}"
-                    readonly
-                    id="referral-link-{{ referral.id }}"
-                >
-            </div>
-            <div class="share-buttons">
-                <button class="btn-copy" onclick="copyReferralLink('referral-link-{{ referral.id }}')">
-                    📋 Copiar Link
-                </button>
-                <button class="btn-share" onclick="shareReferral('{{ request.scheme }}://{{ request.get_host }}{{ referral.raffle.get_public_url }}?ref={{ referral.code }}', '{{ referral.raffle.name }}')">
-                    📤 Compartilhar
-                </button>
-            </div>
-        </div>
     </div>
     {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-message">
+    <div class="empty-icon">🎫</div>
+    <h3>Nenhuma campanha ativa</h3>
+    <p>Você ainda não está participando de nenhuma rifa.</p>
 </div>
 {% endif %}
 
-<div class="section-title">
-    <h2>Minhas Indicações</h2>
-    <p class="subtitle">Pessoas que usaram seu link e completaram compra, agrupadas por campanha</p>
-</div>
-
-<div class="referrals-section">
-    {% if my_referrals_grouped %}
-    {% for group in my_referrals_grouped %}
-    <div class="campaign-referral-group">
-        <div class="campaign-header">
-            <div class="campaign-title">
-                <h3>{{ group.raffle.name }}</h3>
-                <span class="campaign-stats">{{ group.count }} indicações • {{ group.bonus_numbers }} números bônus ganhos</span>
-            </div>
-            <div class="campaign-badge">
-                🎯 {{ group.raffle.get_status_display }}
-            </div>
-        </div>
-
-        <div class="referrals-list">
-            {% for referral in group.referrals %}
-            <div class="referral-card">
-                <div class="referral-avatar">👤</div>
-                <div class="referral-info">
-                    <div class="referral-name">{{ referral.invitee.name }}</div>
-                    <div class="referral-details">
-                        <span class="referral-phone">{{ referral.invitee.whatsapp }}</span>
-                        <span class="referral-separator">•</span>
-                        <span class="referral-date">{{ referral.redeemed_at|date:"d/m/Y" }}</span>
-                    </div>
-                </div>
-                <div class="referral-badge">
-                    ✅ Resgatou seu bilhete
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endfor %}
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon">🔗</div>
-        <h3>Nenhuma indicação ainda</h3>
-        <p>Compartilhe seu link de indicação após fazer uma compra e ganhe números grátis!</p>
-    </div>
-    {% endif %}
-</div>
-
-<div class="section-title">
-    <h2>Meus Números</h2>
-    <p class="subtitle">Todos os seus números da sorte</p>
-</div>
-
-<div class="numbers-grid">
-    {% for number in my_numbers %}
-    <div class="number-card">
-        <div class="raffle-name">{{ number.raffle.name }}</div>
-        <div class="number-display">{{ number.number|stringformat:"04d" }}</div>
-        <div class="number-status status-{{ number.status }}">
-            {{ number.get_status_display }}
-        </div>
-        {% if number.source != 'purchase' %}
-        <div class="bonus-badge">🎁 {{ number.get_source_display }}</div>
-        {% endif %}
-    </div>
-    {% empty %}
-    <p class="empty-state">Voce ainda nao possui numeros. Faca sua primeira compra!</p>
-    {% endfor %}
-</div>
-
-<div class="section-title">
-    <h2>Histórico de Compras</h2>
-    <p class="subtitle">Todas as suas transações</p>
-</div>
-
-<div class="orders-list">
-    {% for order in my_orders %}
-    <div class="order-card">
-        <div class="order-header">
-            <div class="order-title">
-                <h3>{{ order.raffle.name }}</h3>
-                <span class="order-date">{{ order.created_at|date:"d/m/Y às H:i" }}</span>
-            </div>
-            <span class="order-status status-{{ order.status }}">
-                {{ order.get_status_display }}
-            </span>
-        </div>
-        <div class="order-details">
-            <div class="detail-item">
-                <span class="detail-label">Quantidade:</span>
-                <span class="detail-value">{{ order.quantity }} números</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Valor:</span>
-                <span class="detail-value">R$ {{ order.amount }}</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">Pedido:</span>
-                <span class="detail-value">#{{ order.id }}</span>
-            </div>
-        </div>
-    </div>
-    {% empty %}
-    <div class="empty-state">
-        <div class="empty-icon">📦</div>
-        <h3>Nenhuma compra realizada</h3>
-        <p>Seu histórico aparecerá aqui.</p>
-    </div>
-    {% endfor %}
-</div>
-
 <style>
-/* Section Title */
-.section-title {
-    margin: 40px 0 24px;
+* {
+    box-sizing: border-box;
 }
 
-.section-title:first-child {
-    margin-top: 0;
+.page-header {
+    text-align: center;
+    margin-bottom: 32px;
 }
 
-.section-title h2 {
-    font-size: 24px;
-    font-weight: 600;
+.page-header h1 {
+    font-size: 32px;
+    font-weight: 700;
     color: #1e293b;
-    margin-bottom: 4px;
+    margin: 0 0 8px 0;
 }
 
-.section-title .subtitle {
-    font-size: 14px;
+.page-header .subtitle {
+    font-size: 16px;
     color: #64748b;
+    margin: 0;
 }
 
-/* Raffles Section - Grouped by Campaign */
-.raffles-section {
-    margin-bottom: 40px;
-}
-
-/* Tabs */
-.tabs-header {
+/* Campaign Tabs Navigation */
+.campaign-tabs-nav {
     display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #e5e5e5;
+    gap: 12px;
+    margin-bottom: 24px;
     overflow-x: auto;
-    padding-bottom: 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e5e5;
 }
 
-.tab-button {
-    background: none;
-    border: none;
+.campaign-tabs-nav::-webkit-scrollbar {
+    height: 6px;
+}
+
+.campaign-tabs-nav::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.campaign-tab {
+    background: white;
+    border: 2px solid #e5e5e5;
+    border-radius: 12px;
     padding: 16px 24px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    color: #64748b;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -2px;
     transition: all 0.3s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.campaign-tab:hover {
+    border-color: #22c55e;
+    background: #f0fdf4;
+    transform: translateY(-2px);
+}
+
+.campaign-tab.active {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-color: #22c55e;
+}
+
+.tab-info {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    white-space: nowrap;
+    gap: 6px;
 }
 
-.tab-button:hover {
-    color: #22c55e;
-    background: #f8fafc;
-}
-
-.tab-button.active {
-    color: #22c55e;
-    border-bottom-color: #22c55e;
-}
-
-.tab-name {
+.campaign-name {
     font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
 }
 
-.tab-badge {
+.campaign-tab.active .campaign-name {
+    color: white;
+}
+
+.campaign-count {
     font-size: 12px;
     font-weight: 500;
-    color: #94a3b8;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
 }
 
-.tab-button.active .tab-badge {
+.campaign-tab.active .campaign-count {
     color: #22c55e;
+    background: white;
 }
 
-.tabs-content {
+/* Campaign Panels */
+.campaign-panels {
     position: relative;
 }
 
-.tab-panel {
+.campaign-panel {
     display: none;
-    animation: fadeIn 0.3s ease-in;
+    animation: fadeIn 0.3s ease;
 }
 
-.tab-panel.active {
+.campaign-panel.active {
     display: block;
 }
 
@@ -326,93 +313,70 @@
     }
 }
 
-.campaign-group {
+/* Campaign Hero */
+.campaign-hero {
     background: white;
     border: 1px solid #e5e5e5;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.campaign-group-header {
+.hero-content {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    padding: 20px 24px;
+    padding: 24px;
     color: white;
 }
 
-.campaign-group-title {
+.hero-title-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
-.campaign-group-title h3 {
-    font-size: 20px;
-    font-weight: 600;
+.hero-title-row h2 {
+    font-size: 24px;
+    font-weight: 700;
     margin: 0;
 }
 
-.campaign-group-badge {
-    padding: 6px 12px;
+.status-badge {
+    padding: 8px 16px;
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
-    white-space: nowrap;
 }
 
-.campaign-group-prize {
+.hero-details {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 8px;
-    margin-bottom: 8px;
 }
 
-.prize-icon {
-    font-size: 20px;
-}
-
-.prize-name {
+.detail {
     font-size: 14px;
-    opacity: 0.9;
+    opacity: 0.95;
 }
 
-.campaign-group-date {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    opacity: 0.9;
-}
-
-.date-icon {
-    font-size: 16px;
-}
-
-.campaign-group-stats {
+.hero-stats {
     padding: 20px 24px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
 }
 
-.stat-card {
+.stat-box {
     background: #f8fafc;
     border: 1px solid #e5e5e5;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.stat-icon {
-    font-size: 32px;
-}
-
-.stat-content {
-    flex: 1;
+    text-align: center;
 }
 
 .stat-value {
@@ -428,16 +392,68 @@
     font-weight: 500;
 }
 
-/* Numbers Grid */
-
-.numbers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 16px;
-    margin-bottom: 40px;
+/* Section Tabs */
+.section-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 12px;
+    overflow-x: auto;
 }
 
-.number-card {
+.section-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.section-tabs::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 2px;
+}
+
+.section-tab {
+    background: transparent;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.section-tab:hover {
+    background: white;
+    color: #22c55e;
+}
+
+.section-tab.active {
+    background: white;
+    color: #22c55e;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Section Content */
+.section-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.section-content.active {
+    display: block;
+}
+
+/* Numbers Grid */
+.numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+}
+
+.number-item {
     background: white;
     border: 2px solid #e5e5e5;
     border-radius: 12px;
@@ -446,21 +462,13 @@
     transition: all 0.2s;
 }
 
-.number-card:hover {
+.number-item:hover {
     border-color: #22c55e;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
 }
 
-.raffle-name {
-    font-size: 11px;
-    color: #64748b;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    font-weight: 600;
-}
-
-.number-display {
+.number-value {
     font-size: 36px;
     font-weight: 700;
     color: #1e293b;
@@ -468,13 +476,13 @@
     font-family: monospace;
 }
 
-.number-status {
+.number-badge {
     padding: 6px 12px;
     border-radius: 6px;
     font-size: 11px;
     font-weight: 600;
-    display: inline-block;
     text-transform: uppercase;
+    display: inline-block;
 }
 
 .status-vendido {
@@ -487,34 +495,28 @@
     color: #d97706;
 }
 
-.bonus-badge {
+.bonus-label {
     margin-top: 8px;
     font-size: 11px;
     color: #ef4444;
     font-weight: 600;
 }
 
-/* Orders List */
-.orders-list {
+/* Orders Container */
+.orders-container {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-bottom: 40px;
 }
 
-.order-card {
+.order-item {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 12px;
     padding: 20px;
-    transition: all 0.2s;
 }
 
-.order-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.order-header {
+.order-header-row {
     display: flex;
     justify-content: space-between;
     align-items: start;
@@ -523,19 +525,19 @@
     border-bottom: 1px solid #e5e5e5;
 }
 
-.order-title h3 {
+.order-item h4 {
     font-size: 16px;
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 4px;
+    margin: 0 0 4px 0;
 }
 
-.order-date {
+.order-time {
     font-size: 12px;
     color: #94a3b8;
 }
 
-.order-status {
+.order-badge {
     padding: 6px 12px;
     border-radius: 6px;
     font-size: 11px;
@@ -558,108 +560,73 @@
     color: #dc2626;
 }
 
-.order-details {
+.order-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 12px;
 }
 
-.detail-item {
+.info-cell {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     padding: 8px 12px;
     background: #f8fafc;
     border-radius: 6px;
 }
 
-.detail-label {
+.info-cell .label {
     font-size: 13px;
     color: #64748b;
     font-weight: 500;
 }
 
-.detail-value {
+.info-cell .value {
     font-size: 13px;
     color: #1e293b;
     font-weight: 600;
 }
 
-/* Empty State */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    grid-column: 1 / -1;
-}
-
-.empty-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.empty-state h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 8px;
-}
-
-.empty-state p {
-    font-size: 14px;
-    color: #94a3b8;
-}
-
-/* Referrals Section */
-.referrals-section {
-    margin-bottom: 40px;
-}
-
-.campaign-referral-group {
+/* Referrals Box */
+.referrals-box {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 12px;
-    margin-bottom: 24px;
     overflow: hidden;
 }
 
-.campaign-header {
+.referrals-box-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 20px 24px;
+    color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: white;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
-.campaign-title h3 {
-    font-size: 20px;
+.referrals-box-header h4 {
+    font-size: 18px;
     font-weight: 600;
-    margin: 0 0 4px 0;
+    margin: 0;
 }
 
-.campaign-stats {
-    font-size: 13px;
-    opacity: 0.9;
-}
-
-.campaign-badge {
-    padding: 6px 12px;
+.bonus-tag {
+    font-size: 14px;
+    font-weight: 600;
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 8px;
 }
 
-.referrals-list {
+.referrals-items {
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.referral-card {
+.referral-item {
     background: #f8fafc;
     border: 1px solid #e5e5e5;
     border-radius: 8px;
@@ -667,13 +634,6 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    transition: all 0.2s;
-}
-
-.referral-card:hover {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border-color: #667eea;
 }
 
 .referral-avatar {
@@ -685,9 +645,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
-.referral-info {
+.referral-data {
     flex: 1;
 }
 
@@ -698,19 +659,17 @@
     margin-bottom: 4px;
 }
 
-.referral-details {
+.referral-meta {
     font-size: 13px;
     color: #64748b;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-.referral-separator {
+.separator {
     color: #cbd5e1;
+    margin: 0 8px;
 }
 
-.referral-badge {
+.referral-status {
     padding: 8px 16px;
     background: #dcfce7;
     color: #16a34a;
@@ -720,65 +679,15 @@
     white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-    .campaign-group-title {
-        flex-direction: column;
-        align-items: start;
-        gap: 8px;
-    }
-
-    .campaign-group-badge {
-        align-self: stretch;
-        text-align: center;
-    }
-
-    .campaign-group-stats {
-        grid-template-columns: 1fr;
-    }
-
-    .campaign-header {
-        flex-direction: column;
-        align-items: start;
-        gap: 12px;
-    }
-
-    .campaign-badge {
-        align-self: stretch;
-        text-align: center;
-    }
-
-    .referral-card {
-        flex-direction: column;
-        align-items: start;
-        gap: 12px;
-    }
-
-    .referral-badge {
-        align-self: stretch;
-        text-align: center;
-    }
-}
-
-/* Share Referral Section */
-.share-referral-section {
-    margin-bottom: 40px;
-}
-
-.share-card {
+/* Share Box */
+.share-box {
     background: white;
     border: 1px solid #e5e5e5;
     border-radius: 12px;
     padding: 24px;
-    margin-bottom: 16px;
-    transition: all 0.2s;
 }
 
-.share-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-color: #22c55e;
-}
-
-.share-header {
+.share-box-header {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -794,36 +703,29 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
-.share-info {
-    flex: 1;
-}
-
-.share-info h4 {
+.share-text h4 {
     font-size: 18px;
     font-weight: 600;
     color: #1e293b;
-    margin-bottom: 4px;
+    margin: 0 0 6px 0;
 }
 
-.share-stats {
+.share-text p {
     font-size: 13px;
     color: #64748b;
     margin: 0;
 }
 
-.share-content {
+.share-actions {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.share-link-wrapper {
-    width: 100%;
-}
-
-.share-link-input {
+.share-input {
     width: 100%;
     padding: 12px 16px;
     border: 1px solid #e5e5e5;
@@ -832,23 +734,21 @@
     font-family: monospace;
     color: #1e293b;
     background: #f8fafc;
-    transition: all 0.2s;
 }
 
-.share-link-input:focus {
+.share-input:focus {
     outline: none;
     border-color: #22c55e;
     background: white;
 }
 
-.share-buttons {
+.share-buttons-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
 }
 
-.btn-copy,
-.btn-share {
+.share-btn {
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
@@ -858,151 +758,199 @@
     transition: all 0.2s;
 }
 
-.btn-copy {
+.copy-btn {
     background: #f1f5f9;
     color: #1e293b;
 }
 
-.btn-copy:hover {
+.copy-btn:hover {
     background: #e2e8f0;
-    transform: translateY(-1px);
 }
 
-.btn-share {
+.share-btn-primary {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     color: white;
 }
 
-.btn-share:hover {
-    transform: translateY(-1px);
+.share-btn-primary:hover {
     box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
-@media (max-width: 768px) {
-    .share-buttons {
-        grid-template-columns: 1fr;
-    }
+/* Empty State */
+.empty-message {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+}
 
-    .share-header {
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-message h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.empty-message p {
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-title-row {
         flex-direction: column;
         align-items: start;
     }
-
-    .share-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 28px;
+    
+    .hero-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .numbers-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .share-buttons-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .referral-item {
+        flex-direction: column;
+        align-items: start;
+    }
+    
+    .referral-status {
+        align-self: stretch;
+        text-align: center;
     }
 }
 </style>
 
 <script>
-function copyReferralLink(inputId) {
-    const input = document.getElementById(inputId);
+// Campaign Tab Switching
+document.addEventListener('DOMContentLoaded', function() {
+    const campaignTabs = document.querySelectorAll('.campaign-tab');
+    const campaignPanels = document.querySelectorAll('.campaign-panel');
+    
+    campaignTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-campaign');
+            
+            // Remove active from all tabs and panels
+            campaignTabs.forEach(t => t.classList.remove('active'));
+            campaignPanels.forEach(p => p.classList.remove('active'));
+            
+            // Add active to clicked tab and corresponding panel
+            this.classList.add('active');
+            document.getElementById(targetId).classList.add('active');
+        });
+    });
+    
+    // Section Tab Switching (within each campaign)
+    const sectionTabs = document.querySelectorAll('.section-tab');
+    
+    sectionTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-section');
+            const panel = this.closest('.campaign-panel');
+            
+            // Remove active from all section tabs and contents in this panel
+            panel.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+            panel.querySelectorAll('.section-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active to clicked tab and corresponding content
+            this.classList.add('active');
+            document.getElementById(targetId).classList.add('active');
+        });
+    });
+});
 
-    // Try modern clipboard API first
-    if (navigator.clipboard && navigator.clipboard.writeText) {
+// Copy link function
+function copyLink(inputId) {
+    const input = document.getElementById(inputId);
+    
+    if (navigator.clipboard) {
         navigator.clipboard.writeText(input.value).then(() => {
-            showCopySuccess();
+            showNotification('✅ Link copiado!');
         }).catch(() => {
-            fallbackCopy(input);
+            input.select();
+            document.execCommand('copy');
+            showNotification('✅ Link copiado!');
         });
     } else {
-        fallbackCopy(input);
-    }
-}
-
-function fallbackCopy(input) {
-    input.select();
-    input.setSelectionRange(0, 99999); // For mobile
-
-    try {
+        input.select();
         document.execCommand('copy');
-        showCopySuccess();
-    } catch (err) {
-        alert('Erro ao copiar. Por favor, copie manualmente.');
+        showNotification('✅ Link copiado!');
     }
 }
 
-function showCopySuccess() {
-    // Create temporary success message
-    const message = document.createElement('div');
-    message.textContent = '✅ Link copiado!';
-    message.style.cssText = `
+// Share link function
+function shareLink(url, title) {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Participe da Rifa!',
+            text: `Participe da rifa "${title}" e ganhe números grátis!`,
+            url: url
+        }).catch(err => {
+            if (err.name !== 'AbortError') {
+                copyLink(url);
+            }
+        });
+    } else {
+        const temp = document.createElement('input');
+        temp.value = url;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showNotification('Link copiado! Cole e compartilhe.');
+    }
+}
+
+// Show notification
+function showNotification(message) {
+    const notif = document.createElement('div');
+    notif.textContent = message;
+    notif.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
         background: #22c55e;
         color: white;
-        padding: 12px 24px;
-        border-radius: 8px;
+        padding: 16px 24px;
+        border-radius: 12px;
         font-weight: 600;
         z-index: 10000;
-        animation: slideIn 0.3s ease-out;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideIn 0.3s ease;
     `;
-
-    document.body.appendChild(message);
-
+    
+    document.body.appendChild(notif);
+    
     setTimeout(() => {
-        message.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => message.remove(), 300);
+        notif.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notif.remove(), 300);
     }, 2000);
 }
 
-function shareReferral(link, raffleName) {
-    const shareData = {
-        title: 'Participe da Rifa!',
-        text: `Participe da rifa "${raffleName}" usando meu link e ganhe números grátis!`,
-        url: link
-    };
-
-    // Check if Web Share API is available
-    if (navigator.share) {
-        navigator.share(shareData)
-            .then(() => console.log('Shared successfully'))
-            .catch((error) => {
-                // If user cancels, just do nothing
-                if (error.name !== 'AbortError') {
-                    fallbackShare(link);
-                }
-            });
-    } else {
-        fallbackShare(link);
-    }
-}
-
-function fallbackShare(link) {
-    // Copy to clipboard as fallback
-    navigator.clipboard.writeText(link).then(() => {
-        alert('Link copiado! Cole e compartilhe onde preferir.');
-    }).catch(() => {
-        alert('Compartilhamento não disponível. Use o botão "Copiar Link".');
-    });
-}
-
-// Add CSS animation
+// Add animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
-
     @keyframes slideOut {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(400px);
-            opacity: 0;
-        }
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
     }
 `;
 document.head.appendChild(style);
