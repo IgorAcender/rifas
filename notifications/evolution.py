@@ -33,25 +33,33 @@ class EvolutionAPI:
         """
         url = f"{self.base_url}/message/sendText/{self.instance_name}"
 
-        # Ensure phone is in correct format
-        if not phone.endswith('@s.whatsapp.net'):
-            phone = f"{phone}@s.whatsapp.net"
+        # Evolution API expects just the phone number, NO @s.whatsapp.net suffix
+        # Remove @s.whatsapp.net if present
+        if '@' in phone:
+            phone = phone.split('@')[0]
 
         payload = {
             'number': phone,
             'text': message
         }
 
+        logger.info(f"📤 Sending to Evolution API: {phone}")
+        logger.info(f"📍 URL: {url}")
+
         try:
             response = requests.post(url, json=payload, headers=self._get_headers(), timeout=30)
             response.raise_for_status()
-            logger.info(f"WhatsApp message sent successfully to {phone}")
+            logger.info(f"✅ WhatsApp message sent successfully to {phone}")
             return response.json()
         except requests.exceptions.Timeout:
-            logger.error(f"Timeout sending WhatsApp to {phone}")
+            logger.error(f"⏱️  Timeout sending WhatsApp to {phone}")
             return None
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error sending WhatsApp to {phone}: {e}")
+            logger.error(f"❌ Error sending WhatsApp to {phone}: {e}")
+            # Log response body for debugging
+            if hasattr(e, 'response') and e.response is not None:
+                logger.error(f"Response status: {e.response.status_code}")
+                logger.error(f"Response body: {e.response.text}")
             return None
 
     def send_media_message(self, phone, media_url, caption=''):
@@ -68,8 +76,9 @@ class EvolutionAPI:
         """
         url = f"{self.base_url}/message/sendMedia/{self.instance_name}"
 
-        if not phone.endswith('@s.whatsapp.net'):
-            phone = f"{phone}@s.whatsapp.net"
+        # Remove @s.whatsapp.net if present
+        if '@' in phone:
+            phone = phone.split('@')[0]
 
         payload = {
             'number': phone,
