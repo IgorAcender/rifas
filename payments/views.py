@@ -98,7 +98,16 @@ def get_order_status(request, order_id):
     """Check the status of a specific order"""
     try:
         order = RaffleOrder.objects.get(id=order_id, user=request.user)
-        return Response({'status': order.status})
+
+        response_data = {
+            'status': order.status
+        }
+
+        # Se o pedido foi pago, incluir informações sobre prêmios ganhos
+        if order.status == RaffleOrder.Status.PAID and 'won_prizes' in order.payment_data:
+            response_data['won_prizes'] = order.payment_data['won_prizes']
+
+        return Response(response_data)
     except RaffleOrder.DoesNotExist:
         return Response({'error': 'Pedido não encontrado'}, status=status.HTTP_404_NOT_FOUND)
 

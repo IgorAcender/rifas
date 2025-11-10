@@ -86,6 +86,23 @@ def send_payment_confirmation(order):
     if order.raffle.draw_date:
         draw_date_str = f"📅 *Data do sorteio:* {order.raffle.draw_date.strftime('%d/%m/%Y às %H:%M')}"
 
+    # Verificar se ganhou algum prêmio
+    prizes_message = ""
+    if 'won_prizes' in order.payment_data and order.payment_data['won_prizes']:
+        prizes_list = []
+        for prize in order.payment_data['won_prizes']:
+            prizes_list.append(f"🎁 Número *{prize['number']:04d}* - *{prize['prize_amount_formatted']}*")
+
+        prizes_message = f"""
+━━━━━━━━━━━━━━━━━━━
+🏆 *PARABÉNS! VOCÊ GANHOU!* 🏆
+
+{chr(10).join(prizes_list)}
+
+💰 O prêmio será enviado via PIX em breve!
+━━━━━━━━━━━━━━━━━━━
+"""
+
     # Replace placeholders in template
     try:
         message = template_text.format(
@@ -97,6 +114,9 @@ def send_payment_confirmation(order):
             amount=order.amount,
             order_id=order.id
         )
+        # Adicionar mensagem de prêmios se houver
+        if prizes_message:
+            message = message + "\n\n" + prizes_message
     except Exception as e:
         logger.error(f"Error formatting template: {e}")
         # Fallback to default message
@@ -120,7 +140,7 @@ Seu pagamento foi aprovado com sucesso!
 ━━━━━━━━━━━━━━━━━━━
 
 ✅ Seus números estão reservados e concorrendo ao prêmio!
-
+{prizes_message}
 Boa sorte! 🍀✨
         """.strip()
 

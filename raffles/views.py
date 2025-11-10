@@ -2,8 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .models import Raffle, RaffleOrder, Referral, RaffleNumber
+from .models import Raffle, RaffleOrder, Referral, RaffleNumber, PrizeNumber
 from .serializers import RaffleSerializer, RaffleOrderSerializer, ReferralSerializer
+import re
 
 
 class RaffleViewSet(viewsets.ReadOnlyModelViewSet):
@@ -397,6 +398,28 @@ def raffle_create(request):
             )
 
             raffle.initialize_numbers()
+
+            # Processar números premiados
+            prize_numbers_data = {}
+            for key in request.POST.keys():
+                match = re.match(r'prize_numbers\[(\d+)\]\[(\w+)\]', key)
+                if match:
+                    index, field = match.groups()
+                    if index not in prize_numbers_data:
+                        prize_numbers_data[index] = {}
+                    prize_numbers_data[index][field] = request.POST.get(key)
+
+            # Criar números premiados
+            for prize_data in prize_numbers_data.values():
+                if all(k in prize_data for k in ['number', 'prize_amount', 'release_min', 'release_max']):
+                    PrizeNumber.objects.create(
+                        raffle=raffle,
+                        number=int(prize_data['number']),
+                        prize_amount=float(prize_data['prize_amount']),
+                        release_percentage_min=float(prize_data['release_min']),
+                        release_percentage_max=float(prize_data['release_max'])
+                    )
+
             messages.success(request, 'Campanha criada com sucesso!')
             return redirect('raffle_list')
 
@@ -443,6 +466,30 @@ def raffle_edit(request, pk):
                 raffle.prize_image_base64 = base64.b64encode(image_data).decode('utf-8')
 
             raffle.save()
+
+            # Processar números premiados (remover antigos e adicionar novos)
+            raffle.prize_numbers.all().delete()
+
+            prize_numbers_data = {}
+            for key in request.POST.keys():
+                match = re.match(r'prize_numbers\[(\d+)\]\[(\w+)\]', key)
+                if match:
+                    index, field = match.groups()
+                    if index not in prize_numbers_data:
+                        prize_numbers_data[index] = {}
+                    prize_numbers_data[index][field] = request.POST.get(key)
+
+            # Criar números premiados
+            for prize_data in prize_numbers_data.values():
+                if all(k in prize_data for k in ['number', 'prize_amount', 'release_min', 'release_max']):
+                    PrizeNumber.objects.create(
+                        raffle=raffle,
+                        number=int(prize_data['number']),
+                        prize_amount=float(prize_data['prize_amount']),
+                        release_percentage_min=float(prize_data['release_min']),
+                        release_percentage_max=float(prize_data['release_max'])
+                    )
+
             messages.success(request, 'Campanha atualizada com sucesso!')
             return redirect('raffle_list')
 

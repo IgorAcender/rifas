@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import Raffle, RaffleNumber, RaffleOrder, Referral
+from .models import Raffle, RaffleNumber, RaffleOrder, Referral, PrizeNumber
 
 
 @admin.register(Raffle)
@@ -60,3 +60,11 @@ class ReferralAdmin(ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('code', 'inviter__whatsapp', 'inviter__name', 'invitee__whatsapp', 'invitee__name')
     readonly_fields = ('code', 'clicks', 'created_at', 'redeemed_at')
+
+
+@admin.register(PrizeNumber)
+class PrizeNumberAdmin(ModelAdmin):
+    list_display = ('raffle', 'number', 'prize_amount', 'release_percentage_min', 'release_percentage_max', 'is_released', 'is_won', 'winner')
+    list_filter = ('is_released', 'is_won', 'raffle')
+    search_fields = ('number', 'raffle__name', 'winner__name', 'winner__whatsapp')
+    readonly_fields = ('is_released', 'is_won', 'winner', 'won_at', 'created_at', 'updated_at')

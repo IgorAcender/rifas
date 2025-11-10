@@ -129,16 +129,16 @@ class Raffle(models.Model):
         """Release numbers from expired pending orders"""
         from django.utils import timezone
         from datetime import timedelta
-        
+
         # Orders pending for more than 15 minutes are considered expired
         expiration_time = timezone.now() - timedelta(minutes=15)
-        
+
         # Find expired pending orders
         expired_orders = self.orders.filter(
             status=RaffleOrder.Status.PENDING,
             created_at__lt=expiration_time
         )
-        
+
         # Release their numbers
         for order in expired_orders:
             order.allocated_numbers.update(
@@ -149,6 +149,21 @@ class Raffle(models.Model):
             )
             order.status = RaffleOrder.Status.EXPIRED
             order.save(update_fields=['status'])
+
+    def check_and_release_prize_numbers(self):
+        """Verifica e libera números premiados baseado na porcentagem de vendas"""
+        if self.total_numbers == 0:
+            return
+
+        # Calcular porcentagem atual de vendas
+        current_percentage = (self.numbers_sold / self.total_numbers) * 100
+
+        # Verificar cada número premiado não liberado
+        for prize_number in self.prize_numbers.filter(is_released=False):
+            if prize_number.release_percentage_min <= current_percentage <= prize_number.release_percentage_max:
+                prize_number.is_released = True
+                prize_number.save(update_fields=['is_released', 'updated_at'])
+                print(f"🎁 Número premiado {prize_number.number} liberado! (Vendas em {current_percentage:.1f}%)")
 
 
 class RaffleNumber(models.Model):
@@ -253,19 +268,30 @@ class RaffleOrder(models.Model):
         if self.allocated_numbers.exists():
             return list(self.allocated_numbers.values_list('number', flat=True))
 
-        # Get available numbers
+        # Verificar e liberar números premiados baseado na porcentagem de vendas
+        self.raffle.check_and_release_prize_numbers()
+
+        # Get available numbers (excluindo números premiados que ainda não foram liberados)
         available = list(
             RaffleNumber.objects.filter(
                 raffle=self.raffle,
                 status=RaffleNumber.Status.AVAILABLE
-            ).values_list('id', flat=True)
+            ).values_list('id', 'number')
         )
 
-        if len(available) < self.quantity:
+        # Filtrar números disponíveis (excluindo premiados não liberados)
+        unreleased_prize_numbers = set(
+            self.raffle.prize_numbers.filter(is_released=False).values_list('number', flat=True)
+        )
+
+        available_filtered = [(id, num) for id, num in available if num not in unreleased_prize_numbers]
+
+        if len(available_filtered) < self.quantity:
             raise ValidationError('Nao ha numeros suficientes disponiveis')
 
         # Select random numbers
-        selected_ids = random.sample(available, self.quantity)
+        selected = random.sample(available_filtered, self.quantity)
+        selected_ids = [id for id, num in selected]
 
         # Reserve numbers
         RaffleNumber.objects.filter(id__in=selected_ids).update(
@@ -296,6 +322,40 @@ class RaffleOrder(models.Model):
             sold_at=timezone.now()
         )
         print(f"✅ DEBUG: Marked {self.allocated_numbers.count()} numbers as sold")
+
+        # Verificar se algum número comprado é um número premiado
+        allocated_numbers = list(self.allocated_numbers.values_list('number', flat=True))
+        won_prizes = []
+
+        for number in allocated_numbers:
+            try:
+                prize = PrizeNumber.objects.get(
+                    raffle=self.raffle,
+                    number=number,
+                    is_released=True,
+                    is_won=False
+                )
+                # Marcar como ganho
+                prize.is_won = True
+                prize.winner = self.user
+                prize.won_at = timezone.now()
+                prize.save()
+                won_prizes.append(prize)
+                print(f"🏆 PRÊMIO GANHO! Usuário {self.user.name} ganhou R$ {prize.prize_amount} com o número {number}!")
+            except PrizeNumber.DoesNotExist:
+                pass
+
+        # Armazenar prêmios ganhos no pedido para exibir depois
+        if won_prizes:
+            self.payment_data['won_prizes'] = [
+                {
+                    'number': p.number,
+                    'prize_amount': float(p.prize_amount),
+                    'prize_amount_formatted': f'R$ {p.prize_amount:.2f}'
+                }
+                for p in won_prizes
+            ]
+            self.save(update_fields=['payment_data'])
 
         # Allocate bonus numbers if referral was used
         if self.referral_code:
@@ -473,3 +533,66 @@ class Referral(models.Model):
         )
         
         print(f"✅ DEBUG: Successfully allocated {len(available)} numbers to {user.name}")
+
+
+class PrizeNumber(models.Model):
+    """Número premiado dentro de uma campanha"""
+
+    raffle = models.ForeignKey(Raffle, on_delete=models.CASCADE, related_name='prize_numbers')
+    number = models.PositiveIntegerField('Número Premiado')
+    prize_amount = models.DecimalField('Valor do Prêmio (R$)', max_digits=10, decimal_places=2)
+
+    # Faixa de porcentagem para liberar esse número
+    release_percentage_min = models.DecimalField(
+        'Porcentagem Mínima (%)',
+        max_digits=5,
+        decimal_places=2,
+        help_text='Ex: 18.00 para 18%'
+    )
+    release_percentage_max = models.DecimalField(
+        'Porcentagem Máxima (%)',
+        max_digits=5,
+        decimal_places=2,
+        help_text='Ex: 22.00 para 22%'
+    )
+
+    # Controle de status
+    is_released = models.BooleanField('Foi Liberado', default=False)
+    is_won = models.BooleanField('Foi Ganho', default=False)
+    winner = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='prize_numbers_won',
+        verbose_name='Ganhador'
+    )
+    won_at = models.DateTimeField('Ganho em', null=True, blank=True)
+
+    created_at = models.DateTimeField('Criado em', auto_now_add=True)
+    updated_at = models.DateTimeField('Atualizado em', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Número Premiado'
+        verbose_name_plural = 'Números Premiados'
+        unique_together = ['raffle', 'number']
+        ordering = ['release_percentage_min', 'number']
+
+    def __str__(self):
+        return f"Número {self.number} - R$ {self.prize_amount} ({self.release_percentage_min}%-{self.release_percentage_max}%)"
+
+    def check_and_release(self):
+        """Verifica se o número deve ser liberado baseado na porcentagem de vendas"""
+        if self.is_released:
+            return False
+
+        # Calcular porcentagem de vendas atual
+        current_percentage = (self.raffle.numbers_sold / self.raffle.total_numbers) * 100
+
+        # Verificar se está na faixa de liberação
+        if self.release_percentage_min <= current_percentage <= self.release_percentage_max:
+            self.is_released = True
+            self.save(update_fields=['is_released', 'updated_at'])
+            return True
+
+        return False
