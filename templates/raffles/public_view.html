@@ -923,6 +923,34 @@
             </div>
         </div>
 
+        <!-- Bonus Section -->
+        {% if raffle.enable_purchase_bonus or raffle.enable_milestone_bonus %}
+        <div class="main-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+            <h3 class="section-title" style="color: white;">🎁 Bônus Especiais</h3>
+            <div class="bonus-benefits">
+                {% if raffle.enable_purchase_bonus %}
+                <div class="benefit-item">
+                    <div class="benefit-icon">🎯</div>
+                    <div>
+                        <strong style="display: block; margin-bottom: 4px;">Ganhe Números Extras!</strong>
+                        <span style="color: rgba(255,255,255,0.9);">A cada {{ raffle.purchase_bonus_every }} números comprados, você ganha <strong>{{ raffle.purchase_bonus_amount }} número{% if raffle.purchase_bonus_amount > 1 %}s{% endif %} grátis</strong>!</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if raffle.enable_milestone_bonus %}
+                <div class="benefit-item">
+                    <div class="benefit-icon">🏆</div>
+                    <div>
+                        <strong style="display: block; margin-bottom: 4px;">{{ raffle.milestone_prize_name }}</strong>
+                        <span style="color: rgba(255,255,255,0.9);">Compre {{ raffle.milestone_quantity }} números ou mais e ganhe: <strong>{{ raffle.milestone_prize_description }}</strong></span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Premium Numbers Section -->
         {% if prize_numbers %}
         <div class="main-card">
@@ -980,34 +1008,6 @@
                 <button class="btn-plus" onclick="increaseQuantity()">+</button>
             </div>
         </div>
-
-        <!-- Bonus Section -->
-        {% if raffle.enable_purchase_bonus or raffle.enable_milestone_bonus %}
-        <div class="main-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-            <h3 class="section-title" style="color: white;">🎁 Bônus Especiais</h3>
-            <div class="bonus-benefits">
-                {% if raffle.enable_purchase_bonus %}
-                <div class="benefit-item">
-                    <div class="benefit-icon">🎯</div>
-                    <div>
-                        <strong style="display: block; margin-bottom: 4px;">Ganhe Números Extras!</strong>
-                        <span style="color: rgba(255,255,255,0.9);">A cada {{ raffle.purchase_bonus_every }} números comprados, você ganha <strong>{{ raffle.purchase_bonus_amount }} número{% if raffle.purchase_bonus_amount > 1 %}s{% endif %} grátis</strong>!</span>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if raffle.enable_milestone_bonus %}
-                <div class="benefit-item">
-                    <div class="benefit-icon">🏆</div>
-                    <div>
-                        <strong style="display: block; margin-bottom: 4px;">{{ raffle.milestone_prize_name }}</strong>
-                        <span style="color: rgba(255,255,255,0.9);">Compre {{ raffle.milestone_quantity }} números ou mais e ganhe: <strong>{{ raffle.milestone_prize_description }}</strong></span>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
 
         <!-- Como Funciona Section -->
         <div class="main-card">
