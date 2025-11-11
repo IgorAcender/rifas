@@ -109,8 +109,8 @@ class SiteConfigurationAdmin(ModelAdmin):
 
     fieldsets = (
         ('Logo e Identidade Visual', {
-            'fields': ('logo', 'site_name'),
-            'description': 'Faça upload da logo do seu site. Recomendado: 120x120px, PNG com fundo transparente. A logo será exibida em todas as páginas do site.'
+            'fields': ('logo_base64', 'site_name'),
+            'description': 'Cole a logo em formato Base64 (data:image/...). Use um conversor online como base64-image.de para converter sua imagem. Recomendado: 120x120px, PNG com fundo transparente. A logo será exibida em todas as páginas do site.'
         }),
         ('Informações', {
             'fields': ('created_at', 'updated_at'),

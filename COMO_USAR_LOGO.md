@@ -23,16 +23,25 @@ O sistema agora suporta upload de logo personalizada que será exibida em **toda
 2. Clique em "**Site Configurations**" ou "**Configurações do Site**"
 3. Você verá a configuração existente (ou poderá criar uma nova)
 
-### 3. Faça Upload da Logo
+### 3. Converta sua Logo para Base64
 
-1. Clique para editar a configuração
+1. Acesse um conversor online gratuito:
+   - **https://base64-image.de** (recomendado)
+   - **https://www.base64-image.de**
+   - Ou pesquise "image to base64 converter"
+
+2. Faça upload da sua logo no conversor
+3. Copie o código gerado (começará com `data:image/...`)
+
+### 4. Cole o Código Base64
+
+1. Volte para a edição da configuração no admin
 2. Na seção "**Logo e Identidade Visual**":
-   - Clique em "**Escolher arquivo**" ao lado de "Logo do Site"
-   - Selecione sua logo personalizada
+   - Cole o código Base64 completo no campo "Logo do Site (Base64)"
    - (Opcional) Altere o "Nome do Site" se desejar
 3. Clique em "**Salvar**"
 
-### 4. Pronto!
+### 5. Pronto!
 
 A logo será automaticamente exibida em todas as páginas do site! ✨
 
@@ -58,10 +67,7 @@ Se nenhuma logo for carregada, o sistema usará a logo padrão (ícone "W" azul 
 
 ### Como Funciona
 
-1. **Upload**: Quando você faz upload da logo, ela é:
-   - Salva na pasta `media/site_config/`
-   - Automaticamente convertida para Base64
-   - Armazenada no banco de dados
+1. **Base64**: A logo é armazenada como texto Base64 direto no banco de dados (mesmo padrão usado nas imagens das campanhas)
 
 2. **Context Processor**: Um context processor injeta automaticamente a logo em todos os templates via variáveis:
    - `{{ site_logo }}`: URL da logo em formato base64
@@ -90,12 +96,9 @@ O modelo `SiteConfiguration` usa o padrão Singleton, garantindo que:
 
 ## Solução de Problemas
 
-### A logo não aparece após o upload
+### A logo não aparece após colar o Base64
 
-1. Verifique se a migração foi aplicada:
-   ```bash
-   python manage.py migrate
-   ```
+1. Verifique se você colou o código completo (deve começar com `data:image/...`)
 
 2. Limpe o cache do navegador (Ctrl+Shift+R ou Cmd+Shift+R)
 
@@ -108,11 +111,13 @@ O modelo `SiteConfiguration` usa o padrão Singleton, garantindo que:
 
 - Certifique-se de usar uma imagem quadrada (120x120px recomendado)
 - Use PNG com fundo transparente para melhor resultado
+- Converta novamente a imagem usando um conversor diferente
 
-### Erro ao fazer upload
+### Código Base64 muito grande
 
-- Verifique se a pasta `media/` tem permissões de escrita
-- Verifique se o arquivo não excede o limite de tamanho do servidor
+- Otimize sua imagem antes de converter (reduza o tamanho/dimensões)
+- Use ferramentas como TinyPNG ou Squoosh para comprimir
+- Recomendado: imagens menores que 100KB
 
 ## Suporte
 

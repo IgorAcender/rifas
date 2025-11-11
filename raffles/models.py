@@ -1,6 +1,5 @@
 import random
 import string
-import base64
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
@@ -18,18 +17,11 @@ class SiteConfiguration(models.Model):
     Only one instance should exist.
     """
 
-    # Logo settings
-    logo = models.ImageField(
-        'Logo do Site',
-        upload_to='site_config/',
-        blank=True,
-        null=True,
-        help_text='Logo principal do site (recomendado: 120x120px, PNG com fundo transparente)'
-    )
+    # Logo settings (Base64 - same pattern as Raffle.prize_image_base64)
     logo_base64 = models.TextField(
-        'Logo Base64',
+        'Logo do Site (Base64)',
         blank=True,
-        help_text='Logo codificada em base64 para uso em templates'
+        help_text='Logo em formato Base64. Cole o código data:image/... completo aqui.'
     )
 
     # Site metadata
@@ -51,34 +43,10 @@ class SiteConfiguration(models.Model):
         return f"Configurações do Site - {self.site_name}"
 
     def save(self, *args, **kwargs):
-        """Override save to ensure only one instance exists and encode logo to base64"""
+        """Override save to ensure only one instance exists"""
         # Ensure singleton
         if not self.pk and SiteConfiguration.objects.exists():
             raise ValidationError('Já existe uma configuração de site. Edite a existente.')
-
-        # Convert uploaded logo to base64
-        if self.logo:
-            try:
-                # Read the file
-                self.logo.seek(0)
-                image_data = self.logo.read()
-
-                # Encode to base64
-                encoded = base64.b64encode(image_data).decode('utf-8')
-
-                # Determine image format
-                image_format = 'png'
-                if hasattr(self.logo, 'name'):
-                    if self.logo.name.lower().endswith('.jpg') or self.logo.name.lower().endswith('.jpeg'):
-                        image_format = 'jpeg'
-                    elif self.logo.name.lower().endswith('.svg'):
-                        image_format = 'svg+xml'
-
-                # Create data URI
-                self.logo_base64 = f'data:image/{image_format};base64,{encoded}'
-
-            except Exception as e:
-                print(f"Error encoding logo to base64: {e}")
 
         super().save(*args, **kwargs)
 
