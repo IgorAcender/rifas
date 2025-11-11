@@ -1786,5 +1786,118 @@
         checkReferralCode();
 
     </script>
+
+    <!-- Footer -->
+    <footer style="background: #1e293b; color: #94a3b8; padding: 32px 20px; text-align: center; margin-top: 80px;">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <p style="margin-bottom: 16px; font-size: 14px;">{{ raffle.name }} © 2025 - Todos os direitos reservados</p>
+            <button onclick="openTermsModal()" style="background: transparent; border: none; color: #60a5fa; text-decoration: underline; cursor: pointer; font-size: 14px; padding: 8px 16px;">
+                Termos e Condições
+            </button>
+        </div>
+    </footer>
+
+    <!-- Terms Modal -->
+    <div class="modal-overlay" id="termsModal">
+        <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+            <button class="modal-close" onclick="closeModal('termsModal')">&times;</button>
+            <h3 class="modal-title" style="font-size: 24px; margin-bottom: 8px;">📋 Termos e Condições</h3>
+            <p style="color: #6b7280; margin-bottom: 24px; font-size: 14px;">Leia atentamente antes de participar</p>
+            
+            <div style="text-align: left;">
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">1</span>
+                        Elegibilidade para Participação
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        Para participar de nossas campanhas promocionais, é necessário ter no mínimo 18 anos de idade. Esta é uma exigência legal que visa proteger menores de idade e garantir a responsabilidade dos participantes.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">2</span>
+                        Prorrogação de Campanhas
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        Reservamo-nos o direito de estender o prazo de uma campanha caso a totalidade dos números disponíveis não tenha sido comercializada. Além disso, investigações de segurança ou verificações de integridade podem resultar em prorrogação temporária.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">3</span>
+                        Identificação do Vencedor
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        O vencedor será determinado exclusivamente pelos dados registrados no número sorteado: nome completo, CPF e telefone de contato. Estes dados devem estar corretos e atualizados.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">4</span>
+                        Cancelamento de Ações
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        Campanhas podem ser interrompidas imediatamente caso sejam identificadas violações dos termos estabelecidos, atividades fraudulentas ou comportamentos que comprometam a integridade do processo.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">5</span>
+                        Política de Reembolso
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        Reembolsos são processados exclusivamente em caso de cancelamento oficial da campanha. Para pagamentos duplicados sem registro de dados, o solicitante deve apresentar comprovante de pagamento para análise e posterior devolução dos valores.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">6</span>
+                        Atualizações dos Termos
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        Estes termos podem ser modificados a qualquer momento para aprimoramento da experiência do usuário, correção de inconsistências ou adequação a novas regulamentações. Recomendamos verificação periódica.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">7</span>
+                        Entrega de Prêmios
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        As condições de entrega do prêmio serão informadas diretamente ao contemplado após o sorteio.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 32px;">
+                    <h4 style="color: #1e40af; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #dbeafe; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700;">8</span>
+                        Responsabilidade do Pagamento
+                    </h4>
+                    <p style="color: #4b5563; line-height: 1.6; font-size: 15px;">
+                        Independentemente de quem efetuar o pagamento, será reconhecido como participante válido apenas a pessoa cujos dados pessoais estão registrados no número adquirido.
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+                <p style="color: #6b7280; font-size: 13px; text-align: center;">
+                    Dúvidas sobre estes termos? Entre em contato conosco pelo WhatsApp.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTermsModal() {
+            openModal('termsModal');
+        }
+    </script>
 </body>
 </html>
