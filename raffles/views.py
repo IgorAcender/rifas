@@ -599,3 +599,29 @@ def raffle_public_view(request, slug):
         'prize_numbers': prize_numbers,
     }
     return render(request, 'raffles/public_view.html', context)
+
+
+@login_required
+def site_config_view(request):
+    """View para configurar logo e identidade visual do site"""
+    from .models import SiteConfiguration
+    from django.contrib import messages
+
+    config = SiteConfiguration.get_config()
+
+    if request.method == 'POST':
+        # Update site name
+        site_name = request.POST.get('site_name', '').strip()
+        if site_name:
+            config.site_name = site_name
+
+        # Update logo if provided
+        logo_base64 = request.POST.get('logo_base64', '').strip()
+        if logo_base64:
+            config.logo_base64 = logo_base64
+
+        config.save()
+        messages.success(request, 'Configurações salvas com sucesso!')
+        return redirect('site_config')
+
+    return render(request, 'raffles/site_config.html', {'config': config})

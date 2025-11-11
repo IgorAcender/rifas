@@ -35,6 +35,7 @@ urlpatterns = [
     path('apoiadores/', raffle_views.supporters, name='supporters'),
     path('afiliados/', raffle_views.affiliates, name='affiliates'),
     path('configuracoes/', raffle_views.settings_view, name='settings'),
+    path('config-site/', raffle_views.site_config_view, name='site_config'),
 
     # WhatsApp Manager
     path('whatsapp/', notification_views.whatsapp_manager, name='whatsapp_manager'),

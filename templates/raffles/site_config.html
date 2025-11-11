@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configurações do Site{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <svg class="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m5.657-13.657l-4.243 4.243m-2.828 2.828l-4.243 4.243m16.97 0l-4.243-4.243m-2.828-2.828l-4.243-4.243"></path>
+        </svg>
+        <h1>Configurações do Site</h1>
+    </div>
+</div>
+
+<div class="form-container">
+    <form method="post" class="raffle-form" id="configForm">
+        {% csrf_token %}
+
+        <div class="form-section active">
+            <h2>Logo e Identidade Visual</h2>
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="site_name">Nome do Site</label>
+                    <input
+                        type="text"
+                        id="site_name"
+                        name="site_name"
+                        value="{{ config.site_name }}"
+                        placeholder="Sistema de Rifas"
+                        required
+                    >
+                    <span class="field-hint">Nome exibido no site</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="logo_image">Logo do Site</label>
+                    <div class="file-upload-box">
+                        <input type="file" id="logo_image" name="logo_image" accept="image/*" onchange="previewLogo(this)">
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            {% if config.logo_base64 %}
+                            <img src="{{ config.logo_base64 }}" alt="Logo Preview" class="preview-image">
+                            {% else %}
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <p>Clique para selecionar ou arraste uma imagem</p>
+                            <span>Formatos: PNG, JPG, SVG (Recomendado: 120x120px)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <input type="hidden" id="logo_base64" name="logo_base64" value="{{ config.logo_base64 }}">
+                    <span class="field-hint">Esta logo será exibida em todas as páginas do site</span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Salvar Configurações
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.file-upload-box {
+    position: relative;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    background: #f8fafc;
+}
+
+.file-upload-box:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.file-upload-box input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #64748b;
+}
+
+.upload-placeholder svg {
+    color: #94a3b8;
+}
+
+.upload-placeholder p {
+    font-weight: 500;
+    color: #475569;
+    margin: 0;
+}
+
+.upload-placeholder span {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.preview-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.field-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert-success {
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    color: #166534;
+}
+
+.alert-error {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+}
+</style>
+
+<script>
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        const placeholder = document.getElementById('uploadPlaceholder');
+
+        reader.onload = function(e) {
+            const base64String = e.target.result;
+
+            // Update hidden input with base64
+            document.getElementById('logo_base64').value = base64String;
+
+            // Update preview
+            placeholder.innerHTML = `<img src="${base64String}" alt="Logo Preview" class="preview-image">`;
+        };
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Drag and drop support
+const uploadBox = document.querySelector('.file-upload-box');
+const fileInput = document.getElementById('logo_image');
+
+uploadBox.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadBox.style.borderColor = '#3b82f6';
+    uploadBox.style.background = '#eff6ff';
+});
+
+uploadBox.addEventListener('dragleave', () => {
+    uploadBox.style.borderColor = '#cbd5e1';
+    uploadBox.style.background = '#f8fafc';
+});
+
+uploadBox.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadBox.style.borderColor = '#cbd5e1';
+    uploadBox.style.background = '#f8fafc';
+
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        previewLogo(fileInput);
+    }
+});
+</script>
+
+{% if messages %}
+<div style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {% if message.tags == 'success' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        {% else %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        {% endif %}
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

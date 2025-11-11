@@ -12,36 +12,27 @@ O sistema agora suporta upload de logo personalizada que será exibida em **toda
 
 ## Como Fazer Upload da Logo
 
-### 1. Acesse o Painel Admin
+### 1. Acesse o Painel
 
-1. Acesse: `http://seu-dominio.com/admin`
-2. Faça login com suas credenciais de administrador
+1. Faça login no sistema: `http://seu-dominio.com/admin-login`
+2. No menu lateral, clique em "**Logo do Site**"
 
-### 2. Navegue até Configurações do Site
+### 2. Faça Upload da Imagem
 
-1. No menu lateral, procure por "**Raffles**"
-2. Clique em "**Site Configurations**" ou "**Configurações do Site**"
-3. Você verá a configuração existente (ou poderá criar uma nova)
+1. Na página de configurações, você verá uma caixa de upload com a opção:
+   - **Clique** na caixa para selecionar uma imagem
+   - Ou **arraste e solte** sua logo diretamente na caixa
 
-### 3. Converta sua Logo para Base64
+2. A imagem será automaticamente:
+   - Convertida para Base64
+   - Exibida como preview
+   - Salva no sistema
 
-1. Acesse um conversor online gratuito:
-   - **https://base64-image.de** (recomendado)
-   - **https://www.base64-image.de**
-   - Ou pesquise "image to base64 converter"
+3. (Opcional) Altere o "Nome do Site" se desejar
 
-2. Faça upload da sua logo no conversor
-3. Copie o código gerado (começará com `data:image/...`)
+4. Clique em "**Salvar Configurações**"
 
-### 4. Cole o Código Base64
-
-1. Volte para a edição da configuração no admin
-2. Na seção "**Logo e Identidade Visual**":
-   - Cole o código Base64 completo no campo "Logo do Site (Base64)"
-   - (Opcional) Altere o "Nome do Site" se desejar
-3. Clique em "**Salvar**"
-
-### 5. Pronto!
+### 3. Pronto!
 
 A logo será automaticamente exibida em todas as páginas do site! ✨
 
@@ -96,28 +87,27 @@ O modelo `SiteConfiguration` usa o padrão Singleton, garantindo que:
 
 ## Solução de Problemas
 
-### A logo não aparece após colar o Base64
+### A logo não aparece após fazer upload
 
-1. Verifique se você colou o código completo (deve começar com `data:image/...`)
+1. Verifique se a imagem foi carregada corretamente (deve aparecer um preview)
 
-2. Limpe o cache do navegador (Ctrl+Shift+R ou Cmd+Shift+R)
+2. Clique em "Salvar Configurações" após fazer o upload
 
-3. Verifique se o context processor está configurado em `settings.py`:
-   ```python
-   'raffles.context_processors.site_config'
-   ```
+3. Limpe o cache do navegador (Ctrl+Shift+R ou Cmd+Shift+R)
+
+4. Verifique se você está logado como administrador
 
 ### A logo aparece distorcida
 
 - Certifique-se de usar uma imagem quadrada (120x120px recomendado)
 - Use PNG com fundo transparente para melhor resultado
-- Converta novamente a imagem usando um conversor diferente
+- Tente fazer upload de uma nova imagem otimizada
 
-### Código Base64 muito grande
+### Erro ao fazer upload
 
-- Otimize sua imagem antes de converter (reduza o tamanho/dimensões)
-- Use ferramentas como TinyPNG ou Squoosh para comprimir
-- Recomendado: imagens menores que 100KB
+- Verifique o tamanho da imagem (recomendado: menos de 2MB)
+- Confirme que está usando um formato suportado (PNG, JPG, SVG)
+- Otimize a imagem antes do upload usando TinyPNG ou Squoosh
 
 ## Suporte
 
