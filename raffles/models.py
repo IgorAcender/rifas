@@ -57,6 +57,17 @@ class Raffle(models.Model):
     enable_progressive_bonus = models.BooleanField('Ativar Bônus Progressivo', default=False, help_text='Indicador ganha números extras baseado na quantidade que o indicado compra')
     progressive_bonus_every = models.PositiveIntegerField('Bônus a Cada X Números', default=20, help_text='A cada X números que o indicado compra, o indicador ganha 1 número extra (ex: 20 = ganha 1 número a cada 20 comprados)')
 
+    # Purchase bonus - "A cada X números, ganhe Y números grátis"
+    enable_purchase_bonus = models.BooleanField('Ativar Bônus por Quantidade', default=False, help_text='Cliente ganha números extras ao comprar quantidade específica')
+    purchase_bonus_every = models.PositiveIntegerField('A Cada X Números', default=10, help_text='A cada X números comprados, ganha Y números grátis')
+    purchase_bonus_amount = models.PositiveIntegerField('Ganhe Y Números', default=1, help_text='Quantidade de números grátis ganhos')
+    
+    # Milestone bonus - "Compre X números, ganhe um prêmio especial"
+    enable_milestone_bonus = models.BooleanField('Ativar Prêmio por Meta', default=False, help_text='Cliente ganha prêmio especial ao atingir quantidade mínima')
+    milestone_quantity = models.PositiveIntegerField('Quantidade Mínima', default=50, help_text='Quantidade mínima de números para ganhar o prêmio')
+    milestone_prize_name = models.CharField('Nome do Prêmio', max_length=200, blank=True, help_text='Ex: PDF Exclusivo, Curso Online, etc')
+    milestone_prize_description = models.TextField('Descrição do Prêmio', blank=True, help_text='Detalhes sobre o prêmio especial')
+
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
 
@@ -266,6 +277,23 @@ class RaffleOrder(models.Model):
     def __str__(self):
         return f"Pedido #{self.id} - {self.user.name} - {self.get_status_display()}"
 
+    def calculate_purchase_bonus(self):
+        """Calculate bonus numbers based on purchase quantity"""
+        bonus_numbers = 0
+        
+        # Bônus progressivo: "A cada X números, ganhe Y números grátis"
+        if self.raffle.enable_purchase_bonus and self.raffle.purchase_bonus_every > 0:
+            bonus_numbers = (self.quantity // self.raffle.purchase_bonus_every) * self.raffle.purchase_bonus_amount
+        
+        return bonus_numbers
+    
+    def qualifies_for_milestone(self):
+        """Check if order qualifies for milestone bonus"""
+        if not self.raffle.enable_milestone_bonus:
+            return False
+        
+        return self.quantity >= self.raffle.milestone_quantity
+
     @transaction.atomic
     def allocate_numbers(self):
         """Allocate random available numbers to this order"""
@@ -274,6 +302,13 @@ class RaffleOrder(models.Model):
 
         # Verificar e liberar números premiados baseado na porcentagem de vendas
         self.raffle.check_and_release_prize_numbers()
+
+        # Calcular bônus de compra
+        bonus_count = self.calculate_purchase_bonus()
+        total_to_allocate = self.quantity + bonus_count
+        
+        if bonus_count > 0:
+            print(f"🎁 Bônus de compra: {bonus_count} números extras! Total: {total_to_allocate}")
 
         # Get available numbers (excluindo números premiados que ainda não foram liberados)
         available = list(
@@ -290,11 +325,11 @@ class RaffleOrder(models.Model):
 
         available_filtered = [(id, num) for id, num in available if num not in unreleased_prize_numbers]
 
-        if len(available_filtered) < self.quantity:
+        if len(available_filtered) < total_to_allocate:
             raise ValidationError('Nao ha numeros suficientes disponiveis')
 
-        # Select random numbers
-        selected = random.sample(available_filtered, self.quantity)
+        # Select random numbers (paid + bonus)
+        selected = random.sample(available_filtered, total_to_allocate)
         selected_ids = [id for id, num in selected]
 
         # Reserve numbers
@@ -304,6 +339,13 @@ class RaffleOrder(models.Model):
             order=self,
             reserved_at=models.functions.Now()
         )
+        
+        # Save bonus info in payment_data
+        if bonus_count > 0:
+            if not self.payment_data:
+                self.payment_data = {}
+            self.payment_data['purchase_bonus'] = bonus_count
+            self.save(update_fields=['payment_data'])
 
         return list(
             RaffleNumber.objects.filter(id__in=selected_ids).values_list('number', flat=True)
@@ -351,6 +393,8 @@ class RaffleOrder(models.Model):
 
         # Armazenar prêmios ganhos no pedido para exibir depois
         if won_prizes:
+            if not self.payment_data:
+                self.payment_data = {}
             self.payment_data['won_prizes'] = [
                 {
                     'number': p.number,
@@ -360,6 +404,19 @@ class RaffleOrder(models.Model):
                 for p in won_prizes
             ]
             self.save(update_fields=['payment_data'])
+        
+        # Verificar se qualifica para o prêmio milestone
+        if self.qualifies_for_milestone():
+            if not self.payment_data:
+                self.payment_data = {}
+            self.payment_data['milestone_achieved'] = True
+            self.payment_data['milestone_prize'] = {
+                'name': self.raffle.milestone_prize_name,
+                'description': self.raffle.milestone_prize_description,
+                'quantity_required': self.raffle.milestone_quantity
+            }
+            self.save(update_fields=['payment_data'])
+            print(f"🎯 MILESTONE! Usuário {self.user.name} ganhou: {self.raffle.milestone_prize_name}")
 
         # Allocate bonus numbers if referral was used
         if self.referral_code:

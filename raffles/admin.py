@@ -35,6 +35,23 @@ class RaffleAdmin(ModelAdmin):
             ),
             'description': 'Configure o sistema de indicação de amigos. O bônus progressivo permite que o indicador ganhe números extras baseado na quantidade que o indicado compra (ex: 1 número a cada 20 comprados).'
         }),
+        ('Bonus de Compra', {
+            'fields': (
+                'enable_purchase_bonus',
+                'purchase_bonus_every',
+                'purchase_bonus_amount',
+            ),
+            'description': 'Configure o bônus progressivo de compra: cliente ganha números extras automaticamente ao comprar quantidade específica (ex: a cada 10 números, ganhe 1 grátis).'
+        }),
+        ('Premio Milestone', {
+            'fields': (
+                'enable_milestone_bonus',
+                'milestone_quantity',
+                'milestone_prize_name',
+                'milestone_prize_description',
+            ),
+            'description': 'Configure um prêmio especial para clientes que comprarem uma quantidade mínima de números (ex: compre 50 números e ganhe um PDF exclusivo).'
+        }),
         ('Estatisticas', {
             'fields': ('numbers_sold', 'numbers_reserved', 'numbers_available', 'created_at', 'updated_at')
         }),

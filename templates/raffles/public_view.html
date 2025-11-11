@@ -565,15 +565,28 @@
 
         .benefit-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
-            padding: 12px;
-            background: var(--bg-light);
-            border-radius: 8px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .benefit-icon {
-            font-size: 20px;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        
+        .benefit-item strong {
+            color: white;
+            font-size: 16px;
+        }
+        
+        .benefit-item span {
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .btn-close-bonus {
@@ -904,6 +917,34 @@
             </div>
         </div>
 
+        <!-- Bonus Section -->
+        {% if raffle.enable_purchase_bonus or raffle.enable_milestone_bonus %}
+        <div class="main-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+            <h3 class="section-title" style="color: white;">🎁 Bônus Especiais</h3>
+            <div class="bonus-benefits">
+                {% if raffle.enable_purchase_bonus %}
+                <div class="benefit-item">
+                    <div class="benefit-icon">🎯</div>
+                    <div>
+                        <strong style="display: block; margin-bottom: 4px;">Ganhe Números Extras!</strong>
+                        <span style="color: rgba(255,255,255,0.9);">A cada {{ raffle.purchase_bonus_every }} números comprados, você ganha <strong>{{ raffle.purchase_bonus_amount }} número{% if raffle.purchase_bonus_amount > 1 %}s{% endif %} grátis</strong>!</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if raffle.enable_milestone_bonus %}
+                <div class="benefit-item">
+                    <div class="benefit-icon">🏆</div>
+                    <div>
+                        <strong style="display: block; margin-bottom: 4px;">{{ raffle.milestone_prize_name }}</strong>
+                        <span style="color: rgba(255,255,255,0.9);">Compre {{ raffle.milestone_quantity }} números ou mais e ganhe: <strong>{{ raffle.milestone_prize_description }}</strong></span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Como Funciona Section -->
         <div class="main-card">
             <h3 class="section-title">💡 Como funciona?</h3>
@@ -963,6 +1004,7 @@
         <div class="selection-info">
             <div class="count"><span id="selectedCount">1</span> número(s)</div>
             <div class="total">Total: R$ <span id="totalAmount">{{ raffle.price_per_number }}</span></div>
+            <div id="bonusInfo"></div>
         </div>
         <button class="btn-buy" id="buyButton" onclick="openLoginModal()">Participar Agora</button>
     </div>
@@ -1076,7 +1118,16 @@
             referralMinPurchase: {{ raffle.referral_min_purchase }},
             inviterBonus: {{ raffle.inviter_bonus }},
             inviteeBonus: {{ raffle.invitee_bonus }},
-            inviteeMinPurchase: {{ raffle.invitee_min_purchase }}
+            inviteeMinPurchase: {{ raffle.invitee_min_purchase }},
+            // Purchase bonus config
+            enablePurchaseBonus: {{ raffle.enable_purchase_bonus|yesno:"true,false" }},
+            purchaseBonusEvery: {{ raffle.purchase_bonus_every }},
+            purchaseBonusAmount: {{ raffle.purchase_bonus_amount }},
+            // Milestone bonus config
+            enableMilestoneBonus: {{ raffle.enable_milestone_bonus|yesno:"true,false" }},
+            milestoneQuantity: {{ raffle.milestone_quantity }},
+            milestonePrizeName: "{{ raffle.milestone_prize_name|escapejs }}",
+            milestonePrizeDescription: "{{ raffle.milestone_prize_description|escapejs }}"
         };
 
         let state = {
@@ -1128,6 +1179,41 @@
             const total = state.currentQuantity * config.pricePerNumber;
             document.getElementById('selectedCount').textContent = state.currentQuantity;
             document.getElementById('totalAmount').textContent = formatCurrency(total);
+            
+            // Calcular e exibir bônus
+            updateBonusDisplay();
+        }
+        
+        function updateBonusDisplay() {
+            const quantity = state.currentQuantity;
+            let bonusHTML = '';
+            
+            // Bônus progressivo de compra
+            if (config.enablePurchaseBonus && config.purchaseBonusEvery > 0) {
+                const bonusCount = Math.floor(quantity / config.purchaseBonusEvery) * config.purchaseBonusAmount;
+                if (bonusCount > 0) {
+                    bonusHTML += `<div style="display: flex; align-items: center; gap: 8px; padding: 12px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; margin-top: 12px;">
+                        <span style="font-size: 20px;">🎁</span>
+                        <span style="color: #22c55e; font-weight: 600;">+${bonusCount} número${bonusCount > 1 ? 's' : ''} grátis!</span>
+                    </div>`;
+                }
+            }
+            
+            // Prêmio milestone
+            if (config.enableMilestoneBonus && quantity >= config.milestoneQuantity) {
+                bonusHTML += `<div style="display: flex; align-items: center; gap: 8px; padding: 12px; background: rgba(251, 191, 36, 0.1); border-radius: 8px; margin-top: 12px;">
+                    <span style="font-size: 20px;">🏆</span>
+                    <div style="flex: 1;">
+                        <div style="color: #fbbf24; font-weight: 600; margin-bottom: 4px;">${config.milestonePrizeName}</div>
+                        <div style="color: #94a3b8; font-size: 13px;">${config.milestonePrizeDescription}</div>
+                    </div>
+                </div>`;
+            }
+            
+            const bonusContainer = document.getElementById('bonusInfo');
+            if (bonusContainer) {
+                bonusContainer.innerHTML = bonusHTML;
+            }
         }
 
         function openLoginModal() {
