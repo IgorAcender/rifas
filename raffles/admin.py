@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import Raffle, RaffleNumber, RaffleOrder, Referral, PrizeNumber
+from .models import Raffle, RaffleNumber, RaffleOrder, Referral, PrizeNumber, SiteConfiguration
 
 
 @admin.register(Raffle)
@@ -93,3 +93,28 @@ class PrizeNumberAdmin(ModelAdmin):
     list_filter = ('is_released', 'is_won', 'raffle')
     search_fields = ('number', 'raffle__name', 'winner__name', 'winner__whatsapp')
     readonly_fields = ('is_released', 'is_won', 'winner', 'won_at', 'created_at', 'updated_at')
+
+
+@admin.register(SiteConfiguration)
+class SiteConfigurationAdmin(ModelAdmin):
+    """Admin for site configuration - allows uploading custom logo"""
+
+    def has_add_permission(self, request):
+        # Only allow one SiteConfiguration instance
+        return not SiteConfiguration.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        # Don't allow deletion
+        return False
+
+    fieldsets = (
+        ('Logo e Identidade Visual', {
+            'fields': ('logo', 'site_name'),
+            'description': 'Faça upload da logo do seu site. Recomendado: 120x120px, PNG com fundo transparente. A logo será exibida em todas as páginas do site.'
+        }),
+        ('Informações', {
+            'fields': ('created_at', 'updated_at'),
+        }),
+    )
+
+    readonly_fields = ('created_at', 'updated_at')
