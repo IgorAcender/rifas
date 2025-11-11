@@ -402,6 +402,15 @@ def raffle_create(request):
                 invitee_bonus=int(request.POST.get('invitee_bonus', 1)),
                 enable_progressive_bonus=request.POST.get('enable_progressive_bonus') == '1',
                 progressive_bonus_every=int(request.POST.get('progressive_bonus_every', 20)),
+                # Purchase bonus
+                enable_purchase_bonus=request.POST.get('enable_purchase_bonus') == '1',
+                purchase_bonus_every=int(request.POST.get('purchase_bonus_every', 10)),
+                purchase_bonus_amount=int(request.POST.get('purchase_bonus_amount', 1)),
+                # Milestone bonus
+                enable_milestone_bonus=request.POST.get('enable_milestone_bonus') == '1',
+                milestone_quantity=int(request.POST.get('milestone_quantity', 50)),
+                milestone_prize_name=request.POST.get('milestone_prize_name', ''),
+                milestone_prize_description=request.POST.get('milestone_prize_description', ''),
             )
 
             raffle.initialize_numbers()
@@ -463,6 +472,17 @@ def raffle_edit(request, pk):
             raffle.invitee_bonus = int(request.POST.get('invitee_bonus', 1))
             raffle.enable_progressive_bonus = request.POST.get('enable_progressive_bonus') == '1'
             raffle.progressive_bonus_every = int(request.POST.get('progressive_bonus_every', 20))
+            
+            # Purchase bonus
+            raffle.enable_purchase_bonus = request.POST.get('enable_purchase_bonus') == '1'
+            raffle.purchase_bonus_every = int(request.POST.get('purchase_bonus_every', 10))
+            raffle.purchase_bonus_amount = int(request.POST.get('purchase_bonus_amount', 1))
+            
+            # Milestone bonus
+            raffle.enable_milestone_bonus = request.POST.get('enable_milestone_bonus') == '1'
+            raffle.milestone_quantity = int(request.POST.get('milestone_quantity', 50))
+            raffle.milestone_prize_name = request.POST.get('milestone_prize_name', '')
+            raffle.milestone_prize_description = request.POST.get('milestone_prize_description', '')
 
             # Update draw_date if provided
             if request.POST.get('draw_date'):
