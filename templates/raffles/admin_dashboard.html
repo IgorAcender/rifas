@@ -97,13 +97,13 @@
                 <div class="campaign-stat">
                     <p class="stat-label">Disponíveis</p>
                     <p class="stat-value">{{ campaign.numbers_available }}</p>
-                    <p class="stat-detail">R$ {{ campaign.available_value|floatformat:2 }}</p>
+                    <p class="stat-detail">números</p>
                 </div>
 
                 <div class="campaign-stat">
-                    <p class="stat-label">Reservados</p>
-                    <p class="stat-value">{{ campaign.numbers_reserved }}</p>
-                    <p class="stat-detail">números</p>
+                    <p class="stat-label">Valor Disponível</p>
+                    <p class="stat-value">R$ {{ campaign.available_value|floatformat:2 }}</p>
+                    <p class="stat-detail">A arrecadar</p>
                 </div>
 
                 <div class="campaign-stat">
