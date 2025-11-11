@@ -1199,16 +1199,14 @@
                         <div class="error-message" id="whatsappConfirmError"></div>
                     </div>
 
-                    <!-- Checkbox de termos -->
-                    <div class="form-group">
-                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: #64748b; font-weight: 400;">
-                            <input type="checkbox" id="termsCheckbox" required style="margin-top: 2px; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0;">
-                            <span>Ao realizar o pagamento confirmo minha participação e declaro ter lido e aceito os <a href="javascript:void(0)" onclick="openTermsModal()" style="color: #3b82f6; text-decoration: underline;">termos de uso</a></span>
-                        </label>
-                        <div class="error-message" id="termsError"></div>
+                    <!-- Mensagem de termos (sem checkbox) -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b; text-align: center; line-height: 1.5;">
+                            Ao realizar o pagamento confirmo minha participação e declaro ter lido e aceito os <a href="javascript:void(0)" onclick="openTermsModal()" style="color: #3b82f6; text-decoration: underline; font-weight: 500;">termos de uso</a>
+                        </p>
                     </div>
 
-                    <button type="submit" class="btn-confirm-purchase" id="confirmPurchaseBtn" disabled>
+                    <button type="submit" class="btn-confirm-purchase" id="confirmPurchaseBtn">
                         Cadastrar e pagar →
                     </button>
                 </form>
@@ -1445,15 +1443,7 @@
             });
         }
 
-        // Controlar estado do botão baseado no checkbox
-        const termsCheckbox = document.getElementById('termsCheckbox');
-        const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
-
-        if (termsCheckbox && confirmPurchaseBtn) {
-            termsCheckbox.addEventListener('change', function() {
-                confirmPurchaseBtn.disabled = !this.checked;
-            });
-        }
+        // Código do checkbox de termos removido - agora é apenas informativo
 
         function openModal(id) {
             const modal = document.getElementById(id);
@@ -1584,13 +1574,6 @@
 
             const confirmBtn = document.getElementById('confirmPurchaseBtn');
             confirmBtn.dataset.originalText = confirmBtn.textContent;
-
-            // Validar checkbox de termos
-            const termsCheckbox = document.getElementById('termsCheckbox');
-            if (!termsCheckbox.checked) {
-                displayError('terms', 'Você deve aceitar os termos de uso para continuar.');
-                return;
-            }
 
             setButtonLoading(confirmBtn, true);
 
