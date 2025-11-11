@@ -842,7 +842,18 @@
                 {% for prize_number in prize_numbers %}
                 <div class="premium-number-card {% if prize_number.is_won %}premium-won{% elif prize_number.number in user_numbers %}premium-owned-special{% else %}premium-available{% endif %}">
                     <div class="premium-value-top">R${{ prize_number.prize_amount|floatformat:0 }}</div>
-                    <div class="premium-number {% if prize_number.is_won %}premium-number-struck{% endif %}">{{ prize_number.number|stringformat:"06d" }}</div>
+                    <div class="premium-number {% if prize_number.is_won %}premium-number-struck{% endif %}">
+                        {% widthratio raffle.total_numbers 1 1 as total_str %}
+                        {% if raffle.total_numbers < 1000 %}
+                            {{ prize_number.number|stringformat:"03d" }}
+                        {% elif raffle.total_numbers < 10000 %}
+                            {{ prize_number.number|stringformat:"04d" }}
+                        {% elif raffle.total_numbers < 100000 %}
+                            {{ prize_number.number|stringformat:"05d" }}
+                        {% else %}
+                            {{ prize_number.number|stringformat:"06d" }}
+                        {% endif %}
+                    </div>
                     <div class="premium-status">
                         {% if prize_number.is_won %}
                         <span class="status-text">{{ prize_number.winner.name }}</span>
