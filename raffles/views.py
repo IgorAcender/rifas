@@ -556,7 +556,7 @@ def raffle_public_view(request, slug):
     # Get all numbers with their status
     numbers = RaffleNumber.objects.filter(raffle=raffle).order_by('number')
     
-    # Get prize numbers (números premiados)
+    # Get prize numbers (todos - para mostrar como disponíveis e gerar interesse)
     prize_numbers = raffle.prize_numbers.all().order_by('release_percentage_min', 'number')
     
     # Get user's numbers if authenticated
