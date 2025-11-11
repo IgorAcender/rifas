@@ -266,6 +266,115 @@
                 </div>
             </div>
 
+            <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+            <h3 style="margin-bottom: 20px; color: #667eea;">🎁 Bônus de Compra</h3>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="enable_purchase_bonus">
+                        <input
+                            type="checkbox"
+                            id="enable_purchase_bonus"
+                            name="enable_purchase_bonus"
+                            value="1"
+                            onchange="togglePurchaseBonus()"
+                            style="width: auto; display: inline-block; margin-right: 8px;"
+                        >
+                        Ativar Bônus por Quantidade
+                    </label>
+                    <span class="field-hint">Cliente ganha números extras automaticamente ao comprar quantidade específica</span>
+                </div>
+            </div>
+
+            <div id="purchase_bonus_fields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="purchase_bonus_every">A cada X números</label>
+                        <input
+                            type="number"
+                            id="purchase_bonus_every"
+                            name="purchase_bonus_every"
+                            value="10"
+                            min="1"
+                        >
+                        <span class="field-hint">A cada quantos números comprados</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="purchase_bonus_amount">Ganhe Y números</label>
+                        <input
+                            type="number"
+                            id="purchase_bonus_amount"
+                            name="purchase_bonus_amount"
+                            value="1"
+                            min="1"
+                        >
+                        <span class="field-hint">Quantidade de números grátis</span>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+            <h3 style="margin-bottom: 20px; color: #fbbf24;">🏆 Prêmio por Meta</h3>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="enable_milestone_bonus">
+                        <input
+                            type="checkbox"
+                            id="enable_milestone_bonus"
+                            name="enable_milestone_bonus"
+                            value="1"
+                            onchange="toggleMilestoneBonus()"
+                            style="width: auto; display: inline-block; margin-right: 8px;"
+                        >
+                        Ativar Prêmio Especial
+                    </label>
+                    <span class="field-hint">Cliente ganha prêmio ao atingir quantidade mínima de compra</span>
+                </div>
+            </div>
+
+            <div id="milestone_bonus_fields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="milestone_quantity">Quantidade Mínima</label>
+                        <input
+                            type="number"
+                            id="milestone_quantity"
+                            name="milestone_quantity"
+                            value="50"
+                            min="1"
+                        >
+                        <span class="field-hint">Números necessários para ganhar o prêmio</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="milestone_prize_name">Nome do Prêmio</label>
+                        <input
+                            type="text"
+                            id="milestone_prize_name"
+                            name="milestone_prize_name"
+                            placeholder="Ex: PDF Exclusivo, Curso Online"
+                        >
+                        <span class="field-hint">O que o cliente vai ganhar</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="milestone_prize_description">Descrição do Prêmio</label>
+                        <textarea
+                            id="milestone_prize_description"
+                            name="milestone_prize_description"
+                            rows="3"
+                            placeholder="Descreva o prêmio especial que o cliente vai receber..."
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="prevStep(2)">
                     ← Voltar
@@ -471,6 +580,18 @@ function toggleProgressiveBonus() {
     const checkbox = document.getElementById('enable_progressive_bonus');
     const field = document.getElementById('progressive_bonus_field');
     field.style.display = checkbox.checked ? 'block' : 'none';
+}
+
+function togglePurchaseBonus() {
+    const checkbox = document.getElementById('enable_purchase_bonus');
+    const fields = document.getElementById('purchase_bonus_fields');
+    fields.style.display = checkbox.checked ? 'block' : 'none';
+}
+
+function toggleMilestoneBonus() {
+    const checkbox = document.getElementById('enable_milestone_bonus');
+    const fields = document.getElementById('milestone_bonus_fields');
+    fields.style.display = checkbox.checked ? 'block' : 'none';
 }
 </script>
 {% endblock %}
