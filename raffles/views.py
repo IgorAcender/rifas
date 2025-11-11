@@ -549,6 +549,8 @@ from django.http import JsonResponse
 
 def raffle_public_view(request, slug):
     """Pagina publica da rifa para vendas"""
+    from django.conf import settings
+    
     raffle = get_object_or_404(Raffle, slug=slug, status=Raffle.Status.ACTIVE)
     
     # Get all numbers with their status
@@ -558,5 +560,6 @@ def raffle_public_view(request, slug):
         'raffle': raffle,
         'numbers': numbers,
         'numbers_list': list(numbers.values('number', 'status')),
+        'admin_whatsapp': settings.ADMIN_WHATSAPP,
     }
     return render(request, 'raffles/public_view.html', context)
