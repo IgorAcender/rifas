@@ -186,6 +186,7 @@ def dashboard(request):
                 'numbers_sold': numbers_sold,
                 'numbers_reserved': numbers_reserved,
                 'numbers_available': numbers_available,
+                'available_value': numbers_available * raffle.price_per_number,
                 'total_revenue': total_revenue,
                 'fee_amount': fee_amount,
                 'net_revenue': net_revenue,

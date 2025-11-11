@@ -97,7 +97,7 @@
                 <div class="campaign-stat">
                     <p class="stat-label">Disponíveis</p>
                     <p class="stat-value">{{ campaign.numbers_available }}</p>
-                    <p class="stat-detail">números</p>
+                    <p class="stat-detail">R$ {{ campaign.available_value|floatformat:2 }}</p>
                 </div>
 
                 <div class="campaign-stat">
