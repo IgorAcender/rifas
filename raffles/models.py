@@ -57,6 +57,8 @@ class Raffle(models.Model):
     enable_progressive_bonus = models.BooleanField('Ativar Bônus Progressivo', default=False, help_text='Indicador ganha números extras baseado na quantidade que o indicado compra')
     progressive_bonus_every = models.PositiveIntegerField('Bônus a Cada X Números', default=20, help_text='A cada X números que o indicado compra, o indicador ganha 1 número extra (ex: 20 = ganha 1 número a cada 20 comprados)')
 
+    # Premium/Special numbers with prizes
+    premium_numbers = models.JSONField('Cotas Premiadas', default=dict, blank=True, help_text='Números especiais com prêmios. Formato: {"número": {"prize": "Prêmio", "prize_value": 500}}')
 
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)

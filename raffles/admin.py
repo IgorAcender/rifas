@@ -35,6 +35,10 @@ class RaffleAdmin(ModelAdmin):
             ),
             'description': 'Configure o sistema de indicação de amigos. O bônus progressivo permite que o indicador ganhe números extras baseado na quantidade que o indicado compra (ex: 1 número a cada 20 comprados).'
         }),
+        ('Cotas Premiadas', {
+            'fields': ('premium_numbers',),
+            'description': 'Configure números especiais que ganham prêmios adicionais. Formato JSON: {"1234": {"prize": "R$ 500 no PIX", "prize_value": 500}}'
+        }),
         ('Estatisticas', {
             'fields': ('numbers_sold', 'numbers_reserved', 'numbers_available', 'created_at', 'updated_at')
         }),
