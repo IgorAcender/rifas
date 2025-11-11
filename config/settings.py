@@ -186,6 +186,9 @@ EVOLUTION_API_URL = config('EVOLUTION_API_URL', default='')
 EVOLUTION_API_KEY = config('EVOLUTION_API_KEY', default='')
 EVOLUTION_INSTANCE_NAME = config('EVOLUTION_INSTANCE_NAME', default='')
 
+# Site URL (for generating referral links)
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
 # Admin credentials (from ENV)
 ADMIN_WHATSAPP = config('ADMIN_WHATSAPP', default='5511999999999')
 ADMIN_PASSWORD = config('ADMIN_PASSWORD', default='admin123')
