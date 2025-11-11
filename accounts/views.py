@@ -36,6 +36,46 @@ def me(request):
     return Response(serializer.data)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def check_whatsapp(request):
+    """
+    Check if WhatsApp number is already registered.
+    Returns user data if exists, null otherwise.
+
+    POST /api/auth/check-whatsapp/
+    {
+        "whatsapp": "37900000000"
+    }
+    """
+    whatsapp = request.data.get('whatsapp', '').strip()
+
+    if not whatsapp:
+        return Response(
+            {'error': 'WhatsApp number is required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Normalize WhatsApp (remove formatting)
+    whatsapp_clean = ''.join(filter(str.isdigit, whatsapp))
+
+    try:
+        user = User.objects.get(whatsapp=whatsapp_clean, is_staff=False)
+        return Response({
+            'exists': True,
+            'user': {
+                'name': user.name,
+                'cpf': user.cpf or '',
+                'whatsapp': whatsapp_clean
+            }
+        }, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({
+            'exists': False,
+            'user': None
+        }, status=status.HTTP_200_OK)
+
+
 # Frontend Views
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout

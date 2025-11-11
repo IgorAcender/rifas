@@ -389,6 +389,28 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
+        .form-group input:read-only,
+        .form-group input:disabled {
+            background-color: #f1f5f9;
+            cursor: not-allowed;
+            color: #64748b;
+        }
+
+        #step1, #step2 {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .phone-input-wrapper {
             display: flex;
             align-items: center;
@@ -1086,57 +1108,111 @@
     <div class="modal-overlay" id="loginModal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
-            <h3 class="modal-title">Finalize o cadastro</h3>
-            
-            <!-- Resumo da compra -->
-            <div class="purchase-summary">
-                <div class="summary-row">
-                    <span class="summary-icon">🎟️</span>
-                    <span class="summary-label">Quantidade de títulos</span>
-                    <span class="summary-value" id="modalQuantity">1</span>
+
+            <!-- ETAPA 1: WhatsApp apenas -->
+            <div id="step1" style="display: block;">
+                <h3 class="modal-title">Finalize o cadastro</h3>
+
+                <!-- Resumo da compra -->
+                <div class="purchase-summary">
+                    <div class="summary-row">
+                        <span class="summary-icon">🎟️</span>
+                        <span class="summary-label">Quantidade de títulos</span>
+                        <span class="summary-value" id="modalQuantity">1</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-icon">💰</span>
+                        <span class="summary-label">Valor</span>
+                        <span class="summary-value summary-price" id="modalTotal">R$ 0,19</span>
+                    </div>
                 </div>
-                <div class="summary-row">
-                    <span class="summary-icon">💰</span>
-                    <span class="summary-label">Valor</span>
-                    <span class="summary-value summary-price" id="modalTotal">R$ 0,19</span>
-                </div>
+
+                <form id="step1Form">
+                    <div class="form-group">
+                        <label for="whatsappInputStep1">Celular com DDD*</label>
+                        <div class="phone-input-wrapper">
+                            <span class="phone-prefix">🇧🇷 +55</span>
+                            <input type="tel" id="whatsappInputStep1" placeholder="(37) 90000-0000" required maxlength="15">
+                        </div>
+                        <div class="error-message" id="whatsappStep1Error"></div>
+                    </div>
+
+                    <button type="submit" class="btn-confirm-purchase" id="continueBtn">
+                        Continuar →
+                    </button>
+                </form>
             </div>
 
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="nameInput">Nome Completo*</label>
-                    <input type="text" id="nameInput" placeholder="Igor" required>
-                    <div class="error-message" id="nameError"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="emailInput">E-mail (opcional)</label>
-                    <input type="email" id="emailInput" placeholder="email@email.com">
-                    <div class="error-message" id="emailError"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="whatsappInput">Celular com DDD</label>
-                    <div class="phone-input-wrapper">
-                        <span class="phone-prefix">🇧🇷 +55</span>
-                        <input type="tel" id="whatsappInput" placeholder="(37) 988051628" required maxlength="15">
-                    </div>
-                    <div class="error-message" id="whatsappError"></div>
+            <!-- ETAPA 2: Formulário completo -->
+            <div id="step2" style="display: none;">
+                <h3 class="modal-title">Finalize o cadastro</h3>
+
+                <!-- Mensagem de boas-vindas (aparece se usuário existe) -->
+                <div id="welcomeMessage" style="display: none; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: center;">
+                    <p style="margin: 0; color: #15803d; font-weight: 600; font-size: 15px;">
+                        Bem-vindo de volta, <span id="welcomeName"></span>! 🎉
+                    </p>
                 </div>
 
-                <div class="form-group">
-                    <label for="whatsappConfirmInput">Confirmar celular</label>
-                    <div class="phone-input-wrapper">
-                        <span class="phone-prefix">🇧🇷 +55</span>
-                        <input type="tel" id="whatsappConfirmInput" placeholder="(37) 988051628" required maxlength="15">
+                <!-- Resumo da compra -->
+                <div class="purchase-summary">
+                    <div class="summary-row">
+                        <span class="summary-icon">🎟️</span>
+                        <span class="summary-label">Quantidade de títulos</span>
+                        <span class="summary-value" id="modalQuantity2">1</span>
                     </div>
-                    <div class="error-message" id="whatsappConfirmError"></div>
+                    <div class="summary-row">
+                        <span class="summary-icon">💰</span>
+                        <span class="summary-label">Valor</span>
+                        <span class="summary-value summary-price" id="modalTotal2">R$ 0,19</span>
+                    </div>
                 </div>
-                
-                <button type="submit" class="btn-confirm-purchase" id="confirmPurchaseBtn">
-                    Concluir reserva →
-                </button>
-            </form>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="nameInput">Nome Completo*</label>
+                        <input type="text" id="nameInput" placeholder="Igor" required>
+                        <div class="error-message" id="nameError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cpfInput">CPF (opcional)</label>
+                        <input type="text" id="cpfInput" placeholder="000.000.000-00" maxlength="14">
+                        <div class="error-message" id="cpfError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="whatsappInput">Celular com DDD*</label>
+                        <div class="phone-input-wrapper">
+                            <span class="phone-prefix">🇧🇷 +55</span>
+                            <input type="tel" id="whatsappInput" placeholder="(37) 90000-0000" required maxlength="15" readonly>
+                        </div>
+                        <div class="error-message" id="whatsappError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="whatsappConfirmInput">Confirmar celular*</label>
+                        <div class="phone-input-wrapper">
+                            <span class="phone-prefix">🇧🇷 +55</span>
+                            <input type="tel" id="whatsappConfirmInput" placeholder="(37) 90000-0000" required maxlength="15">
+                        </div>
+                        <div class="error-message" id="whatsappConfirmError"></div>
+                    </div>
+
+                    <!-- Checkbox de termos -->
+                    <div class="form-group">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: #64748b; font-weight: 400;">
+                            <input type="checkbox" id="termsCheckbox" required style="margin-top: 2px; cursor: pointer; width: 18px; height: 18px; flex-shrink: 0;">
+                            <span>Ao realizar o pagamento confirmo minha participação e declaro ter lido e aceito os <a href="javascript:void(0)" onclick="openTermsModal()" style="color: #3b82f6; text-decoration: underline;">termos de uso</a></span>
+                        </label>
+                        <div class="error-message" id="termsError"></div>
+                    </div>
+
+                    <button type="submit" class="btn-confirm-purchase" id="confirmPurchaseBtn" disabled>
+                        Cadastrar e pagar →
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -1294,20 +1370,28 @@
             if (!state.currentQuantity || state.currentQuantity < 1) {
                 state.currentQuantity = 1;
             }
-            
+
             console.log('Opening modal with quantity:', state.currentQuantity);
-            
-            // Atualizar valores do resumo da compra no modal
+
+            // Resetar para etapa 1
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+
+            // Limpar campos
+            document.getElementById('whatsappInputStep1').value = '';
+            clearErrors();
+
+            // Atualizar valores do resumo da compra no modal (ETAPA 1)
             const modalQtyElement = document.getElementById('modalQuantity');
             const modalTotalElement = document.getElementById('modalTotal');
-            
+
             if (modalQtyElement && modalTotalElement) {
                 modalQtyElement.textContent = state.currentQuantity;
-                modalTotalElement.textContent = formatCurrency(state.currentQuantity * config.pricePerNumber);
+                modalTotalElement.textContent = 'R$ ' + formatCurrency(state.currentQuantity * config.pricePerNumber);
             } else {
                 console.error('Modal elements not found!');
             }
-            
+
             openModal('loginModal');
         }
 
@@ -1329,6 +1413,7 @@
         // Aplicar máscara aos inputs de telefone
         const whatsappInput = document.getElementById('whatsappInput');
         const whatsappConfirmInput = document.getElementById('whatsappConfirmInput');
+        const whatsappInputStep1 = document.getElementById('whatsappInputStep1');
 
         if (whatsappInput) {
             whatsappInput.addEventListener('input', function(e) {
@@ -1339,6 +1424,34 @@
         if (whatsappConfirmInput) {
             whatsappConfirmInput.addEventListener('input', function(e) {
                 e.target.value = phoneMask(e.target.value);
+            });
+        }
+
+        if (whatsappInputStep1) {
+            whatsappInputStep1.addEventListener('input', function(e) {
+                e.target.value = phoneMask(e.target.value);
+            });
+        }
+
+        // Aplicar máscara de CPF
+        const cpfInput = document.getElementById('cpfInput');
+        if (cpfInput) {
+            cpfInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = value;
+            });
+        }
+
+        // Controlar estado do botão baseado no checkbox
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        const confirmPurchaseBtn = document.getElementById('confirmPurchaseBtn');
+
+        if (termsCheckbox && confirmPurchaseBtn) {
+            termsCheckbox.addEventListener('change', function() {
+                confirmPurchaseBtn.disabled = !this.checked;
             });
         }
 
@@ -1379,6 +1492,91 @@
             document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
         }
 
+        // --- Step 1 Form Handler (WhatsApp Check) ---
+        document.getElementById('step1Form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            clearErrors();
+
+            const continueBtn = document.getElementById('continueBtn');
+            continueBtn.dataset.originalText = continueBtn.textContent;
+            setButtonLoading(continueBtn, true, 'Verificando...');
+
+            const whatsappRaw = document.getElementById('whatsappInputStep1').value;
+            const whatsappClean = whatsappRaw.replace(/\D/g, '');
+
+            // Validar formato
+            if (whatsappClean.length < 10) {
+                displayError('whatsappStep1', 'Digite um número válido com DDD');
+                setButtonLoading(continueBtn, false);
+                return;
+            }
+
+            try {
+                // Verificar se WhatsApp existe
+                const response = await fetch('/api/auth/check-whatsapp/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': config.csrfToken
+                    },
+                    body: JSON.stringify({ whatsapp: whatsappClean })
+                });
+
+                const data = await response.json();
+
+                // Transição para ETAPA 2
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+
+                // Atualizar resumo da compra na ETAPA 2
+                document.getElementById('modalQuantity2').textContent = state.currentQuantity;
+                document.getElementById('modalTotal2').textContent = 'R$ ' + formatCurrency(state.currentQuantity * config.pricePerNumber);
+
+                // Preencher campo de WhatsApp na ETAPA 2
+                document.getElementById('whatsappInput').value = whatsappRaw;
+                document.getElementById('whatsappInput').readOnly = true;
+
+                if (data.exists && data.user) {
+                    // ETAPA 2A: Usuário existente
+                    document.getElementById('welcomeMessage').style.display = 'block';
+                    document.getElementById('welcomeName').textContent = data.user.name;
+
+                    // Preencher campos com dados do usuário (readonly)
+                    document.getElementById('nameInput').value = data.user.name;
+                    document.getElementById('nameInput').readOnly = true;
+
+                    if (data.user.cpf) {
+                        document.getElementById('cpfInput').value = data.user.cpf;
+                        document.getElementById('cpfInput').readOnly = true;
+                    }
+
+                    // Auto-preencher confirmação de telefone
+                    document.getElementById('whatsappConfirmInput').value = whatsappRaw;
+                    document.getElementById('whatsappConfirmInput').readOnly = true;
+                } else {
+                    // ETAPA 2B: Novo usuário
+                    document.getElementById('welcomeMessage').style.display = 'none';
+
+                    // Limpar e habilitar campos
+                    document.getElementById('nameInput').value = '';
+                    document.getElementById('nameInput').readOnly = false;
+
+                    document.getElementById('cpfInput').value = '';
+                    document.getElementById('cpfInput').readOnly = false;
+
+                    // Auto-preencher telefone com WhatsApp, mas permitir edição da confirmação
+                    document.getElementById('whatsappConfirmInput').value = '';
+                    document.getElementById('whatsappConfirmInput').readOnly = false;
+                }
+
+            } catch (error) {
+                console.error('WhatsApp check error:', error);
+                displayError('whatsappStep1', 'Erro ao verificar WhatsApp. Tente novamente.');
+            } finally {
+                setButtonLoading(continueBtn, false);
+            }
+        });
+
         // --- Purchase Logic ---
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -1386,21 +1584,34 @@
 
             const confirmBtn = document.getElementById('confirmPurchaseBtn');
             confirmBtn.dataset.originalText = confirmBtn.textContent;
+
+            // Validar checkbox de termos
+            const termsCheckbox = document.getElementById('termsCheckbox');
+            if (!termsCheckbox.checked) {
+                displayError('terms', 'Você deve aceitar os termos de uso para continuar.');
+                return;
+            }
+
             setButtonLoading(confirmBtn, true);
 
             // Obter valores e limpar formatação do telefone
             const whatsappRaw = document.getElementById('whatsappInput').value;
             const whatsappConfirmRaw = document.getElementById('whatsappConfirmInput').value;
-            
+
             // Remover formatação para comparação e envio
             const whatsappClean = whatsappRaw.replace(/\D/g, '');
             const whatsappConfirmClean = whatsappConfirmRaw.replace(/\D/g, '');
 
             const userData = {
                 name: document.getElementById('nameInput').value,
-                email: document.getElementById('emailInput').value,
                 whatsapp: whatsappClean  // Enviar apenas números
             };
+
+            // Adicionar CPF se preenchido
+            const cpfValue = document.getElementById('cpfInput').value;
+            if (cpfValue) {
+                userData.cpf = cpfValue.replace(/\D/g, '');
+            }
 
             // Validação básica
             if (!userData.name || !userData.whatsapp) {
@@ -1408,10 +1619,10 @@
                 setButtonLoading(confirmBtn, false);
                 return;
             }
-            
+
             // Validação de confirmação do telefone (comparar sem formatação)
             if (whatsappClean !== whatsappConfirmClean) {
-                displayError('whatsapp', 'Os números de telefone não coincidem.');
+                displayError('whatsappConfirm', 'Os números de telefone não coincidem.');
                 setButtonLoading(confirmBtn, false);
                 return;
             }
