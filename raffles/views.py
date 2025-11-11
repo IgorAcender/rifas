@@ -238,6 +238,7 @@ def campaign_details(request, pk):
     numbers_sold = raffle.numbers.filter(status=RaffleNumber.Status.SOLD).count()
     numbers_reserved = raffle.numbers.filter(status=RaffleNumber.Status.RESERVED).count()
     numbers_available = raffle.total_numbers - numbers_sold - numbers_reserved
+    available_value = numbers_available * raffle.price_per_number
 
     # Pedidos pagos
     paid_orders = RaffleOrder.objects.filter(
@@ -346,6 +347,7 @@ def campaign_details(request, pk):
         'numbers_sold': numbers_sold,
         'numbers_reserved': numbers_reserved,
         'numbers_available': numbers_available,
+        'available_value': available_value,
         'total_revenue': total_revenue,
         'fee_amount': fee_amount,
         'net_revenue': net_revenue,

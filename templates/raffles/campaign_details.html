@@ -44,6 +44,7 @@
         <div class="mini-stat-card">
             <p class="mini-stat-label">Disponíveis</p>
             <p class="mini-stat-value" style="color: #22c55e;">{{ numbers_available }}</p>
+            <p class="mini-stat-detail">R$ {{ available_value|floatformat:2 }}</p>
         </div>
         <div class="mini-stat-card">
             <p class="mini-stat-label">Reservados</p>
@@ -433,6 +434,12 @@
     font-size: 28px;
     font-weight: 700;
     margin: 0;
+}
+
+.mini-stat-detail {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 4px 0 0 0;
 }
 
 .revenue-grid {
