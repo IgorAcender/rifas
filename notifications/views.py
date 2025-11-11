@@ -14,10 +14,15 @@ def whatsapp_manager(request):
     payment_template = WhatsAppMessageTemplate.get_default_template()
     referral_template = WhatsAppMessageTemplate.get_referral_bonus_template()
     referral_share_template_obj = WhatsAppMessageTemplate.get_referral_share_template()
+    referral_copy_paste_template_obj = WhatsAppMessageTemplate.get_referral_copy_paste_template()
     
-    # Get template text and delay
+    # Get template text and delay for referral share
     referral_share_template = referral_share_template_obj.template if hasattr(referral_share_template_obj, 'template') else referral_share_template_obj
     referral_share_delay = referral_share_template_obj.delay_seconds if hasattr(referral_share_template_obj, 'delay_seconds') else 30
+
+    # Get template text and delay for copy-paste message
+    referral_copy_paste_template = referral_copy_paste_template_obj.template if hasattr(referral_copy_paste_template_obj, 'template') else referral_copy_paste_template_obj
+    referral_copy_paste_delay = referral_copy_paste_template_obj.delay_seconds if hasattr(referral_copy_paste_template_obj, 'delay_seconds') else 5
 
     context = {
         'evolution_url': settings.EVOLUTION_API_URL,
@@ -27,6 +32,8 @@ def whatsapp_manager(request):
         'referral_bonus_template': referral_template,
         'referral_share_template': referral_share_template,
         'referral_share_delay': referral_share_delay,
+        'referral_copy_paste_template': referral_copy_paste_template,
+        'referral_copy_paste_delay': referral_copy_paste_delay,
     }
     return render(request, 'admin/whatsapp_manager.html', context)
 
@@ -179,7 +186,7 @@ def save_message_template(request):
             })
 
         # Validate template_name
-        if template_name not in ['payment_confirmation', 'referral_bonus_notification', 'referral_share_invitation']:
+        if template_name not in ['payment_confirmation', 'referral_bonus_notification', 'referral_share_invitation', 'referral_copy_paste']:
             return JsonResponse({
                 'success': False,
                 'error': 'Nome de template inválido'

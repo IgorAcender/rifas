@@ -407,6 +407,51 @@
         </form>
     </div>
 
+    <!-- Mensagem 4: Copy-Paste Message (Pronta para Compartilhar) -->
+    <div class="status-card">
+        <h3>📋 Mensagem 4: Pronta para Compartilhar</h3>
+        <p style="color: #666;">Esta mensagem contém o texto pronto para o cliente copiar e enviar para amigos.</p>
+        
+        <div class="template-info">
+            <strong>Quando é enviada:</strong> 5 segundos após a Mensagem 3 (convite de indicação)<br>
+            <strong>Para quem:</strong> Cliente que acabou de comprar (se atingir quantidade mínima)<br>
+            <strong>Objetivo:</strong> Facilitar o compartilhamento com texto pronto<br><br>
+            
+            <strong>Placeholders disponíveis:</strong><br>
+            <code>{raffle_name}</code> - Nome da campanha<br>
+            <code>{prize_name}</code> - Nome do prêmio<br>
+            <code>{invitee_bonus}</code> - Números que o amigo vai ganhar<br>
+            <code>{referral_link}</code> - Link de indicação do cliente
+        </div>
+
+        <form id="referral-copy-paste-template-form" onsubmit="saveTemplate(event, 'referral_copy_paste')">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="referral_copy_paste_delay">⏱️ Delay antes de enviar (segundos)</label>
+                <input 
+                    type="number" 
+                    id="referral_copy_paste_delay" 
+                    name="delay_seconds" 
+                    value="{{ referral_copy_paste_delay }}" 
+                    min="0" 
+                    max="300"
+                    style="width: 150px; padding: 8px; border: 1px solid #ddd; border-radius: 6px;"
+                >
+                <span style="color: #666; font-size: 13px; margin-left: 10px;">
+                    Tempo após a Mensagem 3 (recomendado: 5 segundos)
+                </span>
+            </div>
+            <div class="form-group">
+                <label for="referral_copy_paste_template">Template da Mensagem</label>
+                <textarea id="referral_copy_paste_template" name="template" rows="15" style="font-family: monospace;">{{ referral_copy_paste_template }}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate('referral_copy_paste')">🔄 Restaurar Padrão</button>
+            </div>
+        </form>
+    </div>
+
     {% endif %}
 </div>
 
@@ -658,7 +703,7 @@ Olá *{inviter_name}*!
 Cada indicação bem-sucedida te dá mais chances de ganhar! 🍀`;
         } else if (templateName === 'referral_share_invitation') {
             fieldId = 'referral_share_template';
-            defaultTemplate = `🎁 *Ganhe Números Grátis Indicando Amigos!* 🎁
+            defaultTemplate = `🎁 *Como Funciona o Programa de Indicações* 🎁
 
 Olá *{name}*!
 
@@ -668,24 +713,38 @@ Você sabia que pode ganhar *{inviter_bonus} números grátis* a cada amigo que 
 🎫 *Campanha:* {raffle_name}
 🏆 *Prêmio:* {prize_name}
 
-🎁 *Como funciona:*
-• Compartilhe seu link personalizado
+🎁 *Vantagens:*
 • Seu amigo ganha *{invitee_bonus} números extras*
 • Você ganha *{inviter_bonus} números grátis*{progressive_message}
+• Quanto mais indicar, mais chances de ganhar!
 
-🔗 *Seu link de indicação:*
-{referral_link}
-
-📊 *Suas indicações:*
+📊 *Suas indicações até agora:*
 • {successful_referrals} pessoas já compraram com seu link
 • {total_bonus_earned} números de bônus ganhos
 ━━━━━━━━━━━━━━━━━━━
 
-💡 *Dica:* Copie o link acima e compartilhe no WhatsApp, Instagram ou Facebook!
+� *Envie a mensagem abaixo para seus amigos!*
+Ela já vem pronta com seu link personalizado.
 
-Quanto mais você indica, mais chances de ganhar! 🍀✨`;
+Aguarde alguns segundos que vou enviar... 🚀`;
             // Reset delay field for referral share
             document.getElementById('referral_share_delay').value = 30;
+        } else if (templateName === 'referral_copy_paste') {
+            fieldId = 'referral_copy_paste_template';
+            defaultTemplate = `🎁 Participe e Ganhe {invitee_bonus} Números Grátis!
+
+Olá! Estou participando da campanha *{raffle_name}* e quero te convidar!
+
+🏆 Prêmio: *{prize_name}*
+
+🎁 *Você ganha {invitee_bonus} números extras* só por usar meu link!
+
+🔗 *Clique aqui para participar:*
+{referral_link}
+
+Boa sorte! 🍀✨`;
+            // Reset delay field for copy-paste message
+            document.getElementById('referral_copy_paste_delay').value = 5;
         }
 
         document.getElementById(fieldId).value = defaultTemplate;

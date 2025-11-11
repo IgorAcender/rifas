@@ -246,6 +246,10 @@ Quanto mais você indica, mais chances de ganhar! 🍀
             result = send_whatsapp_message(order.user.whatsapp, message)
             if result:
                 logger.info(f"✅ Referral invitation sent successfully to {order.user.whatsapp} (after {delay_seconds}s delay)")
+                
+                # Now trigger the copy-paste message (will be sent 5s later)
+                logger.info(f"🚀 Scheduling copy-paste message for {order.user.whatsapp}")
+                send_referral_copy_paste(order)
             else:
                 logger.error(f"❌ Failed to send referral invitation to {order.user.whatsapp}")
                 
@@ -257,3 +261,96 @@ Quanto mais você indica, mais chances de ganhar! 🍀
     thread.start()
     
     return True  # Return immediately, message will be sent in background
+
+
+def send_referral_copy_paste(order):
+    """Send copy-paste ready referral message (3rd message)"""
+    from notifications.models import WhatsAppMessageTemplate
+    from raffles.models import Referral
+    from django.urls import reverse
+    from django.conf import settings
+    import threading
+    import time
+
+    # Check if user is eligible for referral
+    if not order.raffle.enable_referral:
+        return None
+    
+    if order.quantity < order.raffle.referral_min_purchase:
+        return None
+
+    # Get delay from template settings (defaults to 5 seconds)
+    template_obj = WhatsAppMessageTemplate.get_referral_copy_paste_template()
+    delay_seconds = template_obj.delay_seconds if hasattr(template_obj, 'delay_seconds') else 5
+
+    def send_delayed():
+        """Internal function to send message after delay"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        try:
+            # Wait for the configured delay (5 seconds after message 2)
+            if delay_seconds > 0:
+                logger.info(f"⏳ Waiting {delay_seconds} seconds before sending copy-paste message to {order.user.whatsapp}")
+                time.sleep(delay_seconds)
+            
+            # Get user's referral code (should already exist from previous message)
+            try:
+                referral = Referral.objects.get(
+                    inviter=order.user,
+                    raffle=order.raffle
+                )
+            except Referral.DoesNotExist:
+                logger.error(f"❌ Referral not found for user {order.user.id} in raffle {order.raffle.id}")
+                return
+
+            # Build referral URL
+            base_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000'
+            public_path = reverse('raffle_public', kwargs={'slug': order.raffle.slug})
+            referral_url = f"{base_url}{public_path}?ref={referral.code}"
+
+            # Get custom template text
+            template_text = template_obj.template if hasattr(template_obj, 'template') else template_obj
+
+            # Format message with template
+            try:
+                message = template_text.format(
+                    raffle_name=order.raffle.name,
+                    prize_name=order.raffle.prize_name,
+                    invitee_bonus=order.raffle.invitee_bonus,
+                    referral_link=referral_url
+                )
+            except Exception as e:
+                logger.error(f"Error formatting copy-paste template: {e}")
+                # Fallback to simple message
+                message = f"""
+🎁 Participe e Ganhe {order.raffle.invitee_bonus} Números Grátis!
+
+Olá! Estou participando da campanha *{order.raffle.name}* e quero te convidar!
+
+🏆 Prêmio: *{order.raffle.prize_name}*
+
+🎁 *Você ganha {order.raffle.invitee_bonus} números extras* só por usar meu link!
+
+🔗 *Clique aqui para participar:*
+{referral_url}
+
+Boa sorte! 🍀✨
+                """.strip()
+
+            # Send the message
+            result = send_whatsapp_message(order.user.whatsapp, message)
+            if result:
+                logger.info(f"✅ Copy-paste message sent successfully to {order.user.whatsapp} (after {delay_seconds}s delay)")
+            else:
+                logger.error(f"❌ Failed to send copy-paste message to {order.user.whatsapp}")
+                
+        except Exception as e:
+            logger.error(f"❌ Error in delayed copy-paste message: {e}", exc_info=True)
+
+    # Start background thread to send after delay
+    thread = threading.Thread(target=send_delayed, daemon=True)
+    thread.start()
+    
+    return True  # Return immediately, message will be sent in background
+

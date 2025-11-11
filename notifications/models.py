@@ -85,7 +85,7 @@ Cada indicação bem-sucedida te dá mais chances de ganhar! 🍀"""
     @classmethod
     def get_referral_share_template(cls):
         """Get or create referral share invitation template"""
-        default_template = """🎁 *Ganhe Números Grátis Indicando Amigos!* 🎁
+        default_template = """🎁 *Como Funciona o Programa de Indicações* 🎁
 
 Olá *{name}*!
 
@@ -95,22 +95,20 @@ Você sabia que pode ganhar *{inviter_bonus} números grátis* a cada amigo que 
 🎫 *Campanha:* {raffle_name}
 🏆 *Prêmio:* {prize_name}
 
-🎁 *Como funciona:*
-• Compartilhe seu link personalizado
+🎁 *Vantagens:*
 • Seu amigo ganha *{invitee_bonus} números extras*
 • Você ganha *{inviter_bonus} números grátis*{progressive_message}
+• Quanto mais indicar, mais chances de ganhar!
 
-🔗 *Seu link de indicação:*
-{referral_link}
-
-📊 *Suas indicações:*
+📊 *Suas indicações até agora:*
 • {successful_referrals} pessoas já compraram com seu link
 • {total_bonus_earned} números de bônus ganhos
 ━━━━━━━━━━━━━━━━━━━
 
-💡 *Dica:* Copie o link acima e compartilhe no WhatsApp, Instagram ou Facebook!
+� *Envie a mensagem abaixo para seus amigos!*
+Ela já vem pronta com seu link personalizado.
 
-Quanto mais você indica, mais chances de ganhar! 🍀✨"""
+Aguarde alguns segundos que vou enviar... 🚀"""
 
         template, created = cls.objects.get_or_create(
             name="referral_share_invitation",
@@ -123,3 +121,25 @@ Quanto mais você indica, mais chances de ganhar! 🍀✨"""
         """Get delay in seconds for referral share invitation"""
         template = cls.objects.filter(name="referral_share_invitation").first()
         return template.delay_seconds if template else 30
+
+    @classmethod
+    def get_referral_copy_paste_template(cls):
+        """Get or create referral copy-paste message template (ready to forward)"""
+        default_template = """🎁 *Participe e Ganhe {invitee_bonus} Números Grátis!*
+
+Olá! Estou participando da campanha *{raffle_name}* e quero te convidar!
+
+🏆 Prêmio: *{prize_name}*
+
+🎁 *Você ganha {invitee_bonus} números extras* só por usar meu link!
+
+🔗 *Clique aqui para participar:*
+{referral_link}
+
+Boa sorte! 🍀✨"""
+
+        template, created = cls.objects.get_or_create(
+            name="referral_copy_paste",
+            defaults={"template": default_template, "delay_seconds": 5}
+        )
+        return template
