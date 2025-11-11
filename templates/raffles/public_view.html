@@ -720,6 +720,12 @@
             box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
 
+        .premium-number-card.premium-locked {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            box-shadow: 0 4px 12px rgba(148, 163, 184, 0.3);
+            opacity: 0.8;
+        }
+
         .premium-badge {
             display: inline-flex;
             align-items: center;
@@ -731,6 +737,14 @@
             font-size: 12px;
             font-weight: 600;
             margin-bottom: 12px;
+        }
+
+        .premium-badge-locked {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .premium-badge-won {
+            background: rgba(255, 255, 255, 0.4);
         }
 
         .premium-number {
@@ -757,6 +771,14 @@
             margin: 8px 0;
         }
 
+        .premium-release-info {
+            font-size: 12px;
+            color: white;
+            opacity: 0.9;
+            margin: 8px 0;
+            font-style: italic;
+        }
+
         .premium-status {
             margin-top: 12px;
         }
@@ -777,6 +799,17 @@
         .status-badge.status-owned {
             background: white;
             color: #16a34a;
+        }
+
+        .status-badge.status-locked {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .status-badge.status-won {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 11px;
         }
 
         @media (max-width: 768px) {
@@ -820,27 +853,51 @@
         </div>
 
         <!-- Premium Numbers Section -->
-        {% if raffle.premium_numbers %}
+        {% if prize_numbers %}
         <div class="main-card">
             <h3 class="section-title">🎁 Cotas Premiadas</h3>
             <p style="text-align: center; color: var(--text-light); margin-bottom: 24px;">
-                Encontre e ganhe prêmios especiais!
+                Encontre e ganhe prêmios especiais! <span style="font-weight: 600;">{{ prize_numbers.count }}</span> cotas disponíveis
             </p>
             <div class="premium-numbers-grid">
-                {% for number, data in raffle.premium_numbers.items %}
-                <div class="premium-number-card {% if number in user_numbers %}premium-owned{% else %}premium-available{% endif %}">
+                {% for prize_number in prize_numbers %}
+                <div class="premium-number-card {% if prize_number.number in user_numbers %}premium-owned{% elif not prize_number.is_released %}premium-locked{% else %}premium-available{% endif %}">
+                    {% if not prize_number.is_released %}
+                    <div class="premium-badge premium-badge-locked">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                        </svg>
+                        Bloqueado
+                    </div>
+                    {% elif prize_number.is_won %}
+                    <div class="premium-badge premium-badge-won">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                        </svg>
+                        Já ganho
+                    </div>
+                    {% else %}
                     <div class="premium-badge">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                         </svg>
                         Premiado
                     </div>
-                    <div class="premium-number">{{ number|stringformat:"04d" }}</div>
-                    <div class="premium-prize">{{ data.prize }}</div>
-                    <div class="premium-value">R$ {{ data.prize_value|floatformat:2 }}</div>
+                    {% endif %}
+                    <div class="premium-number">{{ prize_number.number|stringformat:"04d" }}</div>
+                    <div class="premium-value">R$ {{ prize_number.prize_amount|floatformat:2 }}</div>
+                    {% if not prize_number.is_released %}
+                    <div class="premium-release-info">
+                        Libera entre {{ prize_number.release_percentage_min|floatformat:0 }}% - {{ prize_number.release_percentage_max|floatformat:0 }}%
+                    </div>
+                    {% endif %}
                     <div class="premium-status">
-                        {% if number in user_numbers %}
+                        {% if prize_number.number in user_numbers %}
                         <span class="status-badge status-owned">✓ Você tem</span>
+                        {% elif prize_number.is_won %}
+                        <span class="status-badge status-won">🏆 {{ prize_number.winner.name }}</span>
+                        {% elif not prize_number.is_released %}
+                        <span class="status-badge status-locked">🔒 Bloqueado</span>
                         {% else %}
                         <span class="status-badge status-available">Disponível</span>
                         {% endif %}

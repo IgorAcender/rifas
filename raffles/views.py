@@ -556,6 +556,9 @@ def raffle_public_view(request, slug):
     # Get all numbers with their status
     numbers = RaffleNumber.objects.filter(raffle=raffle).order_by('number')
     
+    # Get prize numbers (números premiados)
+    prize_numbers = raffle.prize_numbers.all().order_by('release_percentage_min', 'number')
+    
     # Get user's numbers if authenticated
     user_numbers = []
     if request.user.is_authenticated:
@@ -572,6 +575,7 @@ def raffle_public_view(request, slug):
         'numbers': numbers,
         'numbers_list': list(numbers.values('number', 'status')),
         'admin_whatsapp': settings.ADMIN_WHATSAPP,
-        'user_numbers': [str(n) for n in user_numbers],  # Convert to strings for template comparison
+        'user_numbers': user_numbers,
+        'prize_numbers': prize_numbers,
     }
     return render(request, 'raffles/public_view.html', context)
