@@ -263,6 +263,39 @@ Quanto mais você indica, mais chances de ganhar! 🍀
     return True  # Return immediately, message will be sent in background
 
 
+def send_prize_won_notification(user, raffle, prize_number, prize_amount):
+    """
+    Send immediate notification when user wins a prize number
+    """
+    message = f"""
+🏆🎊 *PARABÉNS, VOCÊ GANHOU UM PRÊMIO!* 🎊🏆
+
+Olá *{user.name}*! 
+
+🎉 Você acabou de ganhar um NÚMERO PREMIADO na campanha *{raffle.name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎁 *Número Premiado:* {prize_number:04d}
+💰 *Valor do Prêmio:* R$ {prize_amount:.2f}
+━━━━━━━━━━━━━━━━━━━
+
+🤑 O prêmio será enviado via PIX em até 24 horas!
+
+🍀 Continue participando e concorrendo ao prêmio principal: *{raffle.prize_name}*!
+
+✨ Boa sorte! ✨
+    """.strip()
+
+    try:
+        result = send_whatsapp_message(user.phone, message)
+        if result:
+            logger.info(f"🏆 Prize notification sent to {user.name} - Prize: R$ {prize_amount}")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Error sending prize notification to {user.name}: {e}")
+        return None
+
+
 def send_referral_copy_paste(order):
     """Send copy-paste ready referral message (3rd message)"""
     from notifications.models import WhatsAppMessageTemplate

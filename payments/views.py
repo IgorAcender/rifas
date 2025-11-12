@@ -104,8 +104,13 @@ def get_order_status(request, order_id):
         }
 
         # Se o pedido foi pago, incluir informações sobre prêmios ganhos
-        if order.status == RaffleOrder.Status.PAID and 'won_prizes' in order.payment_data:
-            response_data['won_prizes'] = order.payment_data['won_prizes']
+        if order.status == RaffleOrder.Status.PAID:
+            print(f"🔍 DEBUG: Pedido {order_id} está pago. payment_data: {order.payment_data}")
+            if order.payment_data and 'won_prizes' in order.payment_data:
+                response_data['won_prizes'] = order.payment_data['won_prizes']
+                print(f"🏆 DEBUG: Retornando won_prizes: {response_data['won_prizes']}")
+            else:
+                print(f"⚠️ DEBUG: Sem won_prizes em payment_data")
 
         return Response(response_data)
     except RaffleOrder.DoesNotExist:

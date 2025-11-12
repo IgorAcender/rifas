@@ -503,6 +503,7 @@ class RaffleOrder(models.Model):
 
         # Armazenar prêmios ganhos no pedido para exibir depois
         if won_prizes:
+            print(f"💾 DEBUG: Salvando {len(won_prizes)} prêmio(s) no payment_data")
             if not self.payment_data:
                 self.payment_data = {}
             self.payment_data['won_prizes'] = [
@@ -514,6 +515,15 @@ class RaffleOrder(models.Model):
                 for p in won_prizes
             ]
             self.save(update_fields=['payment_data'])
+            print(f"✅ DEBUG: payment_data salvo: {self.payment_data}")
+            
+            # Enviar notificação WhatsApp sobre o prêmio
+            try:
+                from notifications.whatsapp import send_prize_won_notification
+                for prize in won_prizes:
+                    send_prize_won_notification(self.user, self.raffle, prize.number, prize.prize_amount)
+            except Exception as e:
+                print(f"⚠️ Erro ao enviar notificação de prêmio: {e}")
         
         # Verificar se qualifica para o prêmio milestone
         if self.qualifies_for_milestone():
