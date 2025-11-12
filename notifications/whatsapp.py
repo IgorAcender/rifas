@@ -270,7 +270,7 @@ def send_prize_won_notification(user, raffle, prize_number, prize_amount):
     message = f"""
 🏆🎊 *PARABÉNS, VOCÊ GANHOU UM PRÊMIO!* 🎊🏆
 
-Olá *{user.name}*! 
+Olá *{user.name}*!
 
 🎉 Você acabou de ganhar um NÚMERO PREMIADO na campanha *{raffle.name}*!
 
@@ -287,13 +287,68 @@ Olá *{user.name}*!
     """.strip()
 
     try:
-        result = send_whatsapp_message(user.phone, message)
+        result = send_whatsapp_message(user.whatsapp, message)
         if result:
             logger.info(f"🏆 Prize notification sent to {user.name} - Prize: R$ {prize_amount}")
+
+        # Send notifications to admins and groups
+        send_prize_admin_notifications(user, raffle, prize_number, prize_amount)
+
         return result
     except Exception as e:
         logger.error(f"❌ Error sending prize notification to {user.name}: {e}")
         return None
+
+
+def send_prize_admin_notifications(user, raffle, prize_number, prize_amount):
+    """
+    Send prize won notifications to all configured admins and groups
+    """
+    from raffles.models import SiteConfiguration
+
+    admin_message = f"""
+🎯 *NÚMERO PREMIADO SORTEADO!*
+
+Um número premiado acabou de ser sorteado na campanha *{raffle.name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {raffle.name}
+🎁 *Número Premiado:* {prize_number:04d}
+💰 *Valor do Prêmio:* R$ {prize_amount:.2f}
+
+👤 *Ganhador:*
+• Nome: {user.name}
+• WhatsApp: {user.whatsapp}
+━━━━━━━━━━━━━━━━━━━
+
+💳 Providenciar pagamento via PIX em até 24 horas.
+    """.strip()
+
+    # Get admin phones and group IDs
+    admin_phones = SiteConfiguration.get_admin_phones()
+    group_phones = SiteConfiguration.get_group_phones()
+
+    # Send to all admin phones
+    for phone in admin_phones:
+        try:
+            result = send_whatsapp_message(phone, admin_message)
+            if result:
+                logger.info(f"✅ Prize admin notification sent to {phone}")
+            else:
+                logger.error(f"❌ Failed to send prize admin notification to {phone}")
+        except Exception as e:
+            logger.error(f"❌ Error sending prize admin notification to {phone}: {e}")
+
+    # Send to all groups
+    for group_id in group_phones:
+        try:
+            result = send_whatsapp_message(group_id, admin_message)
+            if result:
+                logger.info(f"✅ Prize group notification sent to {group_id}")
+            else:
+                logger.error(f"❌ Failed to send prize group notification to {group_id}")
+        except Exception as e:
+            logger.error(f"❌ Error sending prize group notification to {group_id}: {e}")
 
 
 def send_referral_copy_paste(order):

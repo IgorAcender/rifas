@@ -32,6 +32,19 @@ class SiteConfiguration(models.Model):
         help_text='Nome exibido no site'
     )
 
+    # Admin notification contacts for prize numbers
+    admin_phones = models.TextField(
+        'WhatsApp dos Admins',
+        blank=True,
+        help_text='Números de WhatsApp dos administradores, um por linha. Ex: 5511999999999'
+    )
+
+    group_phones = models.TextField(
+        'WhatsApp dos Grupos',
+        blank=True,
+        help_text='IDs dos grupos de WhatsApp, um por linha. Ex: 5511999999999-1234567890@g.us'
+    )
+
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
 
@@ -66,6 +79,26 @@ class SiteConfiguration(models.Model):
 
         # Default logo (the existing one from templates)
         return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNjAiIGN5PSI2MCIgcj0iNjAiIGZpbGw9IiMzMzUyNjgiLz48cGF0aCBkPSJNMzUgNDVDMzUgNDMgNDAgNDAgNDUgNDBDNTAgNDAgNTUgNDMgNTUgNDVMNjAgODBINTVMNDUgNTBMMzUgNTBMMzUgNDVaIiBmaWxsPSIjRkJCRjI0Ii8+PHBhdGggZD0iTTc1IDQ1Qzc1IDQzIDgwIDQwIDg1IDQwQzkwIDQwIDk1IDQzIDk1IDQ1TDkwIDgwSDg1TDc1IDUwTDc1IDQ1WiIgZmlsbD0iI0ZCQkYyNCIvPjxwYXRoIGQ9Ik00MCA3MEM0MCA2OCA0NSA2NSA1MCA2NUM1NSA2NSA2MCA2OCA2MCA3MEw1NSA5NUg1MEw0MCA3NUw0MCA3MFoiIGZpbGw9IiNGQkJGMjQiLz48cGF0aCBkPSJNNDUgMzVMNzUgMzVMNjAgNjBMNDUgMzVaIiBmaWxsPSIjQ0NENkUwIi8+PHBhdGggZD0iTTUwIDY1TDcwIDY1TDYwIDg1TDUwIDY1WiIgZmlsbD0iI0NDRDZFMCI+PGFuaW1hdGVUcmFuc2Zvcm0gYXR0cmlidXRlTmFtZT0idHJhbnNmb3JtIiB0eXBlPSJzY2FsZSIgZnJvbT0iMSIgdG89IjEuMSIgZHVyPSIwLjVzIiByZXBlYXRDb3VudD0iaW5maW5pdGUiLz48L3BhdGg+PC9zdmc+'
+
+    @classmethod
+    def get_admin_phones(cls):
+        """Get list of admin phone numbers"""
+        config = cls.get_config()
+        if not config.admin_phones:
+            return []
+        # Split by newlines and filter empty lines
+        phones = [phone.strip() for phone in config.admin_phones.split('\n')]
+        return [phone for phone in phones if phone]
+
+    @classmethod
+    def get_group_phones(cls):
+        """Get list of group IDs"""
+        config = cls.get_config()
+        if not config.group_phones:
+            return []
+        # Split by newlines and filter empty lines
+        groups = [group.strip() for group in config.group_phones.split('\n')]
+        return [group for group in groups if group]
 
 
 class Raffle(models.Model):
