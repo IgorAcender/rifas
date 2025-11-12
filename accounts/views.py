@@ -175,15 +175,17 @@ def customer_area(request):
             source='purchase_bonus'
         ).count()
         
-        # Contar bônus de indicação (referral_inviter - base + progressivo)
+        # Contar bônus de indicação (inviter + invitee)
+        # Inviter: você indicou alguém (base + progressivo)
+        # Invitee: você foi indicado por alguém
         referral_bonus_count = RaffleNumber.objects.filter(
             raffle=raffle,
             order__user=request.user,
             order__status=RaffleOrder.Status.PAID,
-            source='referral_inviter'
+            source__in=['referral_inviter', 'referral_invitee']
         ).count()
         
-        # Total de bônus (compra + indicação, excluindo invitee pois não mostramos)
+        # Total de bônus (compra + indicação)
         total_bonus = purchase_bonus_count + referral_bonus_count
         
         # Total de números (comprados + bônus)
