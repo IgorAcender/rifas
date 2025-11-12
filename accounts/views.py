@@ -159,13 +159,19 @@ def customer_area(request):
     # Create grouped campaigns structure
     my_campaigns_grouped = []
     for raffle, orders in orders_by_raffle.items():
-        total_quantity = sum(order.quantity for order in orders)
+        # Contar TODOS os números do usuário nesta campanha (comprados + bônus)
+        total_numbers_count = RaffleNumber.objects.filter(
+            raffle=raffle,
+            order__user=request.user,
+            order__status=RaffleOrder.Status.PAID
+        ).count()
+        
         total_amount = sum(order.amount for order in orders)
 
         my_campaigns_grouped.append({
             'raffle': raffle,
             'orders': orders,
-            'total_quantity': total_quantity,
+            'total_quantity': total_numbers_count,  # Agora inclui bônus
             'total_amount': total_amount
         })
 
