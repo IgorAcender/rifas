@@ -688,11 +688,12 @@ def raffle_draw(request):
                 total_numbers = len(user_numbers_list)
 
                 # Buscar números bônus ganhos pelo usuário nesta campanha
-                from .models import PrizeNumber
-                bonus_numbers = PrizeNumber.objects.filter(
+                # Buscar números que foram dados como bônus (purchase_bonus, milestone_bonus ou referral)
+                bonus_numbers = RaffleNumber.objects.filter(
                     raffle=raffle,
-                    winner=user,
-                    is_won=True
+                    order__user=user,
+                    order__status='paid',
+                    source__in=['purchase_bonus', 'milestone_bonus', 'referral_inviter', 'referral_invitee']
                 ).order_by('number').values_list('number', flat=True)
 
                 bonus_numbers_list = list(bonus_numbers)
