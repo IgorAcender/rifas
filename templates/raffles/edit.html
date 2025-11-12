@@ -167,7 +167,7 @@
                             <span class="upload-hint">PNG, JPG ou JPEG (max. 5MB)</span>
                         </div>
                         {% if raffle.prize_image_base64 %}
-                        <img class="image-preview" src="data:image/jpeg;base64,{{ raffle.prize_image_base64 }}" style="display: block;">
+                        <img class="image-preview" src="{{ raffle.prize_image_base64 }}" style="display: block;">
                         {% else %}
                         <img class="image-preview" style="display: none;">
                         {% endif %}

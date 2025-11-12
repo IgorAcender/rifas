@@ -381,9 +381,15 @@ def raffle_create(request):
     """Criar nova campanha"""
     if request.method == 'POST':
         try:
+            import logging
+            logger = logging.getLogger(__name__)
+
             prize_image_base64 = ''
+            logger.info(f"FILES received: {list(request.FILES.keys())}")
+
             if 'prize_image' in request.FILES:
                 image_file = request.FILES['prize_image']
+                logger.info(f"Image file: name={image_file.name}, size={image_file.size}")
                 image_data = image_file.read()
                 encoded_data = base64.b64encode(image_data).decode('utf-8')
                 # Detect content type from file extension
@@ -395,6 +401,9 @@ def raffle_create(request):
                 elif image_file.name.lower().endswith('.webp'):
                     content_type = 'image/webp'
                 prize_image_base64 = f'data:{content_type};base64,{encoded_data}'
+                logger.info(f"Image encoded: type={content_type}, base64_length={len(encoded_data)}")
+            else:
+                logger.warning("No 'prize_image' in request.FILES")
 
             raffle = Raffle.objects.create(
                 name=request.POST.get('name'),
