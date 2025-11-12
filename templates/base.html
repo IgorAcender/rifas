@@ -62,6 +62,14 @@
                     </svg>
                     <span>Logo do Site</span>
                 </a>
+
+                <a href="{% url 'raffle_draw' %}" class="nav-item {% if request.resolver_match.url_name == 'raffle_draw' %}active{% endif %}">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                    <span>Sorteador</span>
+                </a>
             </nav>
 
             <a href="{% url 'logout' %}" class="btn-sair">

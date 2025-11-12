@@ -1,0 +1,546 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sorteador de Ganhadores{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <svg class="header-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 6v6l4 2"></path>
+        </svg>
+        <h1>Sorteador de Ganhadores</h1>
+    </div>
+</div>
+
+<div class="draw-container">
+    <!-- Seleção de Campanha -->
+    <div class="campaign-selector">
+        <form method="get" action="{% url 'raffle_draw' %}">
+            <div class="form-group">
+                <label for="raffle_select">Selecione a campanha para sortear:</label>
+                <select name="raffle_id" id="raffle_select" onchange="this.form.submit()">
+                    <option value="">-- Selecione uma campanha --</option>
+                    {% for raffle in raffles %}
+                    <option value="{{ raffle.id }}" {% if selected_raffle_id == raffle.id|stringformat:"s" %}selected{% endif %}>
+                        {{ raffle.name }} ({{ raffle.numbers_sold }}/{{ raffle.total_numbers }} vendidos)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+
+    {% if selected_raffle_id %}
+    <!-- Botão de Sortear -->
+    <div class="draw-button-container">
+        <form method="post" id="drawForm">
+            {% csrf_token %}
+            <button type="submit" class="btn-draw" id="drawBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+                Sortear Ganhador
+            </button>
+        </form>
+    </div>
+
+    <!-- Tela de Animação do Sorteio -->
+    <div class="draw-animation" id="drawAnimation" style="display: none;">
+        <div class="roulette-container">
+            <div class="roulette" id="roulette">
+                <div class="winning-number" id="winningNumber">?</div>
+            </div>
+            <div class="draw-message">SORTEANDO...</div>
+        </div>
+    </div>
+
+    <!-- Resultado do Sorteio (Público - para gravar) -->
+    <div class="winner-result" id="winnerResult" style="display: none;">
+        <div class="confetti"></div>
+        <div class="winner-card">
+            <div class="winner-badge">🏆 GANHADOR 🏆</div>
+            <div class="winning-number-display">
+                Número: <span id="displayNumber"></span>
+            </div>
+            <div class="winner-name">
+                <span id="displayName"></span>
+            </div>
+            <div class="winner-info">
+                <div class="info-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <span id="displayPhone"></span>
+                </div>
+                <div class="info-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    <span id="displayTotalNumbers"></span> números comprados
+                </div>
+            </div>
+            <button class="btn-details" onclick="showFullDetails()">
+                Ver Detalhes Completos
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal com Detalhes Completos (Privado) -->
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeDetails()">&times;</button>
+            <h3>Detalhes Completos do Ganhador</h3>
+
+            <div class="details-grid">
+                <div class="detail-item">
+                    <label>Nome Completo:</label>
+                    <span id="fullName"></span>
+                </div>
+                <div class="detail-item">
+                    <label>Telefone:</label>
+                    <span id="fullPhone"></span>
+                </div>
+                <div class="detail-item">
+                    <label>Número Sorteado:</label>
+                    <span id="fullNumber"></span>
+                </div>
+                <div class="detail-item">
+                    <label>Total de Números Comprados:</label>
+                    <span id="fullTotalNumbers"></span>
+                </div>
+                <div class="detail-item">
+                    <label>ID do Usuário:</label>
+                    <span id="fullUserId"></span>
+                </div>
+                <div class="detail-item">
+                    <label>ID do Pedido:</label>
+                    <span id="fullOrderId"></span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <a href="#" id="viewUserLink" class="btn-primary">Ver Perfil do Usuário</a>
+                <a href="#" id="viewOrderLink" class="btn-secondary">Ver Pedido</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.draw-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.campaign-selector {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 24px;
+}
+
+.campaign-selector select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.draw-button-container {
+    text-align: center;
+    margin: 32px 0;
+}
+
+.btn-draw {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 48px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+}
+
+.btn-draw:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(249, 115, 22, 0.6);
+}
+
+.draw-animation {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    border-radius: 16px;
+    padding: 48px;
+    text-align: center;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.roulette-container {
+    width: 100%;
+}
+
+.roulette {
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.winning-number {
+    font-size: 96px;
+    font-weight: 900;
+    color: #1e3a8a;
+}
+
+.draw-message {
+    margin-top: 32px;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.winner-result {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 16px;
+    padding: 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="3" fill="%23fbbf24"/></svg>') repeat;
+    animation: confetti 3s linear infinite;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+@keyframes confetti {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(100%); }
+}
+
+.winner-card {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.winner-badge {
+    font-size: 48px;
+    font-weight: 900;
+    color: #f59e0b;
+    margin-bottom: 24px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.winning-number-display {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 16px;
+}
+
+.winning-number-display span {
+    color: #f97316;
+    font-size: 48px;
+}
+
+.winner-name {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 32px;
+}
+
+.winner-info {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.info-item svg {
+    color: #3b82f6;
+}
+
+.btn-details {
+    padding: 16px 32px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-details:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+    z-index: 9999;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #64748b;
+}
+
+.modal-content h3 {
+    font-size: 24px;
+    margin-bottom: 24px;
+    color: #1e293b;
+}
+
+.details-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-item label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.detail-item span {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary, .btn-secondary {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+@media (max-width: 768px) {
+    .winner-info {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .winner-badge {
+        font-size: 32px;
+    }
+
+    .winning-number-display {
+        font-size: 24px;
+    }
+
+    .winning-number-display span {
+        font-size: 36px;
+    }
+
+    .winner-name {
+        font-size: 24px;
+    }
+}
+</style>
+
+<script>
+const winnerData = {{ winner_data|safe }};
+
+// Se já houver um ganhador sorteado, mostrar resultado
+if (winnerData) {
+    document.addEventListener('DOMContentLoaded', function() {
+        showWinner(winnerData);
+    });
+}
+
+document.getElementById('drawForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Mostrar animação
+    document.getElementById('drawAnimation').style.display = 'flex';
+    document.querySelector('.draw-button-container').style.display = 'none';
+
+    // Simular sorteio com animação de 3 segundos
+    let counter = 0;
+    const interval = setInterval(() => {
+        document.getElementById('winningNumber').textContent = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+        counter++;
+        if (counter > 30) {
+            clearInterval(interval);
+            // Enviar formulário real
+            e.target.submit();
+        }
+    }, 100);
+});
+
+function showWinner(data) {
+    // Esconder animação e botão
+    document.getElementById('drawAnimation').style.display = 'none';
+    document.querySelector('.draw-button-container').style.display = 'none';
+
+    // Preencher dados públicos
+    document.getElementById('displayNumber').textContent = data.number.toString().padStart(5, '0');
+    document.getElementById('displayName').textContent = data.name;
+    document.getElementById('displayPhone').textContent = data.masked_phone;
+    document.getElementById('displayTotalNumbers').textContent = data.total_numbers;
+
+    // Preencher dados privados (para o modal)
+    document.getElementById('fullName').textContent = data.name;
+    document.getElementById('fullPhone').textContent = data.real_phone;
+    document.getElementById('fullNumber').textContent = data.number.toString().padStart(5, '0');
+    document.getElementById('fullTotalNumbers').textContent = data.total_numbers;
+    document.getElementById('fullUserId').textContent = data.user_id;
+    document.getElementById('fullOrderId').textContent = data.order_id;
+
+    // Atualizar links
+    document.getElementById('viewUserLink').href = `/admin/accounts/user/${data.user_id}/change/`;
+    document.getElementById('viewOrderLink').href = `/admin/raffles/raffleorder/${data.order_id}/change/`;
+
+    // Mostrar resultado
+    document.getElementById('winnerResult').style.display = 'block';
+}
+
+function showFullDetails() {
+    document.getElementById('detailsModal').classList.add('visible');
+}
+
+function closeDetails() {
+    document.getElementById('detailsModal').classList.remove('visible');
+}
+
+// Fechar modal ao clicar fora
+document.getElementById('detailsModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDetails();
+    }
+});
+</script>
+
+{% endblock %}

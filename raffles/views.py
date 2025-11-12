@@ -625,3 +625,85 @@ def site_config_view(request):
         return redirect('site_config')
 
     return render(request, 'raffles/site_config.html', {'config': config})
+
+
+@login_required
+def raffle_draw(request):
+    """View para sortear ganhador de uma campanha"""
+    from django.contrib import messages
+    import json
+
+    # Buscar apenas campanhas ativas ou finalizadas
+    raffles = Raffle.objects.filter(
+        status__in=[Raffle.Status.ACTIVE, Raffle.Status.FINISHED]
+    ).order_by('-created_at')
+
+    winner_data = None
+    raffle_id = request.GET.get('raffle_id')
+
+    if request.method == 'POST' and raffle_id:
+        try:
+            raffle = Raffle.objects.get(id=raffle_id)
+
+            # Buscar todos os números vendidos (pagos)
+            sold_numbers = RaffleNumber.objects.filter(
+                raffle=raffle,
+                order__payment_status='paid'
+            ).select_related('order', 'order__user')
+
+            if not sold_numbers.exists():
+                messages.error(request, 'Nenhum número vendido para esta campanha.')
+            else:
+                # Sortear um número aleatório
+                import random
+                winner_number = random.choice(sold_numbers)
+
+                # Preparar dados do ganhador
+                user = winner_number.order.user
+                phone = user.whatsapp or ''
+
+                # Mascarar telefone: (37) 9****-1626
+                masked_phone = ''
+                if len(phone) >= 4:
+                    # Formato: (XX) 9****-XXXX
+                    if len(phone) == 11:  # Celular com 9
+                        masked_phone = f"({phone[:2]}) {phone[2]}****-{phone[-4:]}"
+                    elif len(phone) == 10:  # Fixo
+                        masked_phone = f"({phone[:2]}) ****-{phone[-4:]}"
+                    else:
+                        masked_phone = f"****-{phone[-4:]}"
+                else:
+                    masked_phone = "****"
+
+                # Contar quantos números essa pessoa comprou nesta campanha
+                total_numbers = RaffleNumber.objects.filter(
+                    raffle=raffle,
+                    order__user=user,
+                    order__payment_status='paid'
+                ).count()
+
+                winner_data = {
+                    'number': winner_number.number,
+                    'name': user.name,
+                    'masked_phone': masked_phone,
+                    'real_phone': phone,
+                    'total_numbers': total_numbers,
+                    'raffle_name': raffle.name,
+                    'user_id': user.id,
+                    'order_id': winner_number.order.id,
+                }
+
+                messages.success(request, f'Ganhador sorteado: {user.name}!')
+
+        except Raffle.DoesNotExist:
+            messages.error(request, 'Campanha não encontrada.')
+        except Exception as e:
+            messages.error(request, f'Erro ao sortear: {str(e)}')
+
+    context = {
+        'raffles': raffles,
+        'selected_raffle_id': raffle_id,
+        'winner_data': json.dumps(winner_data) if winner_data else None,
+    }
+
+    return render(request, 'raffles/draw.html', context)
