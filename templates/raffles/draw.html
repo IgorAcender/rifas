@@ -570,7 +570,50 @@ if (winnerData) {
 
 document.getElementById('drawForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
+    const form = e.target;
 
+    // Fazer o sorteio no backend primeiro
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Extrair winner_data do HTML retornado
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const scripts = doc.querySelectorAll('script');
+
+        let winnerData = null;
+        scripts.forEach(script => {
+            const content = script.textContent;
+            const match = content.match(/const winnerData = (.+?);/);
+            if (match) {
+                try {
+                    winnerData = JSON.parse(match[1]);
+                } catch (e) {
+                    console.error('Erro ao parsear winner data:', e);
+                }
+            }
+        });
+
+        if (winnerData) {
+            // Iniciar animação com o número já sorteado
+            startAnimation(winnerData);
+        } else {
+            console.error('Winner data não encontrado');
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        window.location.reload();
+    });
+});
+
+function startAnimation(winnerData) {
     // Mostrar animação
     document.getElementById('drawAnimation').style.display = 'flex';
     document.querySelector('.draw-button-container').style.display = 'none';
@@ -597,45 +640,15 @@ document.getElementById('drawForm')?.addEventListener('submit', function(e) {
             countdown.style.display = 'none';
 
             // Fase 2: Revelação dos dígitos
-            startDigitReveal(e.target);
-        }
-    }, 1000);
-});
-
-function startDigitReveal(form) {
-    const digitReveal = document.getElementById('digitReveal');
-    digitReveal.style.display = 'block';
-
-    // Fazer request para obter o número vencedor
-    const formData = new FormData(form);
-
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.text())
-    .then(html => {
-        // Extrair winner_data do HTML retornado
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const scriptContent = doc.querySelector('script').textContent;
-        const match = scriptContent.match(/const winnerData = ({.*?});/s);
-
-        if (match) {
-            const winnerData = JSON.parse(match[1]);
             revealDigits(winnerData);
         }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        form.submit(); // Fallback: submit normal
-    });
+    }, 1000);
 }
 
 function revealDigits(winnerData) {
+    const digitReveal = document.getElementById('digitReveal');
+    digitReveal.style.display = 'block';
+
     const winnerNumber = winnerData.number.toString().padStart(5, '0');
     const digits = ['digit1', 'digit2', 'digit3', 'digit4', 'digit5'];
 
