@@ -290,6 +290,8 @@
             border-radius: 16px;
             width: 90%;
             max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
             transform: scale(0.9);
             transition: all 0.3s ease;
             text-align: left;
@@ -458,6 +460,7 @@
             cursor: pointer;
             transition: all 0.2s;
             margin-top: 8px;
+            margin-bottom: 20px;
         }
 
         .btn-confirm-purchase:hover {
@@ -923,6 +926,12 @@
 
             .premium-value {
                 font-size: 20px;
+            }
+
+            .modal-content {
+                padding: 24px 20px;
+                padding-bottom: 32px;
+                max-height: 85vh;
             }
         }
 
