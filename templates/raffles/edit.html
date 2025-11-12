@@ -495,6 +495,24 @@
             </div>
         </div>
     </form>
+
+    <!-- Danger Zone - Delete Campaign -->
+    <div class="danger-zone">
+        <h3 class="danger-title">Zona de Perigo</h3>
+        <p class="danger-description">Uma vez que você excluir a campanha, não há como voltar atrás. Por favor, tenha certeza.</p>
+        <form method="post" action="{% url 'raffle_delete' raffle.pk %}" id="delete-form" onsubmit="return confirmDelete()">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                Excluir Campanha Permanentemente
+            </button>
+        </form>
+    </div>
 </div>
 
 <style>
@@ -581,6 +599,53 @@
 .range-separator {
     color: #94a3b8;
     font-weight: 500;
+}
+
+/* Danger Zone */
+.danger-zone {
+    background: #fff;
+    border: 2px solid #dc2626;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 32px;
+}
+
+.danger-title {
+    color: #dc2626;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+}
+
+.danger-description {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0 0 20px 0;
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-danger svg {
+    flex-shrink: 0;
 }
 </style>
 
@@ -671,6 +736,10 @@ function toggleMilestoneBonus() {
     const checkbox = document.getElementById('enable_milestone_bonus');
     const fields = document.getElementById('milestone_bonus_fields');
     fields.style.display = checkbox.checked ? 'block' : 'none';
+}
+
+function confirmDelete() {
+    return confirm('⚠️ ATENÇÃO: Esta ação é irreversível!\n\nTem certeza que deseja excluir esta campanha permanentemente?\n\nTodos os números, pedidos e dados relacionados serão perdidos.');
 }
 </script>
 

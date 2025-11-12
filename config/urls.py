@@ -32,6 +32,7 @@ urlpatterns = [
     path('campanha/<int:pk>/', raffle_views.campaign_details, name='campaign_details'),
     path('criar-campanha/', raffle_views.raffle_create, name='raffle_create'),
     path('editar-campanha/<int:pk>/', raffle_views.raffle_edit, name='raffle_edit'),
+    path('excluir-campanha/<int:pk>/', raffle_views.raffle_delete, name='raffle_delete'),
     path('apoiadores/', raffle_views.supporters, name='supporters'),
     path('afiliados/', raffle_views.affiliates, name='affiliates'),
     path('configuracoes/', raffle_views.settings_view, name='settings'),
