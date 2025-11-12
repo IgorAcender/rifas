@@ -713,7 +713,7 @@ def raffle_draw(request):
                 }
 
                 print(f"DEBUG: Winner data = {winner_data}")
-                messages.success(request, f'Ganhador sorteado: {user.name}!')
+                # messages.success(request, f'Ganhador sorteado: {user.name}!')  # Removido - polui outras páginas
 
         except Raffle.DoesNotExist:
             messages.error(request, 'Campanha não encontrada.')
