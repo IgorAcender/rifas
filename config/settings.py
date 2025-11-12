@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.SilentErrorMiddleware',  # Custom error handling
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -279,3 +280,41 @@ def environment_callback(request):
     if DEBUG:
         return ["Desenvolvimento", "warning"]
     return ["Producao", "success"]
+
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'errors.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'config.middleware': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
