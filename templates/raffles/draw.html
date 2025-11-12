@@ -108,6 +108,12 @@
                 Ver Detalhes Completos
             </button>
 
+            <!-- Números Bônus Ganhos -->
+            <div class="bonus-numbers-section" id="bonusNumbersSection" style="display: none;">
+                <h3>✨ Números Bônus Ganhos:</h3>
+                <div class="bonus-numbers-grid" id="bonusNumbersGrid"></div>
+            </div>
+
             <!-- Todos os números do ganhador (prova social) -->
             <div class="winner-numbers-section">
                 <h3>Todos os números do ganhador:</h3>
@@ -438,6 +444,53 @@
     color: #475569;
     margin-bottom: 16px;
     text-align: center;
+}
+
+.bonus-numbers-section {
+    margin-top: 24px;
+    padding: 20px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 12px;
+    border: 2px solid #f59e0b;
+}
+
+.bonus-numbers-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.bonus-numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+}
+
+.bonus-number-item {
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    border: 2px solid #ea580c;
+    border-radius: 8px;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    animation: bonusPulse 2s infinite;
+}
+
+@keyframes bonusPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .winner-numbers-grid {
@@ -796,6 +849,22 @@ function showWinner(data) {
     if (data.total_bonus && data.total_bonus > 0) {
         document.getElementById('bonusInfo').style.display = 'flex';
         document.getElementById('displayBonusCount').textContent = data.total_bonus;
+        
+        // Mostrar seção de números bônus
+        const bonusSection = document.getElementById('bonusNumbersSection');
+        const bonusGrid = document.getElementById('bonusNumbersGrid');
+        
+        if (data.bonus_numbers && data.bonus_numbers.length > 0) {
+            bonusSection.style.display = 'block';
+            bonusGrid.innerHTML = '';
+            
+            data.bonus_numbers.forEach(num => {
+                const bonusEl = document.createElement('div');
+                bonusEl.className = 'bonus-number-item';
+                bonusEl.textContent = num.toString().padStart(5, '0');
+                bonusGrid.appendChild(bonusEl);
+            });
+        }
     }
 
     // Preencher dados privados (para o modal)
