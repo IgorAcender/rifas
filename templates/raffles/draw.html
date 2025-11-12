@@ -561,10 +561,17 @@
 <script>
 const winnerData = {{ winner_data|safe }};
 
-// Se já houver um ganhador sorteado, mostrar resultado
+// Se já houver um ganhador sorteado, mostrar animação primeiro
 if (winnerData) {
     document.addEventListener('DOMContentLoaded', function() {
-        showWinner(winnerData);
+        // Esconder o botão de sortear
+        const drawButton = document.querySelector('.draw-button-container');
+        if (drawButton) {
+            drawButton.style.display = 'none';
+        }
+
+        // Iniciar animação automaticamente
+        startAnimation(winnerData);
     });
 }
 
