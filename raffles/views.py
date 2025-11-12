@@ -676,12 +676,16 @@ def raffle_draw(request):
                 else:
                     masked_phone = "****"
 
-                # Contar quantos números essa pessoa comprou nesta campanha
-                total_numbers = RaffleNumber.objects.filter(
+                # Buscar todos os números comprados por esse usuário nesta campanha
+                user_numbers = RaffleNumber.objects.filter(
                     raffle=raffle,
                     order__user=user,
                     order__status='paid'
-                ).count()
+                ).order_by('number').values_list('number', flat=True)
+
+                # Converter para lista
+                user_numbers_list = list(user_numbers)
+                total_numbers = len(user_numbers_list)
 
                 winner_data = {
                     'number': winner_number.number,
@@ -689,6 +693,7 @@ def raffle_draw(request):
                     'masked_phone': masked_phone,
                     'real_phone': phone,
                     'total_numbers': total_numbers,
+                    'user_numbers': user_numbers_list,  # Lista de todos os números
                     'raffle_name': raffle.name,
                     'user_id': user.id,
                     'order_id': winner_number.order.id,

@@ -100,6 +100,12 @@
             <button class="btn-details" onclick="showFullDetails()">
                 Ver Detalhes Completos
             </button>
+
+            <!-- Todos os números do ganhador (prova social) -->
+            <div class="winner-numbers-section">
+                <h3>Todos os números do ganhador:</h3>
+                <div class="winner-numbers-grid" id="winnerNumbersGrid"></div>
+            </div>
         </div>
     </div>
 
@@ -404,6 +410,52 @@
     transform: translateY(-2px);
 }
 
+.winner-numbers-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.winner-numbers-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.winner-numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.winner-number-item {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    transition: all 0.2s;
+}
+
+.winner-number-item.winning {
+    background: #10b981;
+    border-color: #059669;
+    color: white;
+    font-weight: 700;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -699,7 +751,8 @@ function revealDigits(winnerData) {
 function showWinner(data) {
     // Esconder animação e botão
     document.getElementById('drawAnimation').style.display = 'none';
-    document.querySelector('.draw-button-container').style.display = 'none';
+    const drawBtn = document.querySelector('.draw-button-container');
+    if (drawBtn) drawBtn.style.display = 'none';
 
     // Preencher dados públicos
     document.getElementById('displayNumber').textContent = data.number.toString().padStart(5, '0');
@@ -718,6 +771,25 @@ function showWinner(data) {
     // Atualizar links
     document.getElementById('viewUserLink').href = `/admin/accounts/user/${data.user_id}/change/`;
     document.getElementById('viewOrderLink').href = `/admin/raffles/raffleorder/${data.order_id}/change/`;
+
+    // Preencher grid com todos os números do ganhador
+    const numbersGrid = document.getElementById('winnerNumbersGrid');
+    numbersGrid.innerHTML = '';
+
+    if (data.user_numbers && data.user_numbers.length > 0) {
+        data.user_numbers.forEach(num => {
+            const numberEl = document.createElement('div');
+            numberEl.className = 'winner-number-item';
+            numberEl.textContent = num.toString().padStart(5, '0');
+
+            // Destacar o número vencedor
+            if (num === data.number) {
+                numberEl.classList.add('winning');
+            }
+
+            numbersGrid.appendChild(numberEl);
+        });
+    }
 
     // Mostrar resultado
     document.getElementById('winnerResult').style.display = 'block';
