@@ -576,12 +576,12 @@ def raffle_delete(request, pk):
 
     if request.method == 'POST':
         try:
-            raffle_title = raffle.title
-            logger.info(f"Deleting raffle: {raffle_title} (id={pk})")
+            raffle_name = raffle.name
+            logger.info(f"Deleting raffle: {raffle_name} (id={pk})")
             # Django will cascade delete related objects (numbers, orders, etc.)
             raffle.delete()
-            logger.info(f"Raffle deleted successfully: {raffle_title}")
-            messages.success(request, f'Campanha "{raffle_title}" excluída com sucesso!')
+            logger.info(f"Raffle deleted successfully: {raffle_name}")
+            messages.success(request, f'Campanha "{raffle_name}" excluída com sucesso!')
             return redirect('raffle_list')
         except Exception as e:
             logger.error(f"Error deleting raffle {pk}: {str(e)}")
