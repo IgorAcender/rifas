@@ -739,8 +739,19 @@ function toggleMilestoneBonus() {
 }
 
 function confirmDelete() {
-    return confirm('⚠️ ATENÇÃO: Esta ação é irreversível!\n\nTem certeza que deseja excluir esta campanha permanentemente?\n\nTodos os números, pedidos e dados relacionados serão perdidos.');
+    console.log('confirmDelete called');
+    const confirmed = confirm('⚠️ ATENÇÃO: Esta ação é irreversível!\n\nTem certeza que deseja excluir esta campanha permanentemente?\n\nTodos os números, pedidos e dados relacionados serão perdidos.');
+    console.log('User confirmed:', confirmed);
+    return confirmed;
 }
+
+// Debug: verificar se danger zone existe
+document.addEventListener('DOMContentLoaded', function() {
+    const dangerZone = document.querySelector('.danger-zone');
+    const deleteForm = document.getElementById('delete-form');
+    console.log('Danger zone found:', dangerZone);
+    console.log('Delete form found:', deleteForm);
+});
 </script>
 
 <script>

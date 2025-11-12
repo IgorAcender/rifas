@@ -561,25 +561,35 @@ def raffle_edit(request, pk):
 @login_required
 def raffle_delete(request, pk):
     """Delete a raffle campaign"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"raffle_delete called - pk={pk}, method={request.method}, user={request.user}")
+
     raffle = get_object_or_404(Raffle, pk=pk)
 
     # Only allow staff users to delete campaigns
     if not request.user.is_staff:
+        logger.warning(f"Non-staff user {request.user} tried to delete raffle {pk}")
         messages.error(request, 'Você não tem permissão para excluir campanhas.')
         return redirect('raffle_list')
 
     if request.method == 'POST':
         try:
             raffle_title = raffle.title
+            logger.info(f"Deleting raffle: {raffle_title} (id={pk})")
             # Django will cascade delete related objects (numbers, orders, etc.)
             raffle.delete()
+            logger.info(f"Raffle deleted successfully: {raffle_title}")
             messages.success(request, f'Campanha "{raffle_title}" excluída com sucesso!')
             return redirect('raffle_list')
         except Exception as e:
+            logger.error(f"Error deleting raffle {pk}: {str(e)}")
             messages.error(request, f'Erro ao excluir campanha: {str(e)}')
             return redirect('raffle_edit', pk=pk)
 
     # If GET request, redirect back to edit page
+    logger.info(f"GET request to raffle_delete - redirecting to edit")
     return redirect('raffle_edit', pk=pk)
 
 
