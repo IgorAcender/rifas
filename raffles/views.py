@@ -385,7 +385,16 @@ def raffle_create(request):
             if 'prize_image' in request.FILES:
                 image_file = request.FILES['prize_image']
                 image_data = image_file.read()
-                prize_image_base64 = base64.b64encode(image_data).decode('utf-8')
+                encoded_data = base64.b64encode(image_data).decode('utf-8')
+                # Detect content type from file extension
+                content_type = 'image/jpeg'
+                if image_file.name.lower().endswith('.png'):
+                    content_type = 'image/png'
+                elif image_file.name.lower().endswith('.gif'):
+                    content_type = 'image/gif'
+                elif image_file.name.lower().endswith('.webp'):
+                    content_type = 'image/webp'
+                prize_image_base64 = f'data:{content_type};base64,{encoded_data}'
 
             raffle = Raffle.objects.create(
                 name=request.POST.get('name'),
@@ -492,7 +501,16 @@ def raffle_edit(request, pk):
             if 'prize_image' in request.FILES:
                 image_file = request.FILES['prize_image']
                 image_data = image_file.read()
-                raffle.prize_image_base64 = base64.b64encode(image_data).decode('utf-8')
+                encoded_data = base64.b64encode(image_data).decode('utf-8')
+                # Detect content type from file extension
+                content_type = 'image/jpeg'
+                if image_file.name.lower().endswith('.png'):
+                    content_type = 'image/png'
+                elif image_file.name.lower().endswith('.gif'):
+                    content_type = 'image/gif'
+                elif image_file.name.lower().endswith('.webp'):
+                    content_type = 'image/webp'
+                raffle.prize_image_base64 = f'data:{content_type};base64,{encoded_data}'
 
             raffle.save()
 
