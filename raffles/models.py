@@ -248,6 +248,8 @@ class RaffleNumber(models.Model):
 
     class Source(models.TextChoices):
         PURCHASE = 'purchase', 'Compra'
+        PURCHASE_BONUS = 'purchase_bonus', 'Bônus de Compra'
+        MILESTONE_BONUS = 'milestone_bonus', 'Bônus Milestone'
         REFERRAL_INVITER = 'referral_inviter', 'Bonus Indicante'
         REFERRAL_INVITEE = 'referral_invitee', 'Bonus Indicado'
 
@@ -389,13 +391,28 @@ class RaffleOrder(models.Model):
         selected = random.sample(available_filtered, total_to_allocate)
         selected_ids = [id for id, num in selected]
 
-        # Reserve numbers
-        RaffleNumber.objects.filter(id__in=selected_ids).update(
+        # Separar números pagos e bônus
+        paid_ids = selected_ids[:self.quantity]  # Primeiros são pagos
+        bonus_ids = selected_ids[self.quantity:]  # Restantes são bônus
+
+        # Reserve paid numbers
+        RaffleNumber.objects.filter(id__in=paid_ids).update(
             status=RaffleNumber.Status.RESERVED,
             user=self.user,
             order=self,
+            source=RaffleNumber.Source.PURCHASE,
             reserved_at=models.functions.Now()
         )
+        
+        # Reserve bonus numbers with correct source
+        if bonus_ids:
+            RaffleNumber.objects.filter(id__in=bonus_ids).update(
+                status=RaffleNumber.Status.RESERVED,
+                user=self.user,
+                order=self,
+                source=RaffleNumber.Source.PURCHASE_BONUS,
+                reserved_at=models.functions.Now()
+            )
         
         # Save bonus info in payment_data
         if bonus_count > 0:
