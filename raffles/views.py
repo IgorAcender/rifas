@@ -648,7 +648,7 @@ def raffle_draw(request):
             # Buscar todos os números vendidos (pagos)
             sold_numbers = RaffleNumber.objects.filter(
                 raffle=raffle,
-                order__payment_status='paid'
+                order__status='paid'
             ).select_related('order', 'order__user')
 
             if not sold_numbers.exists():
@@ -680,7 +680,7 @@ def raffle_draw(request):
                 total_numbers = RaffleNumber.objects.filter(
                     raffle=raffle,
                     order__user=user,
-                    order__payment_status='paid'
+                    order__status='paid'
                 ).count()
 
                 winner_data = {
