@@ -46,9 +46,13 @@
                     <div class="stat-value">{{ campaign.purchased_count }}</div>
                     <div class="stat-label">Números comprados</div>
                 </div>
-                <div class="stat-box bonus-stat">
-                    <div class="stat-value">{{ campaign.bonus_count }}</div>
-                    <div class="stat-label">Números bônus</div>
+                <div class="stat-box bonus-purchase-stat">
+                    <div class="stat-value">{{ campaign.purchase_bonus_count }}</div>
+                    <div class="stat-label">Bônus de compra</div>
+                </div>
+                <div class="stat-box bonus-referral-stat">
+                    <div class="stat-value">{{ campaign.referral_bonus_count }}</div>
+                    <div class="stat-label">Bônus de indicação</div>
                 </div>
                 <div class="stat-box total-stat">
                     <div class="stat-value">{{ campaign.total_quantity }}</div>
@@ -428,22 +432,31 @@
     transition: all 0.2s;
 }
 
-.stat-box.bonus-stat {
+.stat-box.bonus-purchase-stat {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
     border: 1px solid #f59e0b;
 }
 
-.stat-box.bonus-stat .stat-value {
+.stat-box.bonus-purchase-stat .stat-value {
     color: #d97706;
 }
 
-.stat-box.total-stat {
+.stat-box.bonus-referral-stat {
     background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
     border: 1px solid #3b82f6;
 }
 
-.stat-box.total-stat .stat-value {
+.stat-box.bonus-referral-stat .stat-value {
     color: #1e40af;
+}
+
+.stat-box.total-stat {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 1px solid #22c55e;
+}
+
+.stat-box.total-stat .stat-value {
+    color: #16a34a;
 }
 
 .stat-box:hover {
@@ -923,7 +936,20 @@
     
     .hero-stats {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: 8px;
+        padding: 16px;
+    }
+    
+    .stat-box {
+        padding: 12px;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
     }
     
     .numbers-grid {

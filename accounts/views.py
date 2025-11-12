@@ -167,15 +167,27 @@ def customer_area(request):
             source='purchase'
         ).count()
         
-        # Contar números bônus (todos os outros sources)
-        bonus_count = RaffleNumber.objects.filter(
+        # Contar bônus de compra (purchase_bonus)
+        purchase_bonus_count = RaffleNumber.objects.filter(
             raffle=raffle,
             order__user=request.user,
-            order__status=RaffleOrder.Status.PAID
-        ).exclude(source='purchase').count()
+            order__status=RaffleOrder.Status.PAID,
+            source='purchase_bonus'
+        ).count()
+        
+        # Contar bônus de indicação (referral_inviter - base + progressivo)
+        referral_bonus_count = RaffleNumber.objects.filter(
+            raffle=raffle,
+            order__user=request.user,
+            order__status=RaffleOrder.Status.PAID,
+            source='referral_inviter'
+        ).count()
+        
+        # Total de bônus (compra + indicação, excluindo invitee pois não mostramos)
+        total_bonus = purchase_bonus_count + referral_bonus_count
         
         # Total de números (comprados + bônus)
-        total_numbers_count = purchased_count + bonus_count
+        total_numbers_count = purchased_count + total_bonus
         
         total_amount = sum(order.amount for order in orders)
 
@@ -183,7 +195,8 @@ def customer_area(request):
             'raffle': raffle,
             'orders': orders,
             'purchased_count': purchased_count,  # Números comprados
-            'bonus_count': bonus_count,  # Números bônus
+            'purchase_bonus_count': purchase_bonus_count,  # Bônus de compra
+            'referral_bonus_count': referral_bonus_count,  # Bônus de indicação
             'total_quantity': total_numbers_count,  # Total
             'total_amount': total_amount  # Investido
         })
