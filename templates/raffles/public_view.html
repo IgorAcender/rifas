@@ -947,7 +947,7 @@
         <div class="main-card">
             <div class="prize-section">
                 {% if raffle.prize_image_base64 %}
-                <img src="data:image/jpeg;base64,{{ raffle.prize_image_base64 }}" alt="{{ raffle.prize_name }}" class="prize-image">
+                <img src="{{ raffle.prize_image_base64 }}" alt="{{ raffle.prize_name }}" class="prize-image">
                 {% else %}
                 <div class="prize-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">🏆</div>
                 {% endif %}

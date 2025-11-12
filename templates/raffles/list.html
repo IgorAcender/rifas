@@ -22,7 +22,7 @@
     {% for raffle in raffles %}
     <div class="raffle-card">
         {% if raffle.prize_image_base64 %}
-        <img src="data:image/jpeg;base64,{{ raffle.prize_image_base64 }}" alt="{{ raffle.prize_name }}" class="raffle-image">
+        <img src="{{ raffle.prize_image_base64 }}" alt="{{ raffle.prize_name }}" class="raffle-image">
         {% endif %}
         <div class="raffle-content">
             <h3>{{ raffle.name }}</h3>
