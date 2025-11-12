@@ -197,6 +197,17 @@ def mercadopago_webhook(request):
                 logger.error(f"❌ Error sending referral invitation: {e}", exc_info=True)
 
     # Save the latest payment data for reference
+    # Preserve any won_prizes or milestone data that mark_as_paid() may have stored
+    try:
+        existing_payment_data = order.payment_data or {}
+    except Exception:
+        existing_payment_data = {}
+
+    # Keys we want to keep if present
+    for key in ('won_prizes', 'milestone_achieved', 'milestone_prize'):
+        if key in existing_payment_data and key not in payment_data:
+            payment_data[key] = existing_payment_data[key]
+
     order.payment_data = payment_data
     order.save(update_fields=['payment_data'])
 
