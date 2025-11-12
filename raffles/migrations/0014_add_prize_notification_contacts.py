@@ -11,11 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='raffle',
-            name='premium_numbers',
-            field=models.PositiveIntegerField(blank=True, help_text='Campo legado - não utilizado', null=True, verbose_name='Números Premium (Deprecated)'),
-        ),
-        migrations.AddField(
             model_name='siteconfiguration',
             name='admin_phones',
             field=models.TextField(blank=True, help_text='Números de WhatsApp dos administradores, um por linha. Ex: 5511999999999', verbose_name='WhatsApp dos Admins'),
