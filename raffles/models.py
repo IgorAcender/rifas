@@ -226,19 +226,32 @@ class Raffle(models.Model):
             order.save(update_fields=['status'])
 
     def check_and_release_prize_numbers(self):
-        """Verifica e libera números premiados baseado na porcentagem de vendas"""
+        """Libera números premiados baseado na porcentagem de vendas atingida
+
+        Returns:
+            list: Lista dos números (int) que foram recém-liberados nesta verificação
+        """
+        newly_released = []
+
         if self.total_numbers == 0:
-            return
+            return newly_released
 
         # Calcular porcentagem atual de vendas
         current_percentage = (self.numbers_sold / self.total_numbers) * 100
 
         # Verificar cada número premiado não liberado
         for prize_number in self.prize_numbers.filter(is_released=False):
-            if prize_number.release_percentage_min <= current_percentage <= prize_number.release_percentage_max:
+            # Verifica se atingiu a porcentagem mínima configurada
+            if current_percentage >= prize_number.release_percentage_min:
+                # Liberar o número premiado para que possa ser vendido
                 prize_number.is_released = True
                 prize_number.save(update_fields=['is_released', 'updated_at'])
-                print(f"🎁 Número premiado {prize_number.number} liberado! (Vendas em {current_percentage:.1f}%)")
+                newly_released.append(prize_number.number)
+                print(f"🔓 Número premiado {prize_number.number} LIBERADO! (Vendas em {current_percentage:.1f}%)")
+                print(f"   Valor do prêmio: R$ {prize_number.prize_amount}")
+                print(f"   Próximo comprador que receber este número ganhará o prêmio!")
+
+        return newly_released
 
 
 class RaffleNumber(models.Model):
@@ -363,12 +376,12 @@ class RaffleOrder(models.Model):
             return list(self.allocated_numbers.values_list('number', flat=True))
 
         # Verificar e liberar números premiados baseado na porcentagem de vendas
-        self.raffle.check_and_release_prize_numbers()
+        newly_released_prizes = self.raffle.check_and_release_prize_numbers()
 
         # Calcular bônus de compra
         bonus_count = self.calculate_purchase_bonus()
         total_to_allocate = self.quantity + bonus_count
-        
+
         if bonus_count > 0:
             print(f"🎁 Bônus de compra: {bonus_count} números extras! Total: {total_to_allocate}")
 
@@ -390,8 +403,28 @@ class RaffleOrder(models.Model):
         if len(available_filtered) < total_to_allocate:
             raise ValidationError('Nao ha numeros suficientes disponiveis')
 
-        # Select random numbers (paid + bonus)
-        selected = random.sample(available_filtered, total_to_allocate)
+        # FORÇAR inclusão de números premiados recém-liberados
+        forced_prize_numbers = []
+        if newly_released_prizes:
+            for prize_num in newly_released_prizes:
+                # Encontrar o ID do RaffleNumber correspondente
+                prize_raffle_number = next((id, num) for id, num in available_filtered if num == prize_num)
+                if prize_raffle_number:
+                    forced_prize_numbers.append(prize_raffle_number)
+                    available_filtered.remove(prize_raffle_number)
+                    print(f"🎯 FORÇANDO número premiado {prize_num} para este comprador!")
+
+        # Calcular quantos números aleatórios ainda precisamos
+        remaining_to_allocate = total_to_allocate - len(forced_prize_numbers)
+
+        # Selecionar números aleatórios para completar
+        if remaining_to_allocate > 0:
+            random_selected = random.sample(available_filtered, remaining_to_allocate)
+        else:
+            random_selected = []
+
+        # Combinar números forçados + aleatórios
+        selected = forced_prize_numbers + random_selected
         selected_ids = [id for id, num in selected]
 
         # Separar números pagos e bônus
