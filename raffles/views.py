@@ -687,6 +687,17 @@ def raffle_draw(request):
                 user_numbers_list = list(user_numbers)
                 total_numbers = len(user_numbers_list)
 
+                # Buscar números bônus ganhos pelo usuário nesta campanha
+                from .models import PrizeNumber
+                bonus_numbers = PrizeNumber.objects.filter(
+                    raffle=raffle,
+                    winner=user,
+                    is_won=True
+                ).order_by('number').values_list('number', flat=True)
+
+                bonus_numbers_list = list(bonus_numbers)
+                total_bonus = len(bonus_numbers_list)
+
                 winner_data = {
                     'number': winner_number.number,
                     'name': user.name,
@@ -694,6 +705,8 @@ def raffle_draw(request):
                     'real_phone': phone,
                     'total_numbers': total_numbers,
                     'user_numbers': user_numbers_list,  # Lista de todos os números
+                    'bonus_numbers': bonus_numbers_list,  # Lista dos números bônus
+                    'total_bonus': total_bonus,  # Quantidade de bônus
                     'raffle_name': raffle.name,
                     'user_id': user.id,
                     'order_id': winner_number.order.id,
