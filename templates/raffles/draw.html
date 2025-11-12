@@ -50,10 +50,23 @@
     <!-- Tela de Animação do Sorteio -->
     <div class="draw-animation" id="drawAnimation" style="display: none;">
         <div class="roulette-container">
-            <div class="roulette" id="roulette">
-                <div class="winning-number" id="winningNumber">?</div>
+            <!-- Contagem regressiva -->
+            <div class="countdown" id="countdown" style="display: none;">
+                <div class="countdown-number" id="countdownNumber">3</div>
+                <div class="countdown-text">Preparando sorteio...</div>
             </div>
-            <div class="draw-message">SORTEANDO...</div>
+
+            <!-- Revelação dígito por dígito -->
+            <div class="digit-reveal" id="digitReveal" style="display: none;">
+                <div class="digit-container">
+                    <div class="digit" id="digit1">?</div>
+                    <div class="digit" id="digit2">?</div>
+                    <div class="digit" id="digit3">?</div>
+                    <div class="digit" id="digit4">?</div>
+                    <div class="digit" id="digit5">?</div>
+                </div>
+                <div class="draw-message">SORTEANDO...</div>
+            </div>
         </div>
     </div>
 
@@ -196,28 +209,85 @@
     width: 100%;
 }
 
-.roulette {
-    width: 300px;
-    height: 300px;
-    margin: 0 auto;
+/* Contagem regressiva */
+.countdown {
+    text-align: center;
+}
+
+.countdown-number {
+    font-size: 200px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 0 60px rgba(255, 255, 255, 0.8);
+    animation: countdownPulse 1s ease-in-out;
+}
+
+@keyframes countdownPulse {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.countdown-text {
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+    margin-top: 20px;
+}
+
+/* Revelação de dígitos */
+.digit-reveal {
+    text-align: center;
+}
+
+.digit-container {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.digit {
+    width: 100px;
+    height: 140px;
     background: white;
-    border-radius: 50%;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.winning-number {
-    font-size: 96px;
+    font-size: 80px;
     font-weight: 900;
     color: #1e3a8a;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.digit.spinning {
+    animation: digitSpin 0.1s linear infinite;
+}
+
+.digit.revealed {
+    animation: digitReveal 0.5s ease-out;
+}
+
+@keyframes digitSpin {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes digitReveal {
+    0% {
+        transform: scale(0) rotateY(180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotateY(90deg);
+    }
+    100% {
+        transform: scale(1) rotateY(0deg);
+        opacity: 1;
+    }
 }
 
 .draw-message {
@@ -447,6 +517,24 @@
 }
 
 @media (max-width: 768px) {
+    .countdown-number {
+        font-size: 120px;
+    }
+
+    .digit-container {
+        gap: 8px;
+    }
+
+    .digit {
+        width: 60px;
+        height: 80px;
+        font-size: 48px;
+    }
+
+    .draw-message {
+        font-size: 20px;
+    }
+
     .winner-info {
         flex-direction: column;
         gap: 12px;
@@ -487,18 +575,106 @@ document.getElementById('drawForm')?.addEventListener('submit', function(e) {
     document.getElementById('drawAnimation').style.display = 'flex';
     document.querySelector('.draw-button-container').style.display = 'none';
 
-    // Simular sorteio com animação de 3 segundos
-    let counter = 0;
-    const interval = setInterval(() => {
-        document.getElementById('winningNumber').textContent = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-        counter++;
-        if (counter > 30) {
-            clearInterval(interval);
-            // Enviar formulário real
-            e.target.submit();
+    // Fase 1: Contagem regressiva (3, 2, 1)
+    const countdown = document.getElementById('countdown');
+    const countdownNumber = document.getElementById('countdownNumber');
+    countdown.style.display = 'block';
+
+    let count = 3;
+    countdownNumber.textContent = count;
+
+    const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            countdownNumber.textContent = count;
+            // Reiniciar animação
+            countdownNumber.style.animation = 'none';
+            setTimeout(() => {
+                countdownNumber.style.animation = 'countdownPulse 1s ease-in-out';
+            }, 10);
+        } else {
+            clearInterval(countdownInterval);
+            countdown.style.display = 'none';
+
+            // Fase 2: Revelação dos dígitos
+            startDigitReveal(e.target);
         }
-    }, 100);
+    }, 1000);
 });
+
+function startDigitReveal(form) {
+    const digitReveal = document.getElementById('digitReveal');
+    digitReveal.style.display = 'block';
+
+    // Fazer request para obter o número vencedor
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Extrair winner_data do HTML retornado
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const scriptContent = doc.querySelector('script').textContent;
+        const match = scriptContent.match(/const winnerData = ({.*?});/s);
+
+        if (match) {
+            const winnerData = JSON.parse(match[1]);
+            revealDigits(winnerData);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        form.submit(); // Fallback: submit normal
+    });
+}
+
+function revealDigits(winnerData) {
+    const winnerNumber = winnerData.number.toString().padStart(5, '0');
+    const digits = ['digit1', 'digit2', 'digit3', 'digit4', 'digit5'];
+
+    // Animar todos os dígitos girando
+    digits.forEach(digitId => {
+        const digitEl = document.getElementById(digitId);
+        digitEl.classList.add('spinning');
+    });
+
+    // Revelar cada dígito com delay
+    digits.forEach((digitId, index) => {
+        setTimeout(() => {
+            const digitEl = document.getElementById(digitId);
+
+            // Parar de girar e mostrar números aleatórios rápidos
+            let spinCount = 0;
+            const spinInterval = setInterval(() => {
+                digitEl.textContent = Math.floor(Math.random() * 10);
+                spinCount++;
+
+                if (spinCount > 10) {
+                    clearInterval(spinInterval);
+
+                    // Revelar o dígito correto
+                    digitEl.classList.remove('spinning');
+                    digitEl.classList.add('revealed');
+                    digitEl.textContent = winnerNumber[index];
+
+                    // Se for o último dígito, mostrar o ganhador após delay
+                    if (index === digits.length - 1) {
+                        setTimeout(() => {
+                            showWinner(winnerData);
+                        }, 1000);
+                    }
+                }
+            }, 100);
+        }, index * 800); // 800ms de delay entre cada dígito
+    });
+}
 
 function showWinner(data) {
     // Esconder animação e botão
