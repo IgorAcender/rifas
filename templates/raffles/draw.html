@@ -35,7 +35,7 @@
     {% if selected_raffle_id %}
     <!-- Botão de Sortear -->
     <div class="draw-button-container">
-        <form method="post" id="drawForm">
+        <form method="post" id="drawForm" action="{% url 'raffle_draw' %}?raffle_id={{ selected_raffle_id }}">
             {% csrf_token %}
             <button type="submit" class="btn-draw" id="drawBtn">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
