@@ -656,7 +656,8 @@ def raffle_draw(request):
             else:
                 # Sortear um número aleatório
                 import random
-                winner_number = random.choice(sold_numbers)
+                sold_numbers_list = list(sold_numbers)
+                winner_number = random.choice(sold_numbers_list)
 
                 # Preparar dados do ganhador
                 user = winner_number.order.user
@@ -693,6 +694,7 @@ def raffle_draw(request):
                     'order_id': winner_number.order.id,
                 }
 
+                print(f"DEBUG: Winner data = {winner_data}")
                 messages.success(request, f'Ganhador sorteado: {user.name}!')
 
         except Raffle.DoesNotExist:
