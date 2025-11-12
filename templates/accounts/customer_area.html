@@ -43,8 +43,16 @@
             </div>
             <div class="hero-stats">
                 <div class="stat-box">
+                    <div class="stat-value">{{ campaign.purchased_count }}</div>
+                    <div class="stat-label">Números comprados</div>
+                </div>
+                <div class="stat-box bonus-stat">
+                    <div class="stat-value">{{ campaign.bonus_count }}</div>
+                    <div class="stat-label">Números bônus</div>
+                </div>
+                <div class="stat-box total-stat">
                     <div class="stat-value">{{ campaign.total_quantity }}</div>
-                    <div class="stat-label">Meus números</div>
+                    <div class="stat-label">Total</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-value">R$ {{ campaign.total_amount|floatformat:2 }}</div>
@@ -407,8 +415,8 @@
 .hero-stats {
     padding: 20px 24px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
 }
 
 .stat-box {
@@ -417,6 +425,30 @@
     border-radius: 12px;
     padding: 16px;
     text-align: center;
+    transition: all 0.2s;
+}
+
+.stat-box.bonus-stat {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #f59e0b;
+}
+
+.stat-box.bonus-stat .stat-value {
+    color: #d97706;
+}
+
+.stat-box.total-stat {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #3b82f6;
+}
+
+.stat-box.total-stat .stat-value {
+    color: #1e40af;
+}
+
+.stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .stat-value {
@@ -890,7 +922,8 @@
     }
     
     .hero-stats {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
     
     .numbers-grid {

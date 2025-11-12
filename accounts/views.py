@@ -159,20 +159,33 @@ def customer_area(request):
     # Create grouped campaigns structure
     my_campaigns_grouped = []
     for raffle, orders in orders_by_raffle.items():
-        # Contar TODOS os números do usuário nesta campanha (comprados + bônus)
-        total_numbers_count = RaffleNumber.objects.filter(
+        # Contar números comprados (source='purchase')
+        purchased_count = RaffleNumber.objects.filter(
+            raffle=raffle,
+            order__user=request.user,
+            order__status=RaffleOrder.Status.PAID,
+            source='purchase'
+        ).count()
+        
+        # Contar números bônus (todos os outros sources)
+        bonus_count = RaffleNumber.objects.filter(
             raffle=raffle,
             order__user=request.user,
             order__status=RaffleOrder.Status.PAID
-        ).count()
+        ).exclude(source='purchase').count()
+        
+        # Total de números (comprados + bônus)
+        total_numbers_count = purchased_count + bonus_count
         
         total_amount = sum(order.amount for order in orders)
 
         my_campaigns_grouped.append({
             'raffle': raffle,
             'orders': orders,
-            'total_quantity': total_numbers_count,  # Agora inclui bônus
-            'total_amount': total_amount
+            'purchased_count': purchased_count,  # Números comprados
+            'bonus_count': bonus_count,  # Números bônus
+            'total_quantity': total_numbers_count,  # Total
+            'total_amount': total_amount  # Investido
         })
 
     # Get successful referrals grouped by campaign
