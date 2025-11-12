@@ -125,6 +125,9 @@ class Raffle(models.Model):
     milestone_prize_name = models.CharField('Nome do Prêmio', max_length=200, blank=True, help_text='Ex: PDF Exclusivo, Curso Online, etc')
     milestone_prize_description = models.TextField('Descrição do Prêmio', blank=True, help_text='Detalhes sobre o prêmio especial')
 
+    # Legacy field - deprecated, kept for database compatibility
+    premium_numbers = models.PositiveIntegerField('Números Premium (Deprecated)', null=True, blank=True, help_text='Campo legado - não utilizado')
+
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
 
