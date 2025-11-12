@@ -1182,12 +1182,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="cpfInput">CPF (opcional)</label>
-                        <input type="text" id="cpfInput" placeholder="000.000.000-00" maxlength="14">
-                        <div class="error-message" id="cpfError"></div>
-                    </div>
-
-                    <div class="form-group">
                         <label for="whatsappInput">Celular com DDD*</label>
                         <div class="phone-input-wrapper">
                             <span class="phone-prefix">🇧🇷 +55</span>
@@ -1494,18 +1488,6 @@
             });
         }
 
-        // Aplicar máscara de CPF
-        const cpfInput = document.getElementById('cpfInput');
-        if (cpfInput) {
-            cpfInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                e.target.value = value;
-            });
-        }
-
         // Código do checkbox de termos removido - agora é apenas informativo
 
         function openModal(id) {
@@ -1601,11 +1583,6 @@
                     document.getElementById('nameInput').value = data.user.name;
                     document.getElementById('nameInput').readOnly = true;
 
-                    if (data.user.cpf) {
-                        document.getElementById('cpfInput').value = data.user.cpf;
-                        document.getElementById('cpfInput').readOnly = true;
-                    }
-
                     // Auto-preencher confirmação de telefone
                     document.getElementById('whatsappConfirmInput').value = whatsappRaw;
                     document.getElementById('whatsappConfirmInput').readOnly = true;
@@ -1616,9 +1593,6 @@
                     // Limpar e habilitar campos
                     document.getElementById('nameInput').value = '';
                     document.getElementById('nameInput').readOnly = false;
-
-                    document.getElementById('cpfInput').value = '';
-                    document.getElementById('cpfInput').readOnly = false;
 
                     // Auto-preencher telefone com WhatsApp, mas permitir edição da confirmação
                     document.getElementById('whatsappConfirmInput').value = '';
@@ -1655,12 +1629,6 @@
                 name: document.getElementById('nameInput').value,
                 whatsapp: whatsappClean  // Enviar apenas números
             };
-
-            // Adicionar CPF se preenchido
-            const cpfValue = document.getElementById('cpfInput').value;
-            if (cpfValue) {
-                userData.cpf = cpfValue.replace(/\D/g, '');
-            }
 
             // Validação básica
             if (!userData.name || !userData.whatsapp) {
