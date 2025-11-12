@@ -3,6 +3,37 @@
 from django.db import migrations, models
 
 
+def add_premium_numbers_if_not_exists(apps, schema_editor):
+    """Add premium_numbers column if it doesn't exist"""
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        # Check if column exists (works for both PostgreSQL and SQLite)
+        cursor.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name='raffles_raffle' AND column_name='premium_numbers';
+        """)
+
+        if not cursor.fetchone():
+            # Column doesn't exist, add it
+            if connection.vendor == 'postgresql':
+                cursor.execute("""
+                    ALTER TABLE raffles_raffle
+                    ADD COLUMN premium_numbers INTEGER NULL;
+                """)
+            elif connection.vendor == 'sqlite':
+                cursor.execute("""
+                    ALTER TABLE raffles_raffle
+                    ADD COLUMN premium_numbers INTEGER NULL;
+                """)
+
+
+def reverse_add_premium_numbers(apps, schema_editor):
+    """Reverse operation - do nothing as we want to keep the column for compatibility"""
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,10 +41,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add premium_numbers field as nullable (legacy/deprecated field)
-        migrations.AddField(
-            model_name='raffle',
-            name='premium_numbers',
-            field=models.PositiveIntegerField(blank=True, help_text='Campo legado - não utilizado', null=True, verbose_name='Números Premium (Deprecated)'),
+        migrations.RunPython(
+            add_premium_numbers_if_not_exists,
+            reverse_add_premium_numbers
         ),
     ]
