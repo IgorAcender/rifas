@@ -1127,6 +1127,9 @@
                     </div>
                 </div>
 
+                <!-- Benefícios conquistados -->
+                <div id="modalBonusStep1" style="margin-top: 16px;"></div>
+
                 <form id="step1Form">
                     <div class="form-group">
                         <label for="whatsappInputStep1">Celular com DDD*</label>
@@ -1167,6 +1170,9 @@
                         <span class="summary-value summary-price" id="modalTotal2">R$ 0,19</span>
                     </div>
                 </div>
+
+                <!-- Benefícios conquistados -->
+                <div id="modalBonusStep2" style="margin-top: 16px;"></div>
 
                 <form id="loginForm">
                     <div class="form-group">
@@ -1363,6 +1369,60 @@
             }
         }
 
+        function updateModalBonusDisplay() {
+            const quantity = state.currentQuantity;
+            let bonusHTML = '';
+            let hasBenefits = false;
+
+            // Bônus progressivo de compra
+            if (config.enablePurchaseBonus && config.purchaseBonusEvery > 0) {
+                const bonusCount = Math.floor(quantity / config.purchaseBonusEvery) * config.purchaseBonusAmount;
+                if (bonusCount > 0) {
+                    hasBenefits = true;
+                    bonusHTML += `<div style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3); margin-bottom: 8px;">
+                        <span style="font-size: 18px;">🎁</span>
+                        <span style="color: #16a34a; font-weight: 600; font-size: 14px;">+${bonusCount} título${bonusCount > 1 ? 's' : ''} bônus</span>
+                    </div>`;
+                }
+            }
+
+            // Prêmio milestone
+            if (config.enableMilestoneBonus && quantity >= config.milestoneQuantity) {
+                hasBenefits = true;
+                bonusHTML += `<div style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05)); border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3); margin-bottom: 8px;">
+                    <span style="font-size: 18px;">🏆</span>
+                    <div style="flex: 1;">
+                        <div style="color: #d97706; font-weight: 600; font-size: 14px; line-height: 1.3;">${config.milestonePrizeName}</div>
+                        <div style="color: #78716c; font-size: 12px; margin-top: 2px; line-height: 1.3;">${config.milestonePrizeDescription}</div>
+                    </div>
+                </div>`;
+            }
+
+            // Se houver benefícios, adicionar título
+            if (hasBenefits) {
+                bonusHTML = `
+                    <div style="background: #f8fafc; border-radius: 10px; padding: 12px; border: 1px solid #e2e8f0;">
+                        <div style="color: #475569; font-weight: 600; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <span>✨</span>
+                            <span>Benefícios conquistados:</span>
+                        </div>
+                        ${bonusHTML}
+                    </div>
+                `;
+            }
+
+            // Atualizar ambos os steps
+            const modalBonusStep1 = document.getElementById('modalBonusStep1');
+            const modalBonusStep2 = document.getElementById('modalBonusStep2');
+
+            if (modalBonusStep1) {
+                modalBonusStep1.innerHTML = bonusHTML;
+            }
+            if (modalBonusStep2) {
+                modalBonusStep2.innerHTML = bonusHTML;
+            }
+        }
+
         function openLoginModal() {
             // Validar quantidade mínima
             if (!state.currentQuantity || state.currentQuantity < 1) {
@@ -1389,6 +1449,9 @@
             } else {
                 console.error('Modal elements not found!');
             }
+
+            // Atualizar benefícios no modal
+            updateModalBonusDisplay();
 
             openModal('loginModal');
         }
@@ -1521,6 +1584,9 @@
                 // Atualizar resumo da compra na ETAPA 2
                 document.getElementById('modalQuantity2').textContent = state.currentQuantity;
                 document.getElementById('modalTotal2').textContent = 'R$ ' + formatCurrency(state.currentQuantity * config.pricePerNumber);
+
+                // Atualizar benefícios no modal (já foi calculado no Step 1)
+                updateModalBonusDisplay();
 
                 // Preencher campo de WhatsApp na ETAPA 2
                 document.getElementById('whatsappInput').value = whatsappRaw;
