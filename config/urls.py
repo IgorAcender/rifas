@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from raffles import views as raffle_views
+from raffles.models import SiteConfiguration
 from accounts import views as account_views
 from notifications import views as notification_views
 
@@ -10,7 +11,14 @@ def health_check(request):
     return JsonResponse({'status': 'ok', 'service': 'rifas'})
 
 def home_placeholder(request):
-    """Página inicial temporária - pode ser customizada depois"""
+    """Página inicial - redireciona para campanha configurada se houver"""
+    try:
+        config = SiteConfiguration.objects.first()
+        if config and config.home_redirect_raffle:
+            return redirect('raffle_public', slug=config.home_redirect_raffle.slug)
+    except Exception:
+        pass
+    
     return render(request, 'home_placeholder.html')
 
 urlpatterns = [
