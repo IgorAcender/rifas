@@ -37,6 +37,8 @@ urlpatterns = [
     path('afiliados/', raffle_views.affiliates, name='affiliates'),
     path('configuracoes/', raffle_views.settings_view, name='settings'),
     path('config-site/', raffle_views.site_config_view, name='site_config'),
+    path('admin-dashboard/', raffle_views.admin_dashboard, name='admin_dashboard'),
+    path('campanha/<int:raffle_id>/configuracoes/', raffle_views.raffle_settings_view, name='raffle_settings'),
     path('sorteador/', raffle_views.raffle_draw, name='raffle_draw'),
 
     # WhatsApp Manager

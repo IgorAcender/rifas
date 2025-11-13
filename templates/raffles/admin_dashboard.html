@@ -82,6 +82,12 @@
                         <path d="M5 12h14M12 5l7 7-7 7"></path>
                     </svg>
                 </a>
+                <a href="{% url 'raffle_settings' campaign.raffle.pk %}" class="btn-config" title="Configurar WhatsApp">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m5.657-13.657l-4.243 4.243m-2.828 2.828l-4.243 4.243m16.97 0l-4.243-4.243m-2.828-2.828l-4.243-4.243"></path>
+                    </svg>
+                </a>
             </div>
 
             <div class="campaign-stats-grid">
@@ -315,6 +321,25 @@
 
 .btn-view-details:hover {
     background: #2a4456;
+}
+
+.btn-config {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    background: #f0f4f8;
+    color: #667eea;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-config:hover {
+    background: #e0e7ff;
+    border-color: #667eea;
 }
 
 .campaign-stats-grid {

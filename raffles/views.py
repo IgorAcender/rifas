@@ -767,6 +767,33 @@ def site_config_view(request):
 
 
 @login_required
+def raffle_settings_view(request, raffle_id):
+    """View para configurar WhatsApp e outras configurações de uma rifa"""
+    from django.contrib import messages
+    
+    try:
+        raffle = Raffle.objects.get(id=raffle_id)
+    except Raffle.DoesNotExist:
+        messages.error(request, 'Rifa não encontrada!')
+        return redirect('admin_dashboard')
+    
+    if request.method == 'POST':
+        # Update WhatsApp
+        admin_whatsapp = request.POST.get('admin_whatsapp', '').strip()
+        raffle.admin_whatsapp = admin_whatsapp
+        raffle.save()
+        
+        messages.success(request, f'Configurações de "{raffle.name}" salvas com sucesso!')
+        return redirect('raffle_settings', raffle_id=raffle.id)
+    
+    return render(request, 'raffles/raffle_settings.html', {'raffle': raffle})
+
+
+@login_required
+def admin_dashboard(request):
+    """View para dashboard administrativo"""
+    raffles = Raffle.objects.all().order_by('-created_at')
+    return render(request, 'raffles/admin_dashboard.html', {'raffles': raffles})
 def raffle_draw(request):
     """View para sortear ganhador de uma campanha"""
     from django.contrib import messages
