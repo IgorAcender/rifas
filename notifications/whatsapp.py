@@ -75,7 +75,7 @@ def send_payment_confirmation(order):
     from notifications.models import WhatsAppMessageTemplate
     from django.conf import settings
 
-    # Get custom template
+    # Get template from database (edited by user in admin)
     template_text = WhatsAppMessageTemplate.get_default_template()
 
     # Prepare data for template
@@ -100,36 +100,13 @@ def send_payment_confirmation(order):
             draw_date=draw_date_str,
             numbers=numbers_str,
             amount=order.amount,
-            order_id=order.id
+            order_id=order.id,
+            customer_area_url=customer_area_url
         )
     except Exception as e:
         logger.error(f"Error formatting template: {e}")
-        # Fallback to default message
-        message = f"""
-🎉 *Pagamento Confirmado!*
-
-Olá *{order.user.name}*!
-
-Seu pagamento foi aprovado com sucesso!
-
-━━━━━━━━━━━━━━━━━━━
-🎫 *Campanha:* {order.raffle.name}
-🏆 *Prêmio:* {order.raffle.prize_name}
-{draw_date_str}
-
-🔢 *Seus números da sorte:*
-{numbers_str}
-
-💰 *Valor pago:* R$ {order.amount}
-📦 *Pedido:* #{order.id}
-━━━━━━━━━━━━━━━━━━━
-
-✅ Seus números estão reservados e concorrendo ao prêmio!
-
-🔗 *Acompanhe aqui:* {customer_area_url}
-
-Boa sorte! 🍀✨
-        """.strip()
+        # Fallback - use template as-is without formatting if there's an error
+        message = template_text
 
     return send_whatsapp_message(order.user.whatsapp, message)
 

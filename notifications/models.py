@@ -5,7 +5,7 @@ class WhatsAppMessageTemplate(models.Model):
     """Template for WhatsApp payment confirmation messages"""
     name = models.CharField(max_length=100, default="payment_confirmation", unique=True)
     template = models.TextField(
-        help_text="Use placeholders: {name}, {raffle_name}, {prize_name}, {draw_date}, {numbers}, {amount}, {order_id}"
+        help_text="Use placeholders: {name}, {raffle_name}, {prize_name}, {draw_date}, {numbers}, {amount}, {order_id}, {customer_area_url}"
     )
     delay_seconds = models.IntegerField(
         'Delay (segundos)',
@@ -43,6 +43,8 @@ Seu pagamento foi aprovado com sucesso!
 ━━━━━━━━━━━━━━━━━━━
 
 ✅ Seus números estão reservados e concorrendo ao prêmio!
+
+🔗 *Acompanhe aqui:* {customer_area_url}
 
 Boa sorte! 🍀✨"""
 
