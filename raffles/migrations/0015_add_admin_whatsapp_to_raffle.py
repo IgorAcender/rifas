@@ -15,9 +15,4 @@ class Migration(migrations.Migration):
             name='admin_whatsapp',
             field=models.CharField(blank=True, help_text='Número de WhatsApp para suporte (ex: 5511999999999). Se vazio, usará o padrão da configuração.', max_length=20, verbose_name='WhatsApp de Suporte'),
         ),
-        migrations.AddField(
-            model_name='raffle',
-            name='premium_numbers',
-            field=models.PositiveIntegerField(blank=True, help_text='Campo legado - não utilizado', null=True, verbose_name='Números Premium (Deprecated)'),
-        ),
     ]
