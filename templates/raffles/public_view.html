@@ -1159,7 +1159,7 @@
                     <h3>Precisa de ajuda?</h3>
                     <p>Entre em contato com nosso suporte pelo WhatsApp!</p>
                 </div>
-                <a href="https://wa.me/{{ admin_whatsapp }}?text=Olá!%20Preciso%20de%20ajuda%20com%20a%20campanha%20{{ raffle.name|urlencode }}" 
+                <a href="https://wa.me/{{ raffle.admin_whatsapp|default:admin_whatsapp }}?text=Olá!%20Preciso%20de%20ajuda%20com%20a%20campanha%20{{ raffle.name|urlencode }}" 
                    target="_blank" 
                    class="btn-whatsapp">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
