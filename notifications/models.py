@@ -190,3 +190,29 @@ Número premiado foi sorteado na campanha *{raffle_name}*!
             defaults={"template": default_template}
         )
         return template.template
+
+    @classmethod
+    def get_prize_winner_template(cls):
+        """Get or create prize notification template for the winner"""
+        default_template = """🏆🎊 *PARABÉNS, VOCÊ GANHOU UM PRÊMIO!* 🎊🏆
+
+Olá *{user_name}*!
+
+🎉 Você acabou de ganhar um NÚMERO PREMIADO na campanha *{raffle_name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎁 *Número Premiado:* {prize_number}
+💰 *Valor do Prêmio:* R$ {prize_amount}
+━━━━━━━━━━━━━━━━━━━
+
+🤑 O prêmio será enviado via PIX em até 24 horas!
+
+🍀 Continue participando e concorrendo ao prêmio principal: *{prize_name}*!
+
+✨ Boa sorte! ✨"""
+
+        template, created = cls.objects.get_or_create(
+            name="prize_winner_notification",
+            defaults={"template": default_template}
+        )
+        return template.template

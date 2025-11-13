@@ -267,24 +267,19 @@ def send_prize_won_notification(user, raffle, prize_number, prize_amount):
     """
     Send immediate notification when user wins a prize number
     """
-    message = f"""
-🏆🎊 *PARABÉNS, VOCÊ GANHOU UM PRÊMIO!* 🎊🏆
+    from .models import WhatsAppMessageTemplate
 
-Olá *{user.name}*!
+    # Get template
+    template = WhatsAppMessageTemplate.get_prize_winner_template()
 
-🎉 Você acabou de ganhar um NÚMERO PREMIADO na campanha *{raffle.name}*!
-
-━━━━━━━━━━━━━━━━━━━
-🎁 *Número Premiado:* {prize_number:04d}
-💰 *Valor do Prêmio:* R$ {prize_amount:.2f}
-━━━━━━━━━━━━━━━━━━━
-
-🤑 O prêmio será enviado via PIX em até 24 horas!
-
-🍀 Continue participando e concorrendo ao prêmio principal: *{raffle.prize_name}*!
-
-✨ Boa sorte! ✨
-    """.strip()
+    # Format message
+    message = template.format(
+        user_name=user.name,
+        raffle_name=raffle.name,
+        prize_number=f"{prize_number:04d}",
+        prize_amount=f"{prize_amount:.2f}",
+        prize_name=raffle.prize_name
+    ).strip()
 
     try:
         result = send_whatsapp_message(user.whatsapp, message)

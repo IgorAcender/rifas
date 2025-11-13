@@ -452,6 +452,35 @@
         </form>
     </div>
 
+    <!-- Prize Winner Notification Template -->
+    <div class="status-card">
+        <h2>🎁 Notificação de Prêmio - Ganhador</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+            Mensagem enviada ao comprador quando ele ganha um número premiado
+        </p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 13px;">
+            <strong>Placeholders disponíveis:</strong><br>
+            <code>{user_name}</code> - Nome do ganhador<br>
+            <code>{raffle_name}</code> - Nome da campanha<br>
+            <code>{prize_number}</code> - Número premiado (formatado)<br>
+            <code>{prize_amount}</code> - Valor do prêmio<br>
+            <code>{prize_name}</code> - Nome do prêmio principal da campanha
+        </div>
+
+        <form id="prize-winner-template-form" onsubmit="saveTemplate(event, 'prize_winner_notification')">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="prize_winner_template">Template da Mensagem</label>
+                <textarea id="prize_winner_template" name="template" rows="16" style="font-family: monospace;">{{ prize_winner_template }}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate('prize_winner_notification')">🔄 Restaurar Padrão</button>
+            </div>
+        </form>
+    </div>
+
     <!-- Prize Admin Notification Template -->
     <div class="status-card">
         <h2>🏆 Notificação de Prêmio - Administradores</h2>
@@ -802,6 +831,24 @@ Olá! Estou participando da campanha *{raffle_name}* e quero te convidar!
 Boa sorte! 🍀✨`;
             // Reset delay field for copy-paste message
             document.getElementById('referral_copy_paste_delay').value = 5;
+        } else if (templateName === 'prize_winner_notification') {
+            fieldId = 'prize_winner_template';
+            defaultTemplate = `🏆🎊 *PARABÉNS, VOCÊ GANHOU UM PRÊMIO!* 🎊🏆
+
+Olá *{user_name}*!
+
+🎉 Você acabou de ganhar um NÚMERO PREMIADO na campanha *{raffle_name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎁 *Número Premiado:* {prize_number}
+💰 *Valor do Prêmio:* R$ {prize_amount}
+━━━━━━━━━━━━━━━━━━━
+
+🤑 O prêmio será enviado via PIX em até 24 horas!
+
+🍀 Continue participando e concorrendo ao prêmio principal: *{prize_name}*!
+
+✨ Boa sorte! ✨`;
         } else if (templateName === 'prize_admin_notification') {
             fieldId = 'prize_admin_template';
             defaultTemplate = `🎯 *NÚMERO PREMIADO SORTEADO!*

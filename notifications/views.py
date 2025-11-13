@@ -19,6 +19,7 @@ def whatsapp_manager(request):
     # Get prize notification templates
     prize_admin_template = WhatsAppMessageTemplate.get_prize_admin_template()
     prize_group_template = WhatsAppMessageTemplate.get_prize_group_template()
+    prize_winner_template = WhatsAppMessageTemplate.get_prize_winner_template()
     
     # Get template text and delay for referral share
     referral_share_template = referral_share_template_obj.template if hasattr(referral_share_template_obj, 'template') else referral_share_template_obj
@@ -40,6 +41,7 @@ def whatsapp_manager(request):
         'referral_copy_paste_delay': referral_copy_paste_delay,
         'prize_admin_template': prize_admin_template,
         'prize_group_template': prize_group_template,
+        'prize_winner_template': prize_winner_template,
     }
     return render(request, 'admin/whatsapp_manager.html', context)
 
@@ -198,7 +200,8 @@ def save_message_template(request):
             'referral_share_invitation', 
             'referral_copy_paste',
             'prize_admin_notification',
-            'prize_group_notification'
+            'prize_group_notification',
+            'prize_winner_notification'
         ]
         if template_name not in allowed_templates:
             return JsonResponse({
