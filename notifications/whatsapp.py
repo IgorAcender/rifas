@@ -73,6 +73,7 @@ def send_whatsapp_message(phone, message):
 def send_payment_confirmation(order):
     """Send payment confirmation with numbers using custom template"""
     from notifications.models import WhatsAppMessageTemplate
+    from django.conf import settings
 
     # Get custom template
     template_text = WhatsAppMessageTemplate.get_default_template()
@@ -85,6 +86,10 @@ def send_payment_confirmation(order):
     draw_date_str = ""
     if order.raffle.draw_date:
         draw_date_str = f"📅 *Data do sorteio:* {order.raffle.draw_date.strftime('%d/%m/%Y às %H:%M')}"
+
+    # Build the customer area URL
+    site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://vip.instituoacender.com.br'
+    customer_area_url = f"{site_url}/minha-area/"
 
     # Replace placeholders in template
     try:
@@ -120,6 +125,8 @@ Seu pagamento foi aprovado com sucesso!
 ━━━━━━━━━━━━━━━━━━━
 
 ✅ Seus números estão reservados e concorrendo ao prêmio!
+
+🔗 *Acompanhe aqui:* {customer_area_url}
 
 Boa sorte! 🍀✨
         """.strip()
