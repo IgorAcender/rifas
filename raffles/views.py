@@ -405,28 +405,39 @@ def raffle_create(request):
             else:
                 logger.warning("No 'prize_image' in request.FILES")
 
+            # Preparar valores numéricos com tratamento de strings vazias
+            total_numbers_str = request.POST.get('total_numbers', '').strip()
+            price_per_number_str = request.POST.get('price_per_number', '').strip()
+            fee_percentage_str = request.POST.get('fee_percentage', '').strip()
+            inviter_bonus_str = request.POST.get('inviter_bonus', '').strip()
+            invitee_bonus_str = request.POST.get('invitee_bonus', '').strip()
+            progressive_bonus_every_str = request.POST.get('progressive_bonus_every', '').strip()
+            purchase_bonus_every_str = request.POST.get('purchase_bonus_every', '').strip()
+            purchase_bonus_amount_str = request.POST.get('purchase_bonus_amount', '').strip()
+            milestone_quantity_str = request.POST.get('milestone_quantity', '').strip()
+
             raffle = Raffle.objects.create(
                 name=request.POST.get('name'),
                 description=request.POST.get('description', ''),
                 prize_name=request.POST.get('prize_name'),
                 prize_description=request.POST.get('prize_description', ''),
                 prize_image_base64=prize_image_base64,
-                total_numbers=int(request.POST.get('total_numbers')),
-                price_per_number=float(request.POST.get('price_per_number')),
-                fee_percentage=float(request.POST.get('fee_percentage', 0)),
+                total_numbers=int(total_numbers_str) if total_numbers_str else 100,
+                price_per_number=float(price_per_number_str) if price_per_number_str else 0.01,
+                fee_percentage=float(fee_percentage_str) if fee_percentage_str else 0,
                 status=request.POST.get('status', 'draft'),
                 draw_date=request.POST.get('draw_date') if request.POST.get('draw_date') else None,
-                inviter_bonus=int(request.POST.get('inviter_bonus', 2)),
-                invitee_bonus=int(request.POST.get('invitee_bonus', 1)),
+                inviter_bonus=int(inviter_bonus_str) if inviter_bonus_str else 2,
+                invitee_bonus=int(invitee_bonus_str) if invitee_bonus_str else 1,
                 enable_progressive_bonus=request.POST.get('enable_progressive_bonus') == '1',
-                progressive_bonus_every=int(request.POST.get('progressive_bonus_every', 20)),
+                progressive_bonus_every=int(progressive_bonus_every_str) if progressive_bonus_every_str else 20,
                 # Purchase bonus
                 enable_purchase_bonus=request.POST.get('enable_purchase_bonus') == '1',
-                purchase_bonus_every=int(request.POST.get('purchase_bonus_every', 10)),
-                purchase_bonus_amount=int(request.POST.get('purchase_bonus_amount', 1)),
+                purchase_bonus_every=int(purchase_bonus_every_str) if purchase_bonus_every_str else 10,
+                purchase_bonus_amount=int(purchase_bonus_amount_str) if purchase_bonus_amount_str else 1,
                 # Milestone bonus
                 enable_milestone_bonus=request.POST.get('enable_milestone_bonus') == '1',
-                milestone_quantity=int(request.POST.get('milestone_quantity', 50)),
+                milestone_quantity=int(milestone_quantity_str) if milestone_quantity_str else 50,
                 milestone_prize_name=request.POST.get('milestone_prize_name', ''),
                 milestone_prize_description=request.POST.get('milestone_prize_description', ''),
             )
@@ -446,13 +457,21 @@ def raffle_create(request):
             # Criar números premiados
             for prize_data in prize_numbers_data.values():
                 if all(k in prize_data for k in ['number', 'prize_amount', 'release_min', 'release_max']):
-                    PrizeNumber.objects.create(
-                        raffle=raffle,
-                        number=int(prize_data['number']),
-                        prize_amount=float(prize_data['prize_amount']),
-                        release_percentage_min=float(prize_data['release_min']),
-                        release_percentage_max=float(prize_data['release_max'])
-                    )
+                    # Validar se os valores não estão vazios
+                    number_str = prize_data['number'].strip()
+                    prize_amount_str = prize_data['prize_amount'].strip()
+                    release_min_str = prize_data['release_min'].strip()
+                    release_max_str = prize_data['release_max'].strip()
+                    
+                    # Criar apenas se todos os valores forem válidos
+                    if number_str and prize_amount_str and release_min_str and release_max_str:
+                        PrizeNumber.objects.create(
+                            raffle=raffle,
+                            number=int(number_str),
+                            prize_amount=float(prize_amount_str),
+                            release_percentage_min=float(release_min_str),
+                            release_percentage_max=float(release_max_str)
+                        )
 
             messages.success(request, 'Campanha criada com sucesso!')
             return redirect('raffle_list')
@@ -483,22 +502,42 @@ def raffle_edit(request, pk):
             raffle.description = request.POST.get('description', '')
             raffle.prize_name = request.POST.get('prize_name')
             raffle.prize_description = request.POST.get('prize_description', '')
-            raffle.price_per_number = float(request.POST.get('price_per_number'))
-            raffle.fee_percentage = float(request.POST.get('fee_percentage', 0))
+            
+            # Converter valores numéricos com tratamento de strings vazias
+            price_per_number = request.POST.get('price_per_number', '').strip()
+            raffle.price_per_number = float(price_per_number) if price_per_number else 0.01
+            
+            fee_percentage = request.POST.get('fee_percentage', '').strip()
+            raffle.fee_percentage = float(fee_percentage) if fee_percentage else 0
+            
             raffle.status = request.POST.get('status', 'draft')
-            raffle.inviter_bonus = int(request.POST.get('inviter_bonus', 2))
-            raffle.invitee_bonus = int(request.POST.get('invitee_bonus', 1))
+            
+            inviter_bonus = request.POST.get('inviter_bonus', '').strip()
+            raffle.inviter_bonus = int(inviter_bonus) if inviter_bonus else 2
+            
+            invitee_bonus = request.POST.get('invitee_bonus', '').strip()
+            raffle.invitee_bonus = int(invitee_bonus) if invitee_bonus else 1
+            
             raffle.enable_progressive_bonus = request.POST.get('enable_progressive_bonus') == '1'
-            raffle.progressive_bonus_every = int(request.POST.get('progressive_bonus_every', 20))
+            
+            progressive_bonus_every = request.POST.get('progressive_bonus_every', '').strip()
+            raffle.progressive_bonus_every = int(progressive_bonus_every) if progressive_bonus_every else 20
             
             # Purchase bonus
             raffle.enable_purchase_bonus = request.POST.get('enable_purchase_bonus') == '1'
-            raffle.purchase_bonus_every = int(request.POST.get('purchase_bonus_every', 10))
-            raffle.purchase_bonus_amount = int(request.POST.get('purchase_bonus_amount', 1))
+            
+            purchase_bonus_every = request.POST.get('purchase_bonus_every', '').strip()
+            raffle.purchase_bonus_every = int(purchase_bonus_every) if purchase_bonus_every else 10
+            
+            purchase_bonus_amount = request.POST.get('purchase_bonus_amount', '').strip()
+            raffle.purchase_bonus_amount = int(purchase_bonus_amount) if purchase_bonus_amount else 1
             
             # Milestone bonus
             raffle.enable_milestone_bonus = request.POST.get('enable_milestone_bonus') == '1'
-            raffle.milestone_quantity = int(request.POST.get('milestone_quantity', 50))
+            
+            milestone_quantity = request.POST.get('milestone_quantity', '').strip()
+            raffle.milestone_quantity = int(milestone_quantity) if milestone_quantity else 50
+            
             raffle.milestone_prize_name = request.POST.get('milestone_prize_name', '')
             raffle.milestone_prize_description = request.POST.get('milestone_prize_description', '')
 
@@ -538,13 +577,21 @@ def raffle_edit(request, pk):
             # Criar números premiados
             for prize_data in prize_numbers_data.values():
                 if all(k in prize_data for k in ['number', 'prize_amount', 'release_min', 'release_max']):
-                    PrizeNumber.objects.create(
-                        raffle=raffle,
-                        number=int(prize_data['number']),
-                        prize_amount=float(prize_data['prize_amount']),
-                        release_percentage_min=float(prize_data['release_min']),
-                        release_percentage_max=float(prize_data['release_max'])
-                    )
+                    # Validar se os valores não estão vazios
+                    number_str = prize_data['number'].strip()
+                    prize_amount_str = prize_data['prize_amount'].strip()
+                    release_min_str = prize_data['release_min'].strip()
+                    release_max_str = prize_data['release_max'].strip()
+                    
+                    # Criar apenas se todos os valores forem válidos
+                    if number_str and prize_amount_str and release_min_str and release_max_str:
+                        PrizeNumber.objects.create(
+                            raffle=raffle,
+                            number=int(number_str),
+                            prize_amount=float(prize_amount_str),
+                            release_percentage_min=float(release_min_str),
+                            release_percentage_max=float(release_max_str)
+                        )
 
             messages.success(request, 'Campanha atualizada com sucesso!')
             return redirect('raffle_list')
