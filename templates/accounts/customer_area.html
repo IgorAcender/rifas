@@ -89,13 +89,12 @@
                 {% if number.raffle.id == campaign.raffle.id %}
                 {% with has_numbers=True %}
                 {% with prize_key=number.raffle.id|stringformat:"d"|add:"_"|add:number.number|stringformat:"d" %}
-                <div class="number-item {% if prize_key in prize_numbers_dict %}prize-number{% elif number.source != 'purchase' %}bonus-number{% endif %}">
+                <div class="number-item 
+                    {% if prize_key in prize_numbers_dict %}prize-number
+                    {% elif number.source == 'purchase_bonus' %}bonus-purchase-number
+                    {% elif number.source == 'referral_inviter' or number.source == 'referral_invitee' %}bonus-referral-number
+                    {% endif %}">
                     <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
-                    {% if prize_key in prize_numbers_dict %}
-                    <div class="bonus-label">🏆 Número Premiado</div>
-                    {% elif number.source != 'purchase' %}
-                    <div class="bonus-label">🎁 {{ number.get_source_display }}</div>
-                    {% endif %}
                 </div>
                 {% endwith %}
                 {% endwith %}
@@ -446,12 +445,12 @@
 }
 
 .stat-box.bonus-referral-stat {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    border: 1px solid #3b82f6;
+    background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+    border: 1px solid #a855f7;
 }
 
 .stat-box.bonus-referral-stat .stat-value {
-    color: #1e40af;
+    color: #7e22ce;
 }
 
 .stat-box.total-stat {
@@ -538,51 +537,63 @@
 /* Numbers Grid */
 .numbers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
 }
 
 .number-item {
     background: white;
     border: 2px solid #e5e5e5;
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 10px;
+    padding: 12px;
     text-align: center;
     transition: all 0.2s;
 }
 
-.number-item.bonus-number {
-    background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
-    border: 2px solid #60a5fa;
+/* Bônus de Compra - Azul */
+.number-item.bonus-purchase-number {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 2px solid #3b82f6;
 }
 
+/* Bônus de Indicação - Roxo */
+.number-item.bonus-referral-number {
+    background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+    border: 2px solid #a855f7;
+}
+
+/* Número Premiado - Amarelo */
 .number-item.prize-number {
     background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
     border: 2px solid #f59e0b;
 }
 
 .number-item:hover {
-    border-color: #22c55e;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.number-item.bonus-number:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+.number-item.bonus-purchase-number:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.number-item.bonus-referral-number:hover {
+    border-color: #9333ea;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
 .number-item.prize-number:hover {
-    border-color: #f59e0b;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    border-color: #d97706;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .number-value {
-    font-size: 36px;
+    font-size: 28px;
     font-weight: 700;
     color: #1e293b;
-    margin-bottom: 12px;
     font-family: monospace;
+    margin: 0;
 }
 
 .number-badge {
@@ -602,13 +613,6 @@
 .status-reserved {
     background: #fef3c7;
     color: #d97706;
-}
-
-.bonus-label {
-    margin-top: 8px;
-    font-size: 11px;
-    color: #ef4444;
-    font-weight: 600;
 }
 
 /* Orders Container */
