@@ -136,12 +136,18 @@ def customer_login(request):
 @login_required
 def customer_area(request):
     """Area do cliente - ver seus numeros e historico"""
-    from raffles.models import RaffleNumber, RaffleOrder, Referral
+    from raffles.models import RaffleNumber, RaffleOrder, Referral, PrizeNumber
 
     my_numbers = RaffleNumber.objects.filter(
         user=request.user,
         status__in=['reserved', 'vendido']
     ).select_related('raffle').order_by('-sold_at', '-reserved_at')
+    
+    # Get all prize numbers for the user's raffles and mark them
+    prize_numbers_dict = {}
+    for prize in PrizeNumber.objects.filter(raffle__in=[n.raffle for n in my_numbers]):
+        key = f"{prize.raffle_id}_{prize.number}"
+        prize_numbers_dict[key] = True
 
     my_orders = RaffleOrder.objects.filter(
         user=request.user
@@ -265,6 +271,7 @@ def customer_area(request):
         'my_referrals_grouped': my_referrals_grouped,
         'bonus_numbers_count': bonus_numbers_count,
         'my_referral_codes': my_referral_codes,
+        'prize_numbers_dict': prize_numbers_dict,
     }
     return render(request, 'accounts/customer_area.html', context)
 

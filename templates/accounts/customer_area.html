@@ -88,12 +88,16 @@
                 {% for number in my_numbers %}
                 {% if number.raffle.id == campaign.raffle.id %}
                 {% with has_numbers=True %}
-                <div class="number-item {% if number.source != 'purchase' %}bonus-number{% endif %}">
+                {% with prize_key=number.raffle.id|stringformat:"d"|add:"_"|add:number.number|stringformat:"d" %}
+                <div class="number-item {% if prize_key in prize_numbers_dict %}prize-number{% elif number.source != 'purchase' %}bonus-number{% endif %}">
                     <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
-                    {% if number.source != 'purchase' %}
+                    {% if prize_key in prize_numbers_dict %}
+                    <div class="bonus-label">🏆 Número Premiado</div>
+                    {% elif number.source != 'purchase' %}
                     <div class="bonus-label">🎁 {{ number.get_source_display }}</div>
                     {% endif %}
                 </div>
+                {% endwith %}
                 {% endwith %}
                 {% endif %}
                 {% endfor %}
@@ -433,12 +437,12 @@
 }
 
 .stat-box.bonus-purchase-stat {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border: 1px solid #f59e0b;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #3b82f6;
 }
 
 .stat-box.bonus-purchase-stat .stat-value {
-    color: #d97706;
+    color: #1e40af;
 }
 
 .stat-box.bonus-referral-stat {
@@ -552,6 +556,11 @@
     border: 2px solid #60a5fa;
 }
 
+.number-item.prize-number {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+}
+
 .number-item:hover {
     border-color: #22c55e;
     transform: translateY(-2px);
@@ -561,6 +570,11 @@
 .number-item.bonus-number:hover {
     border-color: #3b82f6;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.number-item.prize-number:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
 }
 
 .number-value {
