@@ -562,8 +562,10 @@ def raffle_edit(request, pk):
 
             raffle.save()
 
-            # Processar números premiados (remover antigos e adicionar novos)
-            raffle.prize_numbers.all().delete()
+            # Processar números premiados
+            # NÃO deletar números que já foram liberados ou ganhos para preservar histórico
+            # Apenas deletar números que ainda não foram liberados
+            raffle.prize_numbers.filter(is_released=False, is_won=False).delete()
 
             prize_numbers_data = {}
             for key in request.POST.keys():
@@ -574,7 +576,7 @@ def raffle_edit(request, pk):
                         prize_numbers_data[index] = {}
                     prize_numbers_data[index][field] = request.POST.get(key)
 
-            # Criar números premiados
+            # Criar/atualizar números premiados
             for prize_data in prize_numbers_data.values():
                 if all(k in prize_data for k in ['number', 'prize_amount', 'release_min', 'release_max']):
                     # Validar se os valores não estão vazios
@@ -585,13 +587,26 @@ def raffle_edit(request, pk):
                     
                     # Criar apenas se todos os valores forem válidos
                     if number_str and prize_amount_str and release_min_str and release_max_str:
-                        PrizeNumber.objects.create(
-                            raffle=raffle,
-                            number=int(number_str),
-                            prize_amount=float(prize_amount_str),
-                            release_percentage_min=float(release_min_str),
-                            release_percentage_max=float(release_max_str)
-                        )
+                        # Verificar se já existe um número premiado para este número
+                        existing = raffle.prize_numbers.filter(number=int(number_str)).first()
+                        
+                        if existing:
+                            # Se já foi liberado ou ganho, não alterar
+                            if not existing.is_released and not existing.is_won:
+                                # Atualizar os dados
+                                existing.prize_amount = float(prize_amount_str)
+                                existing.release_percentage_min = float(release_min_str)
+                                existing.release_percentage_max = float(release_max_str)
+                                existing.save()
+                        else:
+                            # Criar novo
+                            PrizeNumber.objects.create(
+                                raffle=raffle,
+                                number=int(number_str),
+                                prize_amount=float(prize_amount_str),
+                                release_percentage_min=float(release_min_str),
+                                release_percentage_max=float(release_max_str)
+                            )
 
             messages.success(request, 'Campanha atualizada com sucesso!')
             return redirect('raffle_list')
