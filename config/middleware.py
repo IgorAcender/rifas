@@ -27,11 +27,21 @@ class SilentErrorMiddleware:
         Catch exceptions and handle them gracefully for non-staff users
         """
         # Log the error for debugging
+        # Build a safe user identifier without assuming a `username` attribute exists
+        user_identifier = 'Anonymous'
+        try:
+            if hasattr(request, 'user') and request.user.is_authenticated:
+                u = request.user
+                user_identifier = getattr(u, 'username', None) or getattr(u, 'name', None) or getattr(u, 'email', 'AuthenticatedUser')
+        except Exception:
+            # Fallback in case request.user access itself raises
+            user_identifier = 'AuthenticatedUser'
+
         logger.error(
             f"Error occurred: {type(exception).__name__}: {str(exception)}",
             exc_info=True,
             extra={
-                'user': request.user.username if request.user.is_authenticated else 'Anonymous',
+                'user': user_identifier,
                 'path': request.path,
                 'method': request.method,
             }
