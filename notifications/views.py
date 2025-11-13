@@ -16,6 +16,10 @@ def whatsapp_manager(request):
     referral_share_template_obj = WhatsAppMessageTemplate.get_referral_share_template()
     referral_copy_paste_template_obj = WhatsAppMessageTemplate.get_referral_copy_paste_template()
     
+    # Get prize notification templates
+    prize_admin_template = WhatsAppMessageTemplate.get_prize_admin_template()
+    prize_group_template = WhatsAppMessageTemplate.get_prize_group_template()
+    
     # Get template text and delay for referral share
     referral_share_template = referral_share_template_obj.template if hasattr(referral_share_template_obj, 'template') else referral_share_template_obj
     referral_share_delay = referral_share_template_obj.delay_seconds if hasattr(referral_share_template_obj, 'delay_seconds') else 30
@@ -34,6 +38,8 @@ def whatsapp_manager(request):
         'referral_share_delay': referral_share_delay,
         'referral_copy_paste_template': referral_copy_paste_template,
         'referral_copy_paste_delay': referral_copy_paste_delay,
+        'prize_admin_template': prize_admin_template,
+        'prize_group_template': prize_group_template,
     }
     return render(request, 'admin/whatsapp_manager.html', context)
 
@@ -186,7 +192,15 @@ def save_message_template(request):
             })
 
         # Validate template_name
-        if template_name not in ['payment_confirmation', 'referral_bonus_notification', 'referral_share_invitation', 'referral_copy_paste']:
+        allowed_templates = [
+            'payment_confirmation', 
+            'referral_bonus_notification', 
+            'referral_share_invitation', 
+            'referral_copy_paste',
+            'prize_admin_notification',
+            'prize_group_notification'
+        ]
+        if template_name not in allowed_templates:
             return JsonResponse({
                 'success': False,
                 'error': 'Nome de template inválido'

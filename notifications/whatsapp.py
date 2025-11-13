@@ -305,24 +305,28 @@ def send_prize_admin_notifications(user, raffle, prize_number, prize_amount):
     Send prize won notifications to all configured admins and groups
     """
     from raffles.models import SiteConfiguration
+    from .models import WhatsAppMessageTemplate
 
-    admin_message = f"""
-🎯 *NÚMERO PREMIADO SORTEADO!*
+    # Get templates
+    admin_template = WhatsAppMessageTemplate.get_prize_admin_template()
+    group_template = WhatsAppMessageTemplate.get_prize_group_template()
 
-Um número premiado acabou de ser sorteado na campanha *{raffle.name}*!
+    # Format admin message
+    admin_message = admin_template.format(
+        raffle_name=raffle.name,
+        prize_number=f"{prize_number:04d}",
+        prize_amount=f"{prize_amount:.2f}",
+        user_name=user.name,
+        user_whatsapp=user.whatsapp
+    ).strip()
 
-━━━━━━━━━━━━━━━━━━━
-🎫 *Campanha:* {raffle.name}
-🎁 *Número Premiado:* {prize_number:04d}
-💰 *Valor do Prêmio:* R$ {prize_amount:.2f}
-
-👤 *Ganhador:*
-• Nome: {user.name}
-• WhatsApp: {user.whatsapp}
-━━━━━━━━━━━━━━━━━━━
-
-💳 Providenciar pagamento via PIX em até 24 horas.
-    """.strip()
+    # Format group message
+    group_message = group_template.format(
+        raffle_name=raffle.name,
+        prize_number=f"{prize_number:04d}",
+        prize_amount=f"{prize_amount:.2f}",
+        user_name=user.name
+    ).strip()
 
     # Get admin phones and group IDs
     admin_phones = SiteConfiguration.get_admin_phones()
@@ -342,7 +346,7 @@ Um número premiado acabou de ser sorteado na campanha *{raffle.name}*!
     # Send to all groups
     for group_id in group_phones:
         try:
-            result = send_whatsapp_message(group_id, admin_message)
+            result = send_whatsapp_message(group_id, group_message)
             if result:
                 logger.info(f"✅ Prize group notification sent to {group_id}")
             else:

@@ -143,3 +143,50 @@ Boa sorte! 🍀✨"""
             defaults={"template": default_template, "delay_seconds": 5}
         )
         return template
+
+    @classmethod
+    def get_prize_admin_template(cls):
+        """Get or create prize notification template for admins"""
+        default_template = """🎯 *NÚMERO PREMIADO SORTEADO!*
+
+Um número premiado acabou de ser sorteado na campanha *{raffle_name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {raffle_name}
+🎁 *Número Premiado:* {prize_number}
+💰 *Valor do Prêmio:* R$ {prize_amount}
+
+👤 *Ganhador:*
+• Nome: {user_name}
+• WhatsApp: {user_whatsapp}
+━━━━━━━━━━━━━━━━━━━
+
+💳 Providenciar pagamento via PIX em até 24 horas."""
+
+        template, created = cls.objects.get_or_create(
+            name="prize_admin_notification",
+            defaults={"template": default_template}
+        )
+        return template.template
+
+    @classmethod
+    def get_prize_group_template(cls):
+        """Get or create prize notification template for groups"""
+        default_template = """🏆🎊 *TEMOS UM GANHADOR!* 🎊🏆
+
+Número premiado foi sorteado na campanha *{raffle_name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎁 *Número Premiado:* {prize_number}
+💰 *Valor do Prêmio:* R$ {prize_amount}
+
+👤 *Ganhador:* {user_name}
+━━━━━━━━━━━━━━━━━━━
+
+🎉 Parabéns ao sortudo! Continue participando!"""
+
+        template, created = cls.objects.get_or_create(
+            name="prize_group_notification",
+            defaults={"template": default_template}
+        )
+        return template.template

@@ -452,6 +452,63 @@
         </form>
     </div>
 
+    <!-- Prize Admin Notification Template -->
+    <div class="status-card">
+        <h2>🏆 Notificação de Prêmio - Administradores</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+            Mensagem enviada aos administradores quando um número premiado é ganho
+        </p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 13px;">
+            <strong>Placeholders disponíveis:</strong><br>
+            <code>{raffle_name}</code> - Nome da campanha<br>
+            <code>{prize_number}</code> - Número premiado (formatado)<br>
+            <code>{prize_amount}</code> - Valor do prêmio<br>
+            <code>{user_name}</code> - Nome do ganhador<br>
+            <code>{user_whatsapp}</code> - WhatsApp do ganhador
+        </div>
+
+        <form id="prize-admin-template-form" onsubmit="saveTemplate(event, 'prize_admin_notification')">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="prize_admin_template">Template da Mensagem</label>
+                <textarea id="prize_admin_template" name="template" rows="18" style="font-family: monospace;">{{ prize_admin_template }}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate('prize_admin_notification')">🔄 Restaurar Padrão</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Prize Group Notification Template -->
+    <div class="status-card">
+        <h2>👥 Notificação de Prêmio - Grupos</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+            Mensagem enviada aos grupos quando um número premiado é ganho
+        </p>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 13px;">
+            <strong>Placeholders disponíveis:</strong><br>
+            <code>{raffle_name}</code> - Nome da campanha<br>
+            <code>{prize_number}</code> - Número premiado (formatado)<br>
+            <code>{prize_amount}</code> - Valor do prêmio<br>
+            <code>{user_name}</code> - Nome do ganhador
+        </div>
+
+        <form id="prize-group-template-form" onsubmit="saveTemplate(event, 'prize_group_notification')">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="prize_group_template">Template da Mensagem</label>
+                <textarea id="prize_group_template" name="template" rows="15" style="font-family: monospace;">{{ prize_group_template }}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn btn-primary">💾 Salvar Template</button>
+                <button type="button" class="btn btn-secondary" onclick="resetTemplate('prize_group_notification')">🔄 Restaurar Padrão</button>
+            </div>
+        </form>
+    </div>
+
     {% endif %}
 </div>
 
@@ -745,6 +802,37 @@ Olá! Estou participando da campanha *{raffle_name}* e quero te convidar!
 Boa sorte! 🍀✨`;
             // Reset delay field for copy-paste message
             document.getElementById('referral_copy_paste_delay').value = 5;
+        } else if (templateName === 'prize_admin_notification') {
+            fieldId = 'prize_admin_template';
+            defaultTemplate = `🎯 *NÚMERO PREMIADO SORTEADO!*
+
+Um número premiado acabou de ser sorteado na campanha *{raffle_name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎫 *Campanha:* {raffle_name}
+🎁 *Número Premiado:* {prize_number}
+💰 *Valor do Prêmio:* R$ {prize_amount}
+
+👤 *Ganhador:*
+• Nome: {user_name}
+• WhatsApp: {user_whatsapp}
+━━━━━━━━━━━━━━━━━━━
+
+💳 Providenciar pagamento via PIX em até 24 horas.`;
+        } else if (templateName === 'prize_group_notification') {
+            fieldId = 'prize_group_template';
+            defaultTemplate = `🏆🎊 *TEMOS UM GANHADOR!* 🎊🏆
+
+Número premiado foi sorteado na campanha *{raffle_name}*!
+
+━━━━━━━━━━━━━━━━━━━
+🎁 *Número Premiado:* {prize_number}
+💰 *Valor do Prêmio:* R$ {prize_amount}
+
+👤 *Ganhador:* {user_name}
+━━━━━━━━━━━━━━━━━━━
+
+🎉 Parabéns ao sortudo! Continue participando!`;
         }
 
         document.getElementById(fieldId).value = defaultTemplate;
