@@ -69,7 +69,7 @@
                     <select id="home_redirect_raffle" name="home_redirect_raffle">
                         <option value="">— Nenhuma (mostrar página inicial padrão) —</option>
                         {% for raffle in active_raffles %}
-                            <option value="{{ raffle.id }}" {% if config.home_redirect_raffle.id == raffle.id %}selected{% endif %}>
+                            <option value="{{ raffle.id }}" {% if config.home_redirect_raffle and config.home_redirect_raffle.id == raffle.id %}selected{% endif %}>
                                 {{ raffle.name }}
                             </option>
                         {% endfor %}

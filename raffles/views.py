@@ -777,16 +777,34 @@ def site_config_view(request):
             try:
                 raffle = Raffle.objects.get(id=int(home_redirect_raffle_id))
                 config.home_redirect_raffle = raffle
-                logger.info(f"DEBUG: Definindo home_redirect_raffle para {raffle.name}")
+                config.save()  # Salvar imediatamente para garantir
+                logger.info(f"DEBUG: home_redirect_raffle definido para {raffle.name} (ID: {raffle.id})")
             except (Raffle.DoesNotExist, ValueError) as e:
-                logger.error(f"DEBUG: Erro ao definir raffle: {e}")
                 config.home_redirect_raffle = None
+                logger.error(f"DEBUG: Erro ao definir raffle: {e}")
         else:
-            logger.info(f"DEBUG: home_redirect_raffle_id vazio, limpando campo")
             config.home_redirect_raffle = None
+            logger.info(f"DEBUG: home_redirect_raffle_id vazio, limpando campo")
+
+        # Salvar outras configurações
+        site_name = request.POST.get('site_name', '').strip()
+        if site_name:
+            config.site_name = site_name
+
+        # Update logo if provided
+        logo_base64 = request.POST.get('logo_base64', '').strip()
+        if logo_base64:
+            config.logo_base64 = logo_base64
+
+        # Update notification contacts
+        admin_phones = request.POST.get('admin_phones', '').strip()
+        config.admin_phones = admin_phones
+        
+        group_phones = request.POST.get('group_phones', '').strip()
+        config.group_phones = group_phones
 
         config.save()
-        logger.info(f"DEBUG: SiteConfiguration salva. home_redirect_raffle = {config.home_redirect_raffle}")
+        logger.info(f"DEBUG: SiteConfiguration salva completa. home_redirect_raffle = {config.home_redirect_raffle} (ID: {config.home_redirect_raffle_id})")
         
         messages.success(request, 'Configurações salvas com sucesso!')
         return redirect('site_config')
