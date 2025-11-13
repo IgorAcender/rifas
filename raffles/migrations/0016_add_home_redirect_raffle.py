@@ -12,11 +12,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='raffle',
-            name='premium_numbers',
-            field=models.PositiveIntegerField(blank=True, help_text='Campo legado - não utilizado', null=True, verbose_name='Números Premium (Deprecated)'),
-        ),
-        migrations.AddField(
             model_name='siteconfiguration',
             name='home_redirect_raffle',
             field=models.ForeignKey(blank=True, help_text='Campanha para a qual a página inicial redirecionará. Se vazio, mostra lista de campanhas.', null=True, on_delete=django.db.models.deletion.SET_NULL, to='raffles.raffle', verbose_name='Campanha Padrão da Home'),
