@@ -56,6 +56,28 @@
             padding: 32px;
         }
 
+        .numbers-section {
+            position: relative;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes borderGlow {
+            0% {
+                border-color: rgba(59, 130, 246, 0.3);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 20px rgba(59, 130, 246, 0.2);
+            }
+            50% {
+                border-color: rgba(59, 130, 246, 0.6);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 30px rgba(59, 130, 246, 0.4);
+            }
+            100% {
+                border-color: rgba(59, 130, 246, 0.3);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 0 20px rgba(59, 130, 246, 0.2);
+            }
+        }
+
         .prize-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
