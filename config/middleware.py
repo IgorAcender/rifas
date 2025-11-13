@@ -1,5 +1,5 @@
 """
-Custom middleware for error handling
+Custom middleware for error handling and dynamic site URL detection
 """
 import logging
 from django.conf import settings
@@ -7,6 +7,30 @@ from django.contrib import messages
 from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
+
+
+class DynamicSiteURLMiddleware:
+    """
+    Middleware to dynamically set SITE_URL based on the current domain being accessed.
+    This allows backup domains to work seamlessly without hardcoding the domain.
+    """
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        # Get the current domain from the request
+        domain = request.get_host()  # Returns 'example.com' or 'example.com:8000'
+        
+        # Determine if it's HTTPS or HTTP
+        protocol = 'https' if request.is_secure() else 'http'
+        
+        # Set SITE_URL dynamically based on current domain
+        request.site_url = f"{protocol}://{domain}"
+        
+        # Store in request for use in views
+        response = self.get_response(request)
+        return response
 
 
 class SilentErrorMiddleware:
