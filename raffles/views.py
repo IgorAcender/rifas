@@ -771,9 +771,9 @@ def site_config_view(request):
         home_redirect_raffle_id = request.POST.get('home_redirect_raffle', '').strip()
         if home_redirect_raffle_id:
             try:
-                config.home_redirect_raffle = Raffle.objects.get(id=home_redirect_raffle_id)
-            except Raffle.DoesNotExist:
-                pass
+                config.home_redirect_raffle = Raffle.objects.get(id=int(home_redirect_raffle_id))
+            except (Raffle.DoesNotExist, ValueError):
+                config.home_redirect_raffle = None
         else:
             config.home_redirect_raffle = None
 
