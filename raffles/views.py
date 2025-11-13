@@ -746,7 +746,9 @@ def site_config_view(request):
     """View para configurar logo e identidade visual do site"""
     from .models import SiteConfiguration
     from django.contrib import messages
+    import logging
 
+    logger = logging.getLogger(__name__)
     config = SiteConfiguration.get_config()
 
     if request.method == 'POST':
@@ -769,20 +771,29 @@ def site_config_view(request):
 
         # Update home redirect raffle
         home_redirect_raffle_id = request.POST.get('home_redirect_raffle', '').strip()
+        logger.info(f"DEBUG: home_redirect_raffle_id recebido: '{home_redirect_raffle_id}'")
+        
         if home_redirect_raffle_id:
             try:
-                config.home_redirect_raffle = Raffle.objects.get(id=int(home_redirect_raffle_id))
-            except (Raffle.DoesNotExist, ValueError):
+                raffle = Raffle.objects.get(id=int(home_redirect_raffle_id))
+                config.home_redirect_raffle = raffle
+                logger.info(f"DEBUG: Definindo home_redirect_raffle para {raffle.name}")
+            except (Raffle.DoesNotExist, ValueError) as e:
+                logger.error(f"DEBUG: Erro ao definir raffle: {e}")
                 config.home_redirect_raffle = None
         else:
+            logger.info(f"DEBUG: home_redirect_raffle_id vazio, limpando campo")
             config.home_redirect_raffle = None
 
         config.save()
+        logger.info(f"DEBUG: SiteConfiguration salva. home_redirect_raffle = {config.home_redirect_raffle}")
+        
         messages.success(request, 'Configurações salvas com sucesso!')
         return redirect('site_config')
 
     # Get all active raffles for the dropdown
     active_raffles = Raffle.objects.filter(status=Raffle.Status.ACTIVE).order_by('-created_at')
+    logger.info(f"DEBUG: Campanhas ativas: {active_raffles.count()}")
     
     return render(request, 'raffles/site_config.html', {
         'config': config,
