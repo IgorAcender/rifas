@@ -752,6 +752,13 @@ def site_config_view(request):
         if logo_base64:
             config.logo_base64 = logo_base64
 
+        # Update notification contacts
+        admin_phones = request.POST.get('admin_phones', '').strip()
+        config.admin_phones = admin_phones
+        
+        group_phones = request.POST.get('group_phones', '').strip()
+        config.group_phones = group_phones
+
         config.save()
         messages.success(request, 'Configurações salvas com sucesso!')
         return redirect('site_config')

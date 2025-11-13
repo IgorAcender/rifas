@@ -60,6 +60,41 @@
                 </div>
             </div>
 
+            <h2 style="margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 40px;">📱 Notificações de Números Premiados</h2>
+            <p style="color: #6b7280; margin-bottom: 24px;">Configure os contatos que receberão notificações quando um número premiado for ganho</p>
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="admin_phones">WhatsApp dos Administradores</label>
+                    <textarea
+                        id="admin_phones"
+                        name="admin_phones"
+                        rows="4"
+                        placeholder="5537999991626&#10;5537988887777&#10;5511999998888"
+                    >{{ config.admin_phones }}</textarea>
+                    <span class="field-hint">
+                        <strong>Um número por linha</strong>, no formato internacional (ex: 5537999991626).<br>
+                        Esses números receberão alertas quando alguém ganhar um número premiado.
+                    </span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="group_phones">IDs dos Grupos de WhatsApp</label>
+                    <textarea
+                        id="group_phones"
+                        name="group_phones"
+                        rows="4"
+                        placeholder="5537999991626-1234567890@g.us&#10;5511888887777-0987654321@g.us"
+                    >{{ config.group_phones }}</textarea>
+                    <span class="field-hint">
+                        <strong>Um ID por linha</strong>, no formato: 5537999991626-1234567890@g.us<br>
+                        Para descobrir o ID de um grupo, envie uma mensagem para ele e verifique no painel da Evolution API.
+                    </span>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
