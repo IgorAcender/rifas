@@ -1,0 +1,48 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                    🚀 WEBHOOK GITHUB → EASYPANEL FIX                       ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+❌ ERRO ENCONTRADO:
+   HTTP 415 - Unsupported Media Type
+   Message: application/x-www-form-urlencoded
+
+🔍 CAUSA:
+   GitHub envia webhook em "form-urlencoded"
+   EasyPanel/Fastify só aceita "JSON"
+
+✅ SOLUÇÃO (2 MINUTOS):
+   1. Acesse: https://github.com/IgorAcender/rifas/settings/hooks
+   2. Clique no webhook do EasyPanel
+   3. Procure: "Content type"
+   4. Mude: form-urlencoded → JSON
+   5. Clique: "Update webhook"
+   6. Teste: "Redeliver" para confirmar ✅
+
+📚 DOCUMENTAÇÃO:
+   → GITHUB_WEBHOOK_PASSO_A_PASSO.md (LEIA ISSO!)
+   → GITHUB_WEBHOOK_FIX.md (Detalhes técnicos)
+   → CORRECAO_WEBHOOK_GITHUB.md (Contexto)
+
+🎯 RESULTADO:
+   ✅ GitHub envia webhook (JSON)
+   ✅ EasyPanel recebe (200 OK)
+   ✅ Deploy automático funciona!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CHECKLIST RÁPIDO:
+
+  [ ] Acessou https://github.com/IgorAcender/rifas/settings/hooks
+  [ ] Encontrou o webhook do EasyPanel (URL do seu domínio)
+  [ ] Mudou "Content type" para "application/json"
+  [ ] Clicou "Update webhook"
+  [ ] Fez "Redeliver" para testar
+  [ ] Viu ✅ 200 OK em "Recent Deliveries"
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SE TIVER DÚVIDAS:
+  → Leia: GITHUB_WEBHOOK_PASSO_A_PASSO.md
+  → Tem screenshots descritivos e instruções passo a passo
+
+═══════════════════════════════════════════════════════════════════════════════
