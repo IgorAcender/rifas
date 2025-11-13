@@ -483,34 +483,28 @@
 /* Section Tabs */
 .section-tabs {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 20px;
     padding: 8px;
     background: #f8fafc;
     border-radius: 12px;
-    overflow-x: auto;
-}
-
-.section-tabs::-webkit-scrollbar {
-    height: 4px;
-}
-
-.section-tabs::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 2px;
+    flex-wrap: wrap;
 }
 
 .section-tab {
     background: transparent;
     border: none;
-    padding: 12px 20px;
+    padding: 10px 14px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: #64748b;
     border-radius: 8px;
     transition: all 0.2s;
     white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
 }
 
 .section-tab:hover {
