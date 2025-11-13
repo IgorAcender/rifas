@@ -45,6 +45,16 @@ class SiteConfiguration(models.Model):
         help_text='IDs dos grupos de WhatsApp, um por linha. Ex: 5511999999999-1234567890@g.us'
     )
 
+    # Home page redirect
+    home_redirect_raffle = models.ForeignKey(
+        'Raffle',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Campanha Padrão da Home',
+        help_text='Campanha para a qual a página inicial redirecionará. Se vazio, mostra lista de campanhas.'
+    )
+
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
 
