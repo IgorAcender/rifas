@@ -4,6 +4,32 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def add_home_redirect_raffle_if_not_exists(apps, schema_editor):
+    """Add home_redirect_raffle field if it doesn't already exist"""
+    from django.db import connection
+    
+    with connection.cursor() as cursor:
+        if connection.vendor == 'postgresql':
+            cursor.execute("""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name='raffles_siteconfiguration' AND column_name='home_redirect_raffle_id';
+            """)
+            
+            if not cursor.fetchone():
+                # Field doesn't exist, add it
+                cursor.execute("""
+                    ALTER TABLE raffles_siteconfiguration
+                    ADD COLUMN home_redirect_raffle_id BIGINT NULL
+                    REFERENCES raffles_raffle(id) ON DELETE SET NULL;
+                """)
+
+
+def reverse_add_home_redirect_raffle(apps, schema_editor):
+    """Reverse operation - do nothing to preserve data"""
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,9 +37,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='siteconfiguration',
-            name='home_redirect_raffle',
-            field=models.ForeignKey(blank=True, help_text='Campanha para a qual a página inicial redirecionará. Se vazio, mostra lista de campanhas.', null=True, on_delete=django.db.models.deletion.SET_NULL, to='raffles.raffle', verbose_name='Campanha Padrão da Home'),
+        migrations.RunPython(
+            add_home_redirect_raffle_if_not_exists,
+            reverse_add_home_redirect_raffle
         ),
     ]
