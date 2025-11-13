@@ -60,6 +60,24 @@
                 </div>
             </div>
 
+            <h2 style="margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 40px;">🏠 Página Inicial</h2>
+            <p style="color: #6b7280; margin-bottom: 24px;">Configure para qual campanha a página inicial deve redirecionar automaticamente</p>
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="home_redirect_raffle">Campanha de Redirecionamento</label>
+                    <select id="home_redirect_raffle" name="home_redirect_raffle">
+                        <option value="">— Nenhuma (mostrar página inicial padrão) —</option>
+                        {% for raffle in active_raffles %}
+                            <option value="{{ raffle.id }}" {% if config.home_redirect_raffle.id == raffle.id %}selected{% endif %}>
+                                {{ raffle.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <span class="field-hint">Selecionando uma campanha, todos os visitantes da página inicial serão redirecionados automaticamente para ela</span>
+                </div>
+            </div>
+
             <h2 style="margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 40px;">📱 Notificações de Números Premiados</h2>
             <p style="color: #6b7280; margin-bottom: 24px;">Configure os contatos que receberão notificações quando um número premiado for ganho</p>
 

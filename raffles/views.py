@@ -767,11 +767,27 @@ def site_config_view(request):
         group_phones = request.POST.get('group_phones', '').strip()
         config.group_phones = group_phones
 
+        # Update home redirect raffle
+        home_redirect_raffle_id = request.POST.get('home_redirect_raffle', '').strip()
+        if home_redirect_raffle_id:
+            try:
+                config.home_redirect_raffle = Raffle.objects.get(id=home_redirect_raffle_id)
+            except Raffle.DoesNotExist:
+                pass
+        else:
+            config.home_redirect_raffle = None
+
         config.save()
         messages.success(request, 'Configurações salvas com sucesso!')
         return redirect('site_config')
 
-    return render(request, 'raffles/site_config.html', {'config': config})
+    # Get all active raffles for the dropdown
+    active_raffles = Raffle.objects.filter(status=Raffle.Status.ACTIVE).order_by('-created_at')
+    
+    return render(request, 'raffles/site_config.html', {
+        'config': config,
+        'active_raffles': active_raffles
+    })
 
 
 @login_required

@@ -112,10 +112,6 @@ class SiteConfigurationAdmin(ModelAdmin):
             'fields': ('logo_base64', 'site_name'),
             'description': 'Cole a logo em formato Base64 (data:image/...). Use um conversor online como base64-image.de para converter sua imagem. Recomendado: 120x120px, PNG com fundo transparente. A logo será exibida em todas as páginas do site.'
         }),
-        ('Página Inicial', {
-            'fields': ('home_redirect_raffle',),
-            'description': 'Selecione uma campanha para redirecionar automaticamente visitantes da página inicial para ela. Deixe em branco para mostrar a página inicial padrão.'
-        }),
         ('Notificações de Números Premiados', {
             'fields': ('admin_phones', 'group_phones'),
             'description': 'Configure os contatos que receberão notificações quando um número premiado for sorteado. Adicione um número/ID por linha. Para grupos do WhatsApp, use o formato: 5511999999999-1234567890@g.us'
