@@ -1977,10 +1977,26 @@
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || JSON.stringify(errorData));
+                // Try to parse JSON error, but fallback to plain text if response isn't JSON
+                try {
+                    const errorData = await response.json();
+                    // Ensure we throw a string that can be parsed by callers expecting JSON
+                    throw new Error(JSON.stringify(errorData));
+                } catch (e) {
+                    // Not JSON — read as text and wrap into a JSON-like object
+                    const text = await response.text();
+                    const safe = { error: text || response.statusText || 'Erro desconhecido' };
+                    throw new Error(JSON.stringify(safe));
+                }
             }
-            return response.json();
+
+            // Try to parse successful JSON response, but handle empty bodies gracefully
+            try {
+                return await response.json();
+            } catch (e) {
+                // No JSON content — return empty object
+                return {};
+            }
         }
 
         async function authenticateUser(userData) {
