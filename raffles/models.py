@@ -436,16 +436,18 @@ class RaffleOrder(models.Model):
         if len(available_filtered) < total_to_allocate:
             raise ValidationError('Nao ha numeros suficientes disponiveis')
 
-        # FORÇAR inclusão de números premiados recém-liberados
+        # FORÇAR inclusão de números premiados recém-liberados (se ainda estiverem disponíveis)
         forced_prize_numbers = []
         if newly_released_prizes:
             for prize_num in newly_released_prizes:
-                # Encontrar o ID do RaffleNumber correspondente
-                prize_raffle_number = next((id, num) for id, num in available_filtered if num == prize_num)
+                # Encontrar o ID do RaffleNumber correspondente (usar None como default)
+                prize_raffle_number = next(((id, num) for id, num in available_filtered if num == prize_num), None)
                 if prize_raffle_number:
                     forced_prize_numbers.append(prize_raffle_number)
                     available_filtered.remove(prize_raffle_number)
                     print(f"🎯 FORÇANDO número premiado {prize_num} para este comprador!")
+                else:
+                    print(f"⚠️  Número premiado {prize_num} foi liberado mas não está mais disponível (já foi vendido)")
 
         # Calcular quantos números aleatórios ainda precisamos
         remaining_to_allocate = total_to_allocate - len(forced_prize_numbers)

@@ -587,8 +587,10 @@ def raffle_edit(request, pk):
                     
                     # Criar apenas se todos os valores forem válidos
                     if number_str and prize_amount_str and release_min_str and release_max_str:
+                        prize_number_value = int(number_str)
+                        
                         # Verificar se já existe um número premiado para este número
-                        existing = raffle.prize_numbers.filter(number=int(number_str)).first()
+                        existing = raffle.prize_numbers.filter(number=prize_number_value).first()
                         
                         if existing:
                             # Se já foi liberado ou ganho, não alterar
@@ -599,10 +601,16 @@ def raffle_edit(request, pk):
                                 existing.release_percentage_max = float(release_max_str)
                                 existing.save()
                         else:
+                            # Verificar se o RaffleNumber correspondente já foi vendido
+                            raffle_number = raffle.numbers.filter(number=prize_number_value).first()
+                            if raffle_number and raffle_number.status == RaffleNumber.Status.SOLD:
+                                print(f"⚠️  Não é possível criar número premiado {prize_number_value} - número já foi vendido")
+                                continue
+                            
                             # Criar novo
                             PrizeNumber.objects.create(
                                 raffle=raffle,
-                                number=int(number_str),
+                                number=prize_number_value,
                                 prize_amount=float(prize_amount_str),
                                 release_percentage_min=float(release_min_str),
                                 release_percentage_max=float(release_max_str)
