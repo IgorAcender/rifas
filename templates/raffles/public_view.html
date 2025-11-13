@@ -1977,16 +1977,23 @@
             });
 
             if (!response.ok) {
-                // Try to parse JSON error, but fallback to plain text if response isn't JSON
+                // Clone response to read body multiple times if needed
+                const responseClone = response.clone();
+                
+                // Try to parse JSON error first
                 try {
                     const errorData = await response.json();
-                    // Ensure we throw a string that can be parsed by callers expecting JSON
                     throw new Error(JSON.stringify(errorData));
                 } catch (e) {
-                    // Not JSON — read as text and wrap into a JSON-like object
-                    const text = await response.text();
-                    const safe = { error: text || response.statusText || 'Erro desconhecido' };
-                    throw new Error(JSON.stringify(safe));
+                    // If JSON parsing fails, read as text from the clone
+                    try {
+                        const text = await responseClone.text();
+                        const safe = { error: text || response.statusText || 'Erro desconhecido' };
+                        throw new Error(JSON.stringify(safe));
+                    } catch (textError) {
+                        // If everything fails, use status text
+                        throw new Error(JSON.stringify({ error: response.statusText || 'Erro desconhecido' }));
+                    }
                 }
             }
 
