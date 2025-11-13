@@ -32,7 +32,6 @@
             -webkit-tap-highlight-color: transparent;
             -webkit-touch-callout: none;
             min-height: 100vh;
-            padding-bottom: 140px;
         }
 
         .header {
@@ -183,10 +182,6 @@
         }
 
         .action-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
             background: var(--white);
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
             padding: 16px;
@@ -195,6 +190,17 @@
             align-items: center;
             gap: 16px;
             z-index: 1000;
+        }
+        
+        .action-bar-inline {
+            background: var(--white);
+            border-top: 1px solid var(--border-color);
+            padding: 24px 0 0 0;
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
         }
         
         .selection-info {
@@ -246,7 +252,7 @@
         }
         
         @media (max-width: 768px) {
-            .action-bar {
+            .action-bar, .action-bar-inline {
                 flex-direction: column;
                 padding: 12px;
                 gap: 12px;
@@ -1029,6 +1035,18 @@
                 <input type="number" id="quantityInput" value="1" min="1" max="10000" onchange="updateQuantity()">
                 <button class="btn-plus" onclick="increaseQuantity()">+</button>
             </div>
+            
+            <!-- Action Bar (moved from fixed bottom) -->
+            <div class="action-bar-inline">
+                <div class="selection-info">
+                    <div class="selection-summary">
+                        <div class="count"><span id="selectedCount">1</span> número(s)</div>
+                        <div class="total">R$ <span id="totalAmount">{{ raffle.price_per_number }}</span></div>
+                    </div>
+                    <div id="bonusInfo"></div>
+                </div>
+                <button class="btn-buy" id="buyButton" onclick="openLoginModal()">Participar Agora</button>
+            </div>
         </div>
 
         <!-- Premium Numbers Section -->
@@ -1122,17 +1140,6 @@
                 </a>
             </div>
         </div>
-    </div>
-
-    <div class="action-bar">
-        <div class="selection-info">
-            <div class="selection-summary">
-                <div class="count"><span id="selectedCount">1</span> número(s)</div>
-                <div class="total">R$ <span id="totalAmount">{{ raffle.price_per_number }}</span></div>
-            </div>
-            <div id="bonusInfo"></div>
-        </div>
-        <button class="btn-buy" id="buyButton" onclick="openLoginModal()">Participar Agora</button>
     </div>
 
     <!-- Modals -->
