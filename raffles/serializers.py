@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Raffle, RaffleOrder, RaffleNumber, Referral
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 class RaffleSerializer(serializers.ModelSerializer):
@@ -88,8 +89,12 @@ class RaffleOrderSerializer(serializers.ModelSerializer):
 
         order = super().create(validated_data)
 
-        # Allocate numbers
-        order.allocate_numbers()
+        # Allocate numbers (may raise Django ValidationError in race conditions)
+        try:
+            order.allocate_numbers()
+        except DjangoValidationError as e:
+            # Convert to DRF serializer ValidationError so caller receives 400
+            raise serializers.ValidationError(str(e))
 
         # Handle referral if present
         if referral_code:
