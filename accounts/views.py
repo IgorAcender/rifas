@@ -280,4 +280,4 @@ def logout_view(request):
     """Logout"""
     auth_logout(request)
     messages.success(request, 'Voce saiu do sistema.')
-    return redirect('admin_login')
+    return redirect('customer_login')
