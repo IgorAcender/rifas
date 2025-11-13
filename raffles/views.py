@@ -177,6 +177,11 @@ def dashboard(request):
             # Contar compradores únicos (apenas pagos)
             unique_buyers = paid_orders.values('user').distinct().count()
 
+            # Estatísticas de números premiados
+            from .models import PrizeNumber
+            total_prize_numbers = PrizeNumber.objects.filter(raffle=raffle).count()
+            won_prize_numbers = PrizeNumber.objects.filter(raffle=raffle, is_won=True).count()
+
             # Calcular taxa total arrecadada
             fee_amount = total_revenue * (raffle.fee_percentage / 100)
             net_revenue = total_revenue - fee_amount
@@ -192,6 +197,9 @@ def dashboard(request):
                 'net_revenue': net_revenue,
                 'unique_buyers': unique_buyers,
                 'percentage_sold': round((numbers_sold / raffle.total_numbers) * 100, 1) if raffle.total_numbers > 0 else 0,
+                'total_prize_numbers': total_prize_numbers,
+                'won_prize_numbers': won_prize_numbers,
+                'prize_percentage': round((won_prize_numbers / total_prize_numbers) * 100, 1) if total_prize_numbers > 0 else 0,
             })
 
         # Estatísticas gerais

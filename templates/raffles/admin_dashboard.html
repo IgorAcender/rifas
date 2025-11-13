@@ -141,6 +141,17 @@
                     <p class="stat-value">R$ {{ campaign.raffle.price_per_number|floatformat:2 }}</p>
                     <p class="stat-detail">unidade</p>
                 </div>
+
+                {% if campaign.total_prize_numbers > 0 %}
+                <div class="campaign-stat">
+                    <p class="stat-label">🎁 Números Premiados Sorteados</p>
+                    <p class="stat-value">{{ campaign.won_prize_numbers }} / {{ campaign.total_prize_numbers }}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ campaign.prize_percentage }}%"></div>
+                    </div>
+                    <p class="stat-detail">{{ campaign.prize_percentage }}% sorteados</p>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}
