@@ -1,7 +1,7 @@
-# Generated migration to add home_redirect_raffle field to SiteConfiguration
+# Generated migration - Skip duplicate home_redirect_raffle field
+# The field already exists in the database, this migration just marks it as processed
 
-from django.db import migrations, models
-import django.db.models.deletion
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -11,9 +11,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='siteconfiguration',
-            name='home_redirect_raffle',
-            field=models.ForeignKey(blank=True, help_text='Campanha para a qual a página inicial redirecionará. Se vazio, mostra lista de campanhas.', null=True, on_delete=django.db.models.deletion.SET_NULL, to='raffles.raffle', verbose_name='Campanha Padrão da Home'),
-        ),
+        # This migration is intentionally empty
+        # The home_redirect_raffle field already exists in the database
+        # from a previous migration or manual creation
     ]
