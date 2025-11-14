@@ -4,6 +4,52 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def add_fields_if_not_exist(apps, schema_editor):
+    """Adiciona campos apenas se não existirem"""
+    from django.db import connection
+    
+    with connection.cursor() as cursor:
+        # Verificar se is_test_mode existe
+        cursor.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='raffles_raffle' AND column_name='is_test_mode'
+        """)
+        if not cursor.fetchone():
+            cursor.execute("""
+                ALTER TABLE raffles_raffle 
+                ADD COLUMN is_test_mode BOOLEAN DEFAULT FALSE NOT NULL
+            """)
+            cursor.execute("""
+                COMMENT ON COLUMN raffles_raffle.is_test_mode 
+                IS 'Ativa pagamento teste para simular compras e testar notificações'
+            """)
+        
+        # Verificar se premium_numbers existe
+        cursor.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='raffles_raffle' AND column_name='premium_numbers'
+        """)
+        if not cursor.fetchone():
+            cursor.execute("""
+                ALTER TABLE raffles_raffle 
+                ADD COLUMN premium_numbers INTEGER
+            """)
+        
+        # Verificar se home_redirect_raffle_id existe
+        cursor.execute("""
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='raffles_siteconfiguration' AND column_name='home_redirect_raffle_id'
+        """)
+        if not cursor.fetchone():
+            cursor.execute("""
+                ALTER TABLE raffles_siteconfiguration 
+                ADD COLUMN home_redirect_raffle_id INTEGER REFERENCES raffles_raffle(id) ON DELETE SET NULL
+            """)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,19 +57,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='raffle',
-            name='is_test_mode',
-            field=models.BooleanField(default=False, help_text='Ativa pagamento teste para simular compras e testar notificações', verbose_name='Modo de Teste'),
-        ),
-        migrations.AddField(
-            model_name='raffle',
-            name='premium_numbers',
-            field=models.PositiveIntegerField(blank=True, help_text='Campo legado - não utilizado', null=True, verbose_name='Números Premium (Deprecated)'),
-        ),
-        migrations.AddField(
-            model_name='siteconfiguration',
-            name='home_redirect_raffle',
-            field=models.ForeignKey(blank=True, help_text='Campanha para a qual a página inicial redirecionará. Se vazio, mostra lista de campanhas.', null=True, on_delete=django.db.models.deletion.SET_NULL, to='raffles.raffle', verbose_name='Campanha Padrão da Home'),
-        ),
+        migrations.RunPython(add_fields_if_not_exist, migrations.RunPython.noop),
     ]
