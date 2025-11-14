@@ -196,7 +196,8 @@ class Raffle(models.Model):
             base_slug = slugify(self.name)
             slug = base_slug
             counter = 1
-            while Raffle.objects.filter(slug=slug).exists():
+            # Excluir a própria instância da verificação (se já existe)
+            while Raffle.objects.filter(slug=slug).exclude(pk=self.pk).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug

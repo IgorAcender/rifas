@@ -208,7 +208,7 @@
                         type="datetime-local"
                         id="draw_date"
                         name="draw_date"
-                        value="{{ raffle.draw_date|date:'Y-m-d\TH:i' }}"
+                        value="{% if raffle.draw_date %}{{ raffle.draw_date|date:'Y-m-d\TH:i' }}{% endif %}"
                     >
                 </div>
 

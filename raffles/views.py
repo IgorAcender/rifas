@@ -515,6 +515,10 @@ def raffle_edit(request, pk):
 
     if request.method == 'POST':
         try:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Editing raffle {pk}, POST data: {dict(request.POST)}")
+            
             # Check if total_numbers is being increased
             new_total_numbers = int(request.POST.get('total_numbers', raffle.total_numbers))
             if new_total_numbers > raffle.total_numbers:
@@ -650,6 +654,11 @@ def raffle_edit(request, pk):
             return redirect('raffle_list')
 
         except Exception as e:
+            import traceback
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Erro ao atualizar campanha: {str(e)}')
+            logger.error(traceback.format_exc())
             messages.error(request, f'Erro ao atualizar campanha: {str(e)}')
 
     context = {
