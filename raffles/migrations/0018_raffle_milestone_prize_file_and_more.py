@@ -21,9 +21,4 @@ class Migration(migrations.Migration):
             name='milestone_prize_url',
             field=models.URLField(blank=True, help_text='Link externo para acesso ao prêmio digital (Google Drive, Dropbox, etc)', verbose_name='Link Digital do Prêmio'),
         ),
-        migrations.AddField(
-            model_name='raffle',
-            name='premium_numbers',
-            field=models.PositiveIntegerField(blank=True, help_text='Campo legado - não utilizado', null=True, verbose_name='Números Premium (Deprecated)'),
-        ),
     ]
