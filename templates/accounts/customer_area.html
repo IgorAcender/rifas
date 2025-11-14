@@ -115,11 +115,7 @@
                     {% if prize_key in prize_numbers_dict %}prize-number
                     {% elif number.source == 'purchase_bonus' %}bonus-purchase-number
                     {% elif number.source == 'referral_inviter' or number.source == 'referral_invitee' %}bonus-referral-number
-                    {% endif %}"
-                    data-number="{{ number.number }}"
-                    data-raffle-id="{{ number.raffle.id }}"
-                    data-prize-key="{{ prize_key }}"
-                    data-has-prize="{% if prize_key in prize_numbers_dict %}true{% else %}false{% endif %}">
+                    {% endif %}">
                     {% if prize_key in prize_numbers_dict %}
                     <div class="prize-badge">🏆</div>
                     {% endif %}
@@ -1307,41 +1303,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// DEBUG: Mostrar informações dos números
-window.debugNumbers = function() {
-    const numbers = document.querySelectorAll('[data-number]');
-    const output = [];
-    
-    numbers.forEach(num => {
-        const number = num.getAttribute('data-number');
-        const raffleId = num.getAttribute('data-raffle-id');
-        const prizeKey = num.getAttribute('data-prize-key');
-        const hasPrize = num.getAttribute('data-has-prize');
-        
-        if (number === '450') {
-            output.push(`
-🔍 NÚMERO 450:
-  - Raffle ID: ${raffleId}
-  - Prize Key: ${prizeKey}
-  - Has Prize: ${hasPrize}
-  - Classes: ${num.className}
-  - Element: ${num.outerHTML.substring(0, 200)}...
-            `);
-        }
-    });
-    
-    console.log('%c DEBUG NÚMEROS', 'background: #ff6b6b; color: white; font-weight: bold; padding: 5px;');
-    console.log(output.join('\n'));
-    alert('Abra o Console (F12) para ver os detalhes!');
-};
-
-// Atalho: pressionar SHIFT + D para debug
-document.addEventListener('keydown', function(e) {
-    if (e.shiftKey && e.key === 'D') {
-        window.debugNumbers();
-    }
-});
-
 // Calculate progress bars for milestone rewards
 document.addEventListener('DOMContentLoaded', function() {
     const progressFills = document.querySelectorAll('.progress-fill');
@@ -1351,11 +1312,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = Math.min((current / total) * 100, 100);
         fill.style.width = percentage + '%';
     });
-    
-    // Debug automático no console
-    console.log('%c RIFAS DEBUG', 'background: #4CAF50; color: white; font-weight: bold; padding: 5px;');
-    console.log('Pressione SHIFT + D para ver detalhes dos números');
-    window.debugNumbers();
 });
 
 </script>
