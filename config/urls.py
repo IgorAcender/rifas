@@ -65,4 +65,5 @@ urlpatterns = [
     path('api/auth/', include('accounts.urls')),
     path('api/raffles/', include('raffles.urls')),
     path('api/payments/', include('payments.urls')),
+    path('analytics/', include('analytics.urls')),
 ]

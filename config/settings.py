@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'raffles',
     'payments',
     'notifications',
+    'analytics',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'config.middleware.SilentErrorMiddleware',  # Custom error handling
+    'analytics.middleware.PageViewTrackingMiddleware',  # Analytics tracking
 ]
 
 ROOT_URLCONF = 'config.urls'
