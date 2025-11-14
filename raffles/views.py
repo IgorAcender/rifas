@@ -362,7 +362,8 @@ def campaign_details(request, pk):
             'is_won': prize.is_won,
             'winner': prize.winner,
             'won_at': prize.won_at,
-            'release_threshold': prize.release_threshold,
+            'release_percentage_min': prize.release_percentage_min,
+            'release_percentage_max': prize.release_percentage_max,
         })
 
     context = {

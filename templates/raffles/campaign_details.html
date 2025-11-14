@@ -148,7 +148,7 @@
                     </svg>
                     Liberado para Sorteio
                 </div>
-                <p class="prize-threshold">Liberado em {{ prize.release_threshold }}% de vendas</p>
+                <p class="prize-threshold">Liberado entre {{ prize.release_percentage_min }}% e {{ prize.release_percentage_max }}% de vendas</p>
             {% else %}
                 <div class="prize-status status-locked">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -157,7 +157,7 @@
                     </svg>
                     Bloqueado
                 </div>
-                <p class="prize-threshold">Será liberado em {{ prize.release_threshold }}% de vendas</p>
+                <p class="prize-threshold">Será liberado entre {{ prize.release_percentage_min }}% e {{ prize.release_percentage_max }}% de vendas</p>
                 <p class="prize-current">Atual: {{ percentage_sold }}%</p>
             {% endif %}
         </div>
