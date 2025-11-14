@@ -451,6 +451,7 @@ def raffle_create(request):
                 fee_percentage=float(fee_percentage_str) if fee_percentage_str else 0,
                 status=request.POST.get('status', 'draft'),
                 draw_date=request.POST.get('draw_date') if request.POST.get('draw_date') else None,
+                is_test_mode=request.POST.get('is_test_mode') == 'on',
                 inviter_bonus=int(inviter_bonus_str) if inviter_bonus_str else 2,
                 invitee_bonus=int(invitee_bonus_str) if invitee_bonus_str else 1,
                 enable_progressive_bonus=request.POST.get('enable_progressive_bonus') == '1',
@@ -536,6 +537,9 @@ def raffle_edit(request, pk):
             raffle.fee_percentage = float(fee_percentage) if fee_percentage else 0
             
             raffle.status = request.POST.get('status', 'draft')
+            
+            # Modo de teste
+            raffle.is_test_mode = request.POST.get('is_test_mode') == 'on'
             
             inviter_bonus = request.POST.get('inviter_bonus', '').strip()
             raffle.inviter_bonus = int(inviter_bonus) if inviter_bonus else 2
