@@ -104,6 +104,9 @@
                     {% elif number.source == 'purchase_bonus' %}bonus-purchase-number
                     {% elif number.source == 'referral_inviter' or number.source == 'referral_invitee' %}bonus-referral-number
                     {% endif %}">
+                    {% if prize_key in prize_numbers_dict %}
+                    <div class="prize-badge">🏆</div>
+                    {% endif %}
                     <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
                 </div>
                 {% endwith %}
@@ -618,6 +621,7 @@
     padding: 6px 2px;
     text-align: center;
     transition: all 0.2s;
+    position: relative;
 }
 
 /* Bônus de Compra - Azul */
@@ -632,10 +636,13 @@
     border: 1px solid #a855f7;
 }
 
-/* Número Premiado - Amarelo */
+/* Número Premiado - Destaque Especial */
 .number-item.prize-number {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border: 1px solid #f59e0b;
+    background: linear-gradient(135deg, #fef08a 0%, #fcd34d 50%, #f59e0b 100%);
+    border: 2px solid #d97706;
+    position: relative;
+    animation: prizeGlow 2s ease-in-out infinite, prizeFloat 3s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .number-item:hover {
@@ -654,8 +661,56 @@
 }
 
 .number-item.prize-number:hover {
-    border-color: #d97706;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    border-color: #a16207;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.4);
+    animation: prizeGlow 1s ease-in-out infinite, prizeFloat 2s ease-in-out infinite;
+    transform: translateY(-4px) scale(1.05);
+}
+
+/* Badge de Prêmio */
+.prize-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 20px;
+    animation: badgePulse 1.5s ease-in-out infinite;
+}
+
+/* Animações para número premiado */
+@keyframes prizeGlow {
+    0% {
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.7), inset 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+}
+
+@keyframes prizeFloat {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes badgePulse {
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+    50% {
+        transform: scale(1.2) rotate(5deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
 }
 
 .number-value {
