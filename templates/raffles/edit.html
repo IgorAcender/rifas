@@ -388,6 +388,20 @@
                         >{{ raffle.milestone_prize_description }}</textarea>
                     </div>
                 </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="milestone_prize_url">🔗 Link Digital do Prêmio</label>
+                        <input
+                            type="url"
+                            id="milestone_prize_url"
+                            name="milestone_prize_url"
+                            value="{{ raffle.milestone_prize_url }}"
+                            placeholder="https://drive.google.com/file/d/... ou https://www.dropbox.com/s/..."
+                        >
+                        <span class="field-hint">Cole aqui o link de compartilhamento do seu PDF ou arquivo digital (Google Drive, Dropbox, etc). Quando o cliente clicar em "Acessar Prêmio Digital", será redirecionado para este link.</span>
+                    </div>
+                </div>
             </div>
 
             <div class="form-actions">
