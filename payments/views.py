@@ -141,6 +141,7 @@ def get_order_status(request, order_id):
 @csrf_exempt
 def mercadopago_webhook(request):
     """MercadoPago webhook handler - Accepts both JSON and form-urlencoded"""
+    from django.http import JsonResponse
     import logging
     logger = logging.getLogger(__name__)
 
@@ -168,29 +169,29 @@ def mercadopago_webhook(request):
         else:
             # Not a payment update, ignore
             logger.info(f"Ignoring webhook action: {request_data.get('action')}")
-            return Response(status=status.HTTP_200_OK)
+            return JsonResponse({'status': 'ok'}, status=200)
 
         if not payment_id:
             logger.warning("No payment_id in webhook data")
-            return Response(status=status.HTTP_200_OK)
+            return JsonResponse({'status': 'ok'}, status=200)
 
         sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
         payment_info = sdk.payment().get(payment_id)
 
         if payment_info["status"] != 200:
-            return Response(status=status.HTTP_200_OK)
+            return JsonResponse({'status': 'ok'}, status=200)
 
         payment_data = payment_info["response"]
         external_reference = payment_data.get("external_reference")
 
         if not external_reference:
             logger.warning("No external_reference in payment data")
-            return Response(status=status.HTTP_200_OK)
+            return JsonResponse({'status': 'ok'}, status=200)
 
         try:
             order = RaffleOrder.objects.get(id=external_reference)
         except RaffleOrder.DoesNotExist:
-            return Response(status=status.HTTP_200_OK)
+            return JsonResponse({'status': 'ok'}, status=200)
 
         # Check payment status and mark as paid if approved
         if payment_data["status"] == "approved" and order.status != RaffleOrder.Status.PAID:
@@ -248,8 +249,8 @@ def mercadopago_webhook(request):
         order.payment_data = payment_data
         order.save(update_fields=['payment_data'])
 
-        return Response(status=status.HTTP_200_OK)
+        return JsonResponse({'status': 'ok'}, status=200)
         
     except Exception as e:
         logger.error(f"❌ Error processing webhook: {e}", exc_info=True)
-        return Response(status=status.HTTP_200_OK)
+        return JsonResponse({'status': 'ok'}, status=200)
