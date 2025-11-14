@@ -647,6 +647,57 @@
             100% { box-shadow: inset 0px 0px 0px 40px var(--secondary-color); }
         }
 
+        /* Toggle Switch Styles */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            margin-left: 15px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #22c55e;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-switch input:focus + .toggle-slider {
+            box-shadow: 0 0 1px #22c55e;
+        }
+
         /* Referral Bonus Modal Styles */
         .referral-bonus-modal {
             max-width: 500px;
@@ -1719,10 +1770,16 @@
                 console.log('Authentication successful, token:', state.accessToken ? 'SET' : 'NOT SET');
 
                 const order = await createRaffleOrder(state.currentQuantity);
+                
+                {% if raffle.is_test_mode %}
+                // Modo de teste: mostrar botão de pagamento teste
+                closeModal('loginModal');
+                showTestPaymentModal(order.id);
+                {% else %}
                 const pixData = await createPixPayment(order.id);
-
                 closeModal('loginModal');
                 showPixModal(pixData, order.id);
+                {% endif %}
 
             } catch (error) {
                 console.error('Purchase process error:', error);
@@ -1770,6 +1827,124 @@
             openModal('pixModal');
             startTimer(900); // 15 minutos = 900 segundos
             startPolling(orderId);
+        }
+
+        function showTestPaymentModal(orderId) {
+            const modalContent = document.getElementById('pixModalContent');
+            modalContent.innerHTML = `
+                <h3 class="modal-title">💳 Pagamento Teste</h3>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #856404; font-size: 14px; font-weight: 600;">
+                        🧪 Modo de Teste Ativado
+                    </p>
+                    <p style="margin: 5px 0 0 0; color: #856404; font-size: 12px;">
+                        Este é um ambiente de teste. Nenhum pagamento real será processado.
+                    </p>
+                </div>
+                
+                <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                    <p style="color: #15803d; font-size: 16px; margin-bottom: 10px;">
+                        <strong>Pedido #${orderId}</strong>
+                    </p>
+                    <p style="color: #15803d; font-size: 14px; margin: 0;">
+                        Clique no botão abaixo para simular o pagamento
+                    </p>
+                </div>
+                
+                <!-- Toggle para forçar número premiado -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="flex: 1;">
+                            <p style="margin: 0; color: #1e293b; font-size: 14px; font-weight: 600;">
+                                🎁 Forçar Número Premiado
+                            </p>
+                            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">
+                                Ativa para testar mensagens de prêmio
+                            </p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="forcePrizeToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn-confirm" onclick="processTestPayment(${orderId})" id="testPayBtn">
+                    ✅ Simular Pagamento Aprovado
+                </button>
+                
+                <button class="btn-confirm" onclick="closeModal('pixModal')" 
+                        style="background: #6b7280; margin-top: 10px;">
+                    Cancelar
+                </button>
+            `;
+            openModal('pixModal');
+        }
+
+        async function processTestPayment(orderId) {
+            const testPayBtn = document.getElementById('testPayBtn');
+            const forcePrize = document.getElementById('forcePrizeToggle').checked;
+            setButtonLoading(testPayBtn, true);
+            
+            try {
+                const response = await fetch(`/api/raffles/{{ raffle.slug }}/test-payment/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrf-token]').content,
+                        'Authorization': `Bearer ${state.accessToken}`
+                    },
+                    body: JSON.stringify({ 
+                        order_id: orderId,
+                        force_prize_number: forcePrize
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro ao processar pagamento teste');
+                }
+
+                const data = await response.json();
+                
+                // Mostrar sucesso
+                const modalContent = document.getElementById('pixModalContent');
+                modalContent.innerHTML = `
+                    <h3 class="modal-title" style="color: #22c55e;">✅ Pagamento Teste Aprovado!</h3>
+                    
+                    <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                        ${data.has_prize_number ? `
+                            <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
+                            <p style="color: #15803d; font-size: 18px; font-weight: 600; margin-bottom: 5px;">
+                                NÚMERO PREMIADO!
+                            </p>
+                            <p style="color: #15803d; font-size: 16px;">
+                                Número <strong>${data.prize_number}</strong> ganhou!
+                            </p>
+                        ` : `
+                            <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+                            <p style="color: #15803d; font-size: 16px;">
+                                Pagamento confirmado com sucesso!
+                            </p>
+                        `}
+                    </div>
+                    
+                    <p style="text-align: center; color: #64748b; margin-bottom: 20px;">
+                        Suas notificações de teste foram enviadas.
+                    </p>
+                    
+                    <button class="btn-confirm" onclick="location.reload()">
+                        Fazer Outra Compra Teste
+                    </button>
+                `;
+                
+            } catch (error) {
+                console.error('Test payment error:', error);
+                alert(error.message || 'Erro ao processar pagamento teste');
+            } finally {
+                setButtonLoading(testPayBtn, false);
+            }
         }
 
         function startTimer(seconds) {

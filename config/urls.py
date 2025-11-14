@@ -34,6 +34,7 @@ urlpatterns = [
 
     # Public Raffle URLs (sem autenticação)
     path('r/<slug:slug>/', raffle_views.raffle_public_view, name='raffle_public'),
+    path('r/<slug:slug>/test-payment/', raffle_views.test_payment, name='test_payment'),
 
     # Frontend URLs (Admin) - todas requerem autenticação
     path('dashboard/', raffle_views.dashboard, name='dashboard'),

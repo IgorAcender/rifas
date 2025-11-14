@@ -176,6 +176,9 @@ class Raffle(models.Model):
     # Admin WhatsApp for this raffle
     admin_whatsapp = models.CharField('WhatsApp de Suporte', max_length=20, blank=True, help_text='Número de WhatsApp para suporte (ex: 5511999999999). Se vazio, usará o padrão da configuração.')
 
+    # Test mode - for testing payments and notifications without real charges
+    is_test_mode = models.BooleanField('Modo de Teste', default=False, help_text='Ativa pagamento teste para simular compras e testar notificações')
+
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
 
