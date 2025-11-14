@@ -150,10 +150,20 @@ def customer_area(request):
     )
     
     # Get all prize numbers for the user's raffles and mark them
+    # Include all prize numbers (released or not) so user can see them in yellow
     prize_numbers_dict = {}
-    for prize in PrizeNumber.objects.filter(raffle__in=[n.raffle for n in my_numbers]):
+    user_raffle_ids = list(set([n.raffle_id for n in my_numbers]))
+    print(f"🔍 DEBUG: User raffle IDs: {user_raffle_ids}")
+    
+    prize_numbers = PrizeNumber.objects.filter(raffle_id__in=user_raffle_ids)
+    print(f"🔍 DEBUG: Found {prize_numbers.count()} prize numbers")
+    
+    for prize in prize_numbers:
         key = f"{prize.raffle_id}_{prize.number}"
-        prize_numbers_dict[key] = True
+        prize_numbers_dict[key] = True  # Simple True for template checking
+        print(f"   Prize key added: {key} (number={prize.number}, released={prize.is_released}, won={prize.is_won})")
+    
+    print(f"🔍 DEBUG: prize_numbers_dict = {prize_numbers_dict}")
 
     my_orders = RaffleOrder.objects.filter(
         user=request.user
