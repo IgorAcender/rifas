@@ -99,7 +99,27 @@ class RaffleViewSet(viewsets.ReadOnlyModelViewSet):
         """API simples para verificar tempo de reserva (usado pelo frontend)"""
         raffle = self.get_object()
         
-        # Verificar reservas expiradas
+        # Se passou order_id, usar ele. Senão, usar request.user
+        order_id = request.query_params.get('order_id')
+        
+        if order_id:
+            # Buscar por order_id (checkout anônimo)
+            user_reservation = RaffleNumber.objects.filter(
+                raffle=raffle,
+                order_id=order_id,
+                status=RaffleNumber.Status.RESERVED,
+                reserved_expires_at__isnull=False
+            ).order_by('reserved_expires_at').last()
+        else:
+            # Buscar por usuário (checkout autenticado)
+            user_reservation = RaffleNumber.objects.filter(
+                raffle=raffle,
+                user=request.user,
+                status=RaffleNumber.Status.RESERVED,
+                reserved_expires_at__isnull=False
+            ).order_by('reserved_expires_at').last()
+        
+        # Release expired reservations first
         now = timezone.now()
         expired = RaffleNumber.objects.filter(
             raffle=raffle,
@@ -115,14 +135,6 @@ class RaffleViewSet(viewsets.ReadOnlyModelViewSet):
             num.reserved_at = None
             num.reserved_expires_at = None
             num.save()
-        
-        # Pegar reserva do usuário
-        user_reservation = RaffleNumber.objects.filter(
-            raffle=raffle,
-            user=request.user,
-            status=RaffleNumber.Status.RESERVED,
-            reserved_expires_at__isnull=False
-        ).order_by('reserved_expires_at').last()
         
         if not user_reservation:
             return Response({'has_active_reservation': False})

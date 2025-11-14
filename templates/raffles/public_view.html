@@ -1768,6 +1768,7 @@
 
         function showPixModal(pixData, orderId) {
             const modalContent = document.getElementById('pixModalContent');
+            state.currentOrderId = orderId; // Guardar order ID
             modalContent.innerHTML = `
                 <h3 class="modal-title">Pague com PIX para garantir seus números</h3>
                 
@@ -1790,18 +1791,23 @@
                 </div>
             `;
             openModal('pixModal');
-            startTimer(900); // 15 minutos = 900 segundos
+            startTimer(900, orderId); // 15 minutos = 900 segundos
             startPolling(orderId);
         }
 
-        function startTimer(seconds) {
+        function startTimer(seconds, orderId) {
             const timerElement = document.getElementById('timer');
             let remaining = seconds;
             let hasSyncedWithServer = false;
             
             // Função para sincronizar com servidor
             function syncWithServer() {
-                fetch(`/api/raffles/${state.currentRaffleId}/reservation-status/`, {
+                let syncUrl = `/api/raffles/${state.currentRaffleId}/reservation-status/`;
+                if (orderId) {
+                    syncUrl += `?order_id=${orderId}`;
+                }
+                
+                fetch(syncUrl, {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'},
                     credentials: 'include'
