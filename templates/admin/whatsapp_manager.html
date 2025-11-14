@@ -283,11 +283,22 @@
     <!-- Test Message Form -->
     <div class="test-message-form">
         <h2>Enviar Mensagem de Teste</h2>
+        <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+            💡 <strong>Dica:</strong> Você pode enviar para números individuais ou para grupos. 
+            Para grupos, copie o ID do grupo do WhatsApp (formato: <code>120363xxx@g.us</code>)
+        </p>
         <form id="test-form" onsubmit="sendTestMessage(event)">
             {% csrf_token %}
             <div class="form-group">
-                <label for="phone">Número do WhatsApp (com código do país)</label>
-                <input type="text" id="phone" name="phone" placeholder="5511999999999" required>
+                <label for="phone">Número do WhatsApp ou ID do Grupo</label>
+                <input type="text" id="phone" name="phone" 
+                    placeholder="5511999999999 ou 120363xxx@g.us" 
+                    required
+                    style="font-family: monospace;">
+                <small style="color: #999; display: block; margin-top: 5px;">
+                    📱 <strong>Para número:</strong> Use com ou sem + e código do país<br>
+                    👥 <strong>Para grupo:</strong> Cole o ID do grupo (termine com @g.us)
+                </small>
             </div>
             <div class="form-group">
                 <label for="message">Mensagem</label>

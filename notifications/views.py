@@ -144,28 +144,43 @@ def send_test_message(request):
         if not phone:
             return JsonResponse({
                 'success': False,
-                'error': 'Número de telefone é obrigatório'
+                'error': 'Número de telefone ou ID do grupo é obrigatório'
             })
 
-        # Remove caracteres não numéricos
-        phone = ''.join(filter(str.isdigit, phone))
-
-        # Adiciona código do Brasil se não tiver
-        if not phone.startswith('55'):
-            phone = '55' + phone
+        phone = phone.strip()
+        
+        # Check if it's a group (contains @g.us)
+        is_group = '@g.us' in phone.lower()
+        
+        if not is_group:
+            # For regular numbers, remove non-numeric characters and format
+            phone_digits = ''.join(filter(str.isdigit, phone))
+            
+            if not phone_digits:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Número de telefone inválido'
+                })
+            
+            # Add Brazil country code if not present
+            if not phone_digits.startswith('55'):
+                phone_digits = '55' + phone_digits
+            
+            phone = phone_digits
 
         try:
             result = evolution_api.send_text_message(phone, message)
             if result:
+                dest_info = "grupo" if is_group else "número"
                 return JsonResponse({
                     'success': True,
-                    'message': 'Mensagem enviada com sucesso!',
+                    'message': f'Mensagem enviada com sucesso para o {dest_info}!',
                     'result': result
                 })
             else:
                 return JsonResponse({
                     'success': False,
-                    'error': 'Falha ao enviar mensagem. Verifique se o número está correto e se o WhatsApp está conectado.'
+                    'error': 'Falha ao enviar mensagem. Verifique se o número/grupo está correto e se o WhatsApp está conectado.'
                 })
         except Exception as e:
             return JsonResponse({

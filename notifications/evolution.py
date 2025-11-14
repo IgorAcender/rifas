@@ -20,12 +20,57 @@ class EvolutionAPI:
             'Content-Type': 'application/json'
         }
 
+    def _is_group(self, phone):
+        """
+        Check if phone/jid is a group
+
+        Args:
+            phone (str): Phone number or group JID (e.g., '120363xxx@g.us')
+
+        Returns:
+            bool: True if it's a group, False otherwise
+        """
+        return '@g.us' in str(phone).lower()
+
+    def _normalize_phone(self, phone):
+        """
+        Normalize phone number, preserving group format
+
+        Args:
+            phone (str): Phone number or group JID
+
+        Returns:
+            str: Normalized phone/JID
+        """
+        phone = str(phone).strip()
+        
+        # If it's a group, keep the full JID format
+        if self._is_group(phone):
+            return phone
+        
+        # For regular numbers, remove @ and everything after
+        if '@' in phone:
+            phone = phone.split('@')[0]
+        
+        # Remove common formatting characters: spaces, hyphens, parentheses, +
+        for char in [' ', '-', '(', ')', '+']:
+            phone = phone.replace(char, '')
+        
+        # Keep only digits
+        phone = ''.join(filter(str.isdigit, phone))
+        
+        # Add Brazil country code if not present
+        if phone and not phone.startswith('55'):
+            phone = '55' + phone
+        
+        return phone
+
     def send_text_message(self, phone, message):
         """
         Send text message via Evolution API
 
         Args:
-            phone (str): Phone number with country code (e.g., '5511999999999')
+            phone (str): Phone number with country code (e.g., '5511999999999') or group JID (e.g., '120363xxx@g.us')
             message (str): Message text to send
 
         Returns:
@@ -33,17 +78,16 @@ class EvolutionAPI:
         """
         url = f"{self.base_url}/message/sendText/{self.instance_name}"
 
-        # Evolution API expects just the phone number, NO @s.whatsapp.net suffix
-        # Remove @s.whatsapp.net if present
-        if '@' in phone:
-            phone = phone.split('@')[0]
+        # Normalize phone/JID
+        phone = self._normalize_phone(phone)
+        is_group = self._is_group(phone)
 
         payload = {
             'number': phone,
             'text': message
         }
 
-        logger.info(f"📤 Sending to Evolution API: {phone}")
+        logger.info(f"📤 Sending to Evolution API: {phone} (Grupo: {is_group})")
         logger.info(f"📍 URL: {url}")
 
         try:
@@ -67,7 +111,7 @@ class EvolutionAPI:
         Send media message (image, video, etc.)
 
         Args:
-            phone (str): Phone number with country code
+            phone (str): Phone number with country code or group JID
             media_url (str): URL of the media file
             caption (str): Optional caption for the media
 
@@ -76,9 +120,9 @@ class EvolutionAPI:
         """
         url = f"{self.base_url}/message/sendMedia/{self.instance_name}"
 
-        # Remove @s.whatsapp.net if present
-        if '@' in phone:
-            phone = phone.split('@')[0]
+        # Normalize phone/JID
+        phone = self._normalize_phone(phone)
+        is_group = self._is_group(phone)
 
         payload = {
             'number': phone,
@@ -87,13 +131,15 @@ class EvolutionAPI:
             'caption': caption
         }
 
+        logger.info(f"📤 Sending media to {phone} (Grupo: {is_group})")
+
         try:
             response = requests.post(url, json=payload, headers=self._get_headers(), timeout=30)
             response.raise_for_status()
-            logger.info(f"WhatsApp media sent successfully to {phone}")
+            logger.info(f"✅ WhatsApp media sent successfully to {phone}")
             return response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error sending WhatsApp media to {phone}: {e}")
+            logger.error(f"❌ Error sending WhatsApp media to {phone}: {e}")
             return None
 
     def check_instance_status(self):
