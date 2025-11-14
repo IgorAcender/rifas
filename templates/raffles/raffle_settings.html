@@ -63,8 +63,102 @@
                 </button>
             </div>
         </div>
+
+        <!-- Milestone Prize Configuration -->
+        <div class="form-section">
+            <h2>🎁 Prêmios Especiais por Meta</h2>
+            <p style="color: #6b7280; margin-bottom: 24px;">Configure prêmios digitais que os clientes desbloqueiam ao atingir uma quantidade mínima de compras</p>
+
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="enable_milestone_bonus">
+                        <input type="checkbox" id="enable_milestone_bonus" name="enable_milestone_bonus" {% if raffle.enable_milestone_bonus %}checked{% endif %}>
+                        <span style="margin-left: 8px;">Ativar Prêmios por Meta</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="milestone-section" style="display: {% if raffle.enable_milestone_bonus %}block{% else %}none{% endif %}; border: 2px solid #e5e7eb; padding: 24px; border-radius: 12px; background: #f8fafc;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="milestone_quantity">Quantidade Mínima de Números</label>
+                        <input
+                            type="number"
+                            id="milestone_quantity"
+                            name="milestone_quantity"
+                            value="{{ raffle.milestone_quantity }}"
+                            placeholder="50"
+                            min="1"
+                        >
+                        <span class="field-hint">Ex: 50 (cliente precisa comprar 50 números para desbloquear o prêmio)</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="milestone_prize_name">Nome do Prêmio</label>
+                        <input
+                            type="text"
+                            id="milestone_prize_name"
+                            name="milestone_prize_name"
+                            value="{{ raffle.milestone_prize_name }}"
+                            placeholder="Ex: PDF Exclusivo, Curso Online, Guia Completo"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="milestone_prize_description">Descrição do Prêmio</label>
+                        <textarea
+                            id="milestone_prize_description"
+                            name="milestone_prize_description"
+                            placeholder="Ex: Guia completo com 100+ técnicas avançadas"
+                            rows="4"
+                        >{{ raffle.milestone_prize_description }}</textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="milestone_prize_url">🔗 Link Digital do Prêmio (Google Drive, Dropbox, etc)</label>
+                        <input
+                            type="url"
+                            id="milestone_prize_url"
+                            name="milestone_prize_url"
+                            value="{{ raffle.milestone_prize_url }}"
+                            placeholder="https://drive.google.com/file/d/... ou https://www.dropbox.com/s/..."
+                        >
+                        <span class="field-hint">Cole aqui o link de compartilhamento do seu PDF ou arquivo digital. Quando o cliente clicar em "Acessar Prêmio Digital", será redirecionado para este link.</span>
+                    </div>
+                </div>
+
+                <div style="padding: 16px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px; margin-top: 16px;">
+                    <p style="margin: 0; color: #92400e; font-size: 14px;">
+                        <strong>💡 Dica:</strong> Você pode usar um link do Google Drive ou Dropbox (com acesso públicamente compartilhado) ou qualquer outro serviço de armazenamento em nuvem. Quando o cliente clicar no botão "Acessar Prêmio Digital", será redirecionado para este link.
+                    </p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Salvar Configurações
+                </button>
+            </div>
+        </div>
     </form>
 </div>
+
+<script>
+    // Toggle milestone section visibility
+    document.getElementById('enable_milestone_bonus').addEventListener('change', function() {
+        const section = document.getElementById('milestone-section');
+        section.style.display = this.checked ? 'block' : 'none';
+    });
+</script>
 
 <style>
     .page-header {

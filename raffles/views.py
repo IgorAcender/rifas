@@ -834,6 +834,16 @@ def raffle_settings_view(request, raffle_id):
         # Update WhatsApp
         admin_whatsapp = request.POST.get('admin_whatsapp', '').strip()
         raffle.admin_whatsapp = admin_whatsapp
+        
+        # Update Milestone Bonus settings
+        raffle.enable_milestone_bonus = request.POST.get('enable_milestone_bonus') == 'on'
+        
+        if raffle.enable_milestone_bonus:
+            raffle.milestone_quantity = int(request.POST.get('milestone_quantity', 50))
+            raffle.milestone_prize_name = request.POST.get('milestone_prize_name', '').strip()
+            raffle.milestone_prize_description = request.POST.get('milestone_prize_description', '').strip()
+            raffle.milestone_prize_url = request.POST.get('milestone_prize_url', '').strip()
+        
         raffle.save()
         
         messages.success(request, f'Configurações de "{raffle.name}" salvas com sucesso!')
