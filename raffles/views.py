@@ -448,6 +448,7 @@ def raffle_create(request):
                 milestone_quantity=int(milestone_quantity_str) if milestone_quantity_str else 50,
                 milestone_prize_name=request.POST.get('milestone_prize_name', ''),
                 milestone_prize_description=request.POST.get('milestone_prize_description', ''),
+                milestone_prize_url=request.POST.get('milestone_prize_url', ''),
             )
 
             raffle.initialize_numbers()
@@ -548,6 +549,7 @@ def raffle_edit(request, pk):
             
             raffle.milestone_prize_name = request.POST.get('milestone_prize_name', '')
             raffle.milestone_prize_description = request.POST.get('milestone_prize_description', '')
+            raffle.milestone_prize_url = request.POST.get('milestone_prize_url', '')
 
             # Update draw_date if provided
             if request.POST.get('draw_date'):
