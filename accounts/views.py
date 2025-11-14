@@ -289,10 +289,12 @@ def get_milestone_reward(request):
     from django.http import FileResponse, HttpResponseForbidden
     from raffles.models import Raffle, RaffleNumber, RaffleOrder
     
-    if request.method != 'POST':
-        return redirect('customer_area')
+    # Accept both GET and POST
+    raffle_id = request.GET.get('raffle_id') or request.POST.get('raffle_id')
     
-    raffle_id = request.POST.get('raffle_id')
+    if not raffle_id:
+        messages.error(request, 'Campanha não informada.')
+        return redirect('customer_area')
     
     try:
         raffle = Raffle.objects.get(id=raffle_id)
