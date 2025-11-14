@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from .models import Raffle, RaffleOrder, Referral, RaffleNumber, PrizeNumber
 from .serializers import RaffleSerializer, RaffleOrderSerializer, ReferralSerializer
+from django.utils import timezone
+from datetime import timedelta
 import re
 
 
@@ -35,8 +37,107 @@ class RaffleViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['get'], url_path='my-referral')
-    def my_referral(self, request, pk=None):
+    @action(detail=True, methods=['get'], url_path='check-reservation')
+    def check_reservation(self, request, pk=None):
+        """Verificar se ainda há uma reserva ativa e quanto tempo resta"""
+        from django.db.models import Q
+        
+        raffle = self.get_object()
+        
+        # Release expired reservations first
+        raffle.release_expired_reservations()
+        
+        # Pegar reservas ativas do usuário
+        user_reservations = RaffleNumber.objects.filter(
+            raffle=raffle,
+            user=request.user,
+            status=RaffleNumber.Status.RESERVED,
+            reserved_expires_at__isnull=False
+        )
+        
+        if not user_reservations.exists():
+            return Response({
+                'has_reservation': False,
+                'message': 'Nenhuma reserva ativa'
+            })
+        
+        # Pegar a reserva com maior tempo restante
+        reservation = user_reservations.order_by('reserved_expires_at').last()
+        now = timezone.now()
+        
+        if reservation.reserved_expires_at <= now:
+            # Liberou enquanto checava
+            reservation.status = RaffleNumber.Status.AVAILABLE
+            reservation.user = None
+            reservation.order = None
+            reservation.reserved_at = None
+            reservation.reserved_expires_at = None
+            reservation.save()
+            
+            return Response({
+                'has_reservation': False,
+                'message': 'Sua reserva expirou',
+                'numbers': []
+            })
+        
+        # Calcular tempo restante em segundos
+        time_remaining = (reservation.reserved_expires_at - now).total_seconds()
+        
+        # Pegar todos os números reservados
+        reserved_numbers = list(user_reservations.values_list('number', flat=True))
+        
+        return Response({
+            'has_reservation': True,
+            'numbers': reserved_numbers,
+            'expires_at': reservation.reserved_expires_at.isoformat(),
+            'time_remaining_seconds': int(time_remaining),
+            'message': f'Seu pedido expira em {int(time_remaining // 60)} minutos'
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='reservation-status')
+    def reservation_status(self, request, pk=None):
+        """API simples para verificar tempo de reserva (usado pelo frontend)"""
+        raffle = self.get_object()
+        
+        # Verificar reservas expiradas
+        now = timezone.now()
+        expired = RaffleNumber.objects.filter(
+            raffle=raffle,
+            status=RaffleNumber.Status.RESERVED,
+            reserved_expires_at__lt=now
+        )
+        
+        # Liberar expiradas
+        for num in expired:
+            num.status = RaffleNumber.Status.AVAILABLE
+            num.user = None
+            num.order = None
+            num.reserved_at = None
+            num.reserved_expires_at = None
+            num.save()
+        
+        # Pegar reserva do usuário
+        user_reservation = RaffleNumber.objects.filter(
+            raffle=raffle,
+            user=request.user,
+            status=RaffleNumber.Status.RESERVED,
+            reserved_expires_at__isnull=False
+        ).order_by('reserved_expires_at').last()
+        
+        if not user_reservation:
+            return Response({'has_active_reservation': False})
+        
+        if user_reservation.reserved_expires_at <= now:
+            return Response({'has_active_reservation': False})
+        
+        time_remaining = (user_reservation.reserved_expires_at - now).total_seconds()
+        
+        return Response({
+            'has_active_reservation': True,
+            'time_remaining_seconds': int(time_remaining),
+            'expires_at': user_reservation.reserved_expires_at.isoformat()
+        })
+
         """Get user's referral code for this raffle"""
         raffle = self.get_object()
 

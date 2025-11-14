@@ -3,6 +3,8 @@ import string
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
+from django.utils import timezone
+from datetime import timedelta
 from accounts.models import User
 
 
@@ -260,20 +262,34 @@ class Raffle(models.Model):
         self.save(update_fields=['total_numbers'])
 
     def release_expired_reservations(self):
-        """Release numbers from expired pending orders"""
+        """Release numbers from expired pending orders and reservations"""
         from django.utils import timezone
-        from datetime import timedelta
 
-        # Orders pending for more than 15 minutes are considered expired
-        expiration_time = timezone.now() - timedelta(minutes=15)
+        now = timezone.now()
 
-        # Find expired pending orders
+        # Liberar números com reserva expirada
+        expired_reservations = self.numbers.filter(
+            status=RaffleNumber.Status.RESERVED,
+            reserved_expires_at__isnull=False,
+            reserved_expires_at__lt=now
+        )
+
+        for raffle_num in expired_reservations:
+            raffle_num.status = RaffleNumber.Status.AVAILABLE
+            raffle_num.user = None
+            raffle_num.order = None
+            raffle_num.reserved_at = None
+            raffle_num.reserved_expires_at = None
+            raffle_num.save()
+
+        # Legacy: também liberar orders pendentes expiradas
+        expiration_time = now - timedelta(minutes=15)
+
         expired_orders = self.orders.filter(
             status=RaffleOrder.Status.PENDING,
             created_at__lt=expiration_time
         )
 
-        # Release their numbers
         for order in expired_orders:
             order.allocated_numbers.update(
                 status=RaffleNumber.Status.AVAILABLE,
@@ -354,6 +370,7 @@ class RaffleNumber(models.Model):
     )
 
     reserved_at = models.DateTimeField('Reservado em', null=True, blank=True)
+    reserved_expires_at = models.DateTimeField('Reserva Expira em', null=True, blank=True, help_text='Data/hora quando a reserva vai expirar automaticamente')
     sold_at = models.DateTimeField('Vendido em', null=True, blank=True)
 
     class Meta:
@@ -492,13 +509,17 @@ class RaffleOrder(models.Model):
         paid_ids = selected_ids[:self.quantity]  # Primeiros são pagos
         bonus_ids = selected_ids[self.quantity:]  # Restantes são bônus
 
+        # Separa reserved numbers with expiration time (15 minutes from now)
+        expiration_time = timezone.now() + timedelta(minutes=15)
+        
         # Reserve paid numbers
         RaffleNumber.objects.filter(id__in=paid_ids).update(
             status=RaffleNumber.Status.RESERVED,
             user=self.user,
             order=self,
             source=RaffleNumber.Source.PURCHASE,
-            reserved_at=models.functions.Now()
+            reserved_at=models.functions.Now(),
+            reserved_expires_at=expiration_time
         )
         
         # Reserve bonus numbers with correct source
@@ -508,7 +529,8 @@ class RaffleOrder(models.Model):
                 user=self.user,
                 order=self,
                 source=RaffleNumber.Source.PURCHASE_BONUS,
-                reserved_at=models.functions.Now()
+                reserved_at=models.functions.Now(),
+                reserved_expires_at=expiration_time
             )
         
         # Save bonus info in payment_data
