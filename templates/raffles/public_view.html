@@ -260,6 +260,7 @@
             flex-shrink: 0;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            animation: pulse 2s ease-in-out infinite !important;
         }
         
         @media (max-width: 768px) {
@@ -290,6 +291,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            animation: pulse 2s ease-in-out infinite !important;
         }
 
         .btn-buy:hover {
@@ -299,6 +301,7 @@
         .btn-buy:disabled {
             background: #9ca3af;
             cursor: not-allowed;
+            animation: none !important;
         }
 
         @keyframes pulse {
@@ -311,10 +314,6 @@
             100% {
                 transform: scale(1);
             }
-        }
-
-        .btn-buy {
-            animation: pulse 2s ease-in-out infinite;
         }
 
         /* Modal Styles */
