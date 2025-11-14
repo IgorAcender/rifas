@@ -1888,7 +1888,7 @@
             setButtonLoading(testPayBtn, true);
             
             try {
-                const response = await fetch(`/api/raffles/{{ raffle.slug }}/test-payment/`, {
+                const response = await fetch(`/r/{{ raffle.slug }}/test-payment/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
