@@ -95,8 +95,16 @@
 
         <!-- Section: Meus Números -->
         <div class="section-content active" id="numbers-{{ forloop.counter }}">
-            <!-- DEBUG: Mostrar dicionário de prêmios (remover em produção) -->
-            <div style="display:none;" data-prize-dict="{{ prize_numbers_dict|safe }}"></div>
+            <!-- DEBUG: Mostrar dicionário de prêmios -->
+            <div style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 11px; max-height: 100px; overflow-y: auto; display: none;" id="debug-{{ forloop.counter }}">
+                <strong>DEBUG - Prize Dict Keys:</strong>
+                {% for key in prize_numbers_dict %}
+                    <div>{{ key }}</div>
+                {% endfor %}
+                {% if not prize_numbers_dict %}
+                    <div style="color: red;">❌ Dicionário vazio!</div>
+                {% endif %}
+            </div>
             
             <div class="numbers-grid">
                 {% for number in my_numbers %}
@@ -1298,6 +1306,41 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// DEBUG: Mostrar informações dos números
+window.debugNumbers = function() {
+    const numbers = document.querySelectorAll('[data-number]');
+    const output = [];
+    
+    numbers.forEach(num => {
+        const number = num.getAttribute('data-number');
+        const raffleId = num.getAttribute('data-raffle-id');
+        const prizeKey = num.getAttribute('data-prize-key');
+        const hasPrize = num.getAttribute('data-has-prize');
+        
+        if (number === '450') {
+            output.push(`
+🔍 NÚMERO 450:
+  - Raffle ID: ${raffleId}
+  - Prize Key: ${prizeKey}
+  - Has Prize: ${hasPrize}
+  - Classes: ${num.className}
+  - Element: ${num.outerHTML.substring(0, 200)}...
+            `);
+        }
+    });
+    
+    console.log('%c DEBUG NÚMEROS', 'background: #ff6b6b; color: white; font-weight: bold; padding: 5px;');
+    console.log(output.join('\n'));
+    alert('Abra o Console (F12) para ver os detalhes!');
+};
+
+// Atalho: pressionar SHIFT + D para debug
+document.addEventListener('keydown', function(e) {
+    if (e.shiftKey && e.key === 'D') {
+        window.debugNumbers();
+    }
+});
+
 // Calculate progress bars for milestone rewards
 document.addEventListener('DOMContentLoaded', function() {
     const progressFills = document.querySelectorAll('.progress-fill');
@@ -1307,6 +1350,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = Math.min((current / total) * 100, 100);
         fill.style.width = percentage + '%';
     });
+    
+    // Debug automático no console
+    console.log('%c RIFAS DEBUG', 'background: #4CAF50; color: white; font-weight: bold; padding: 5px;');
+    console.log('Pressione SHIFT + D para ver detalhes dos números');
+    window.debugNumbers();
 });
+
 </script>
 {% endblock %}
