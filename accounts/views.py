@@ -136,9 +136,18 @@ def customer_login(request):
 @login_required
 def customer_area(request):
     """Area do cliente - ver seus numeros e historico"""
-    from raffles.models import RaffleNumber, RaffleOrder, Referral, PrizeNumber
+    from raffles.models import RaffleNumber, RaffleOrder, Referral, PrizeNumber, Raffle, SiteConfiguration
     from django.db.models import F
     from django.db.models.functions import Coalesce
+
+    # Get active campaign for "back to campaign" button
+    active_campaign = None
+    site_config = SiteConfiguration.get_config()
+    if site_config.home_redirect_raffle:
+        active_campaign = site_config.home_redirect_raffle
+    else:
+        # If no default set, get first active raffle
+        active_campaign = Raffle.objects.filter(status=Raffle.Status.ACTIVE).first()
 
     my_numbers = RaffleNumber.objects.filter(
         user=request.user,
@@ -283,6 +292,7 @@ def customer_area(request):
         'bonus_numbers_count': bonus_numbers_count,
         'my_referral_codes': my_referral_codes,
         'prize_numbers_dict': prize_numbers_dict,
+        'active_campaign': active_campaign,
     }
     return render(request, 'accounts/customer_area.html', context)
 
