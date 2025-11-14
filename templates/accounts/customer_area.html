@@ -96,17 +96,6 @@
 
         <!-- Section: Meus Números -->
         <div class="section-content active" id="numbers-{{ forloop.counter }}">
-            <!-- DEBUG: Mostrar dicionário de prêmios -->
-            <div style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 11px; max-height: 100px; overflow-y: auto; display: none;" id="debug-{{ forloop.counter }}">
-                <strong>DEBUG - Prize Dict Keys:</strong>
-                {% for key in prize_numbers_dict %}
-                    <div>{{ key }}</div>
-                {% endfor %}
-                {% if not prize_numbers_dict %}
-                    <div style="color: red;">❌ Dicionário vazio!</div>
-                {% endif %}
-            </div>
-            
             <div class="numbers-grid">
                 {% for number in my_numbers %}
                 {% if number.raffle.id == campaign.raffle.id %}
