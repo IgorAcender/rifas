@@ -88,3 +88,52 @@ class SilentErrorMiddleware:
             return redirect('admin_login')
         else:
             return redirect('home')
+
+
+class CleanupExpiredReservationsMiddleware:
+    """Middleware para limpar reservas expiradas a cada hora"""
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.last_cleanup_hour = None
+    
+    def __call__(self, request):
+        """Verificar a cada request se deve fazer cleanup"""
+        from django.utils import timezone
+        
+        now = timezone.now()
+        
+        # Se mudou de hora, fazer cleanup
+        if self.last_cleanup_hour != now.hour:
+            self.cleanup_expired_reservations(now)
+            self.last_cleanup_hour = now.hour
+        
+        response = self.get_response(request)
+        return response
+    
+    def cleanup_expired_reservations(self, now):
+        """Limpar reservas expiradas"""
+        try:
+            from raffles.models import RaffleNumber
+            
+            # Liberar números com reserva expirada
+            expired = RaffleNumber.objects.filter(
+                status=RaffleNumber.Status.RESERVED,
+                reserved_expires_at__isnull=False,
+                reserved_expires_at__lt=now
+            )
+            
+            count = expired.count()
+            
+            if count > 0:
+                expired.update(
+                    status=RaffleNumber.Status.AVAILABLE,
+                    user=None,
+                    order=None,
+                    reserved_at=None,
+                    reserved_expires_at=None
+                )
+                logger.info(f'🔄 Cleanup automático ({now.hour}h): {count} número(s) liberado(s)')
+        except Exception as e:
+            logger.error(f'❌ Erro ao fazer cleanup de reservas: {e}')
+

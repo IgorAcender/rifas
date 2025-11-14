@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'django_crontab',
 
     # Local apps
     'accounts',
@@ -52,6 +51,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'config.middleware.SilentErrorMiddleware',  # Custom error handling
     'analytics.middleware.PageViewTrackingMiddleware',  # Analytics tracking
+    'config.middleware.CleanupExpiredReservationsMiddleware',  # Cleanup reservas a cada hora
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -327,11 +327,3 @@ LOGGING = {
         },
     },
 }
-
-# Cron Job Configuration
-CRONJOBS = [
-    ('0 * * * *', 'raffles.management.commands.cleanup_expired_reservations.Command', '>> /tmp/cron_cleanup_reservations.log 2>&1')
-]
-
-# Ajuste de zona horária para cron
-CRONTAB_COMMAND_PREFIX = 'DJANGO_SETTINGS_MODULE=config.settings'
