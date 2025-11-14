@@ -178,11 +178,15 @@ def customer_area(request):
     prize_numbers_dict = {}
     user_raffle_ids = list(set([n.raffle_id for n in my_numbers]))
     
-    prize_numbers = PrizeNumber.objects.filter(raffle_id__in=user_raffle_ids)
-    
-    for prize in prize_numbers:
-        key = f"{prize.raffle_id}_{prize.number}"
-        prize_numbers_dict[key] = True  # Simple True for template checking
+    # Only fetch prize numbers from raffles where user has numbers
+    if user_raffle_ids:
+        prize_numbers = PrizeNumber.objects.filter(raffle_id__in=user_raffle_ids)
+        
+        for prize in prize_numbers:
+            # Create key matching template format exactly
+            # Template: number.raffle.id|stringformat:"d"|add:"_"|add:number.number|stringformat:"d"
+            key = f"{prize.raffle_id}_{prize.number}"
+            prize_numbers_dict[key] = True  # Simple True for template checking
 
     my_orders = RaffleOrder.objects.filter(
         user=request.user

@@ -95,6 +95,9 @@
 
         <!-- Section: Meus Números -->
         <div class="section-content active" id="numbers-{{ forloop.counter }}">
+            <!-- DEBUG: Mostrar dicionário de prêmios (remover em produção) -->
+            <div style="display:none;" data-prize-dict="{{ prize_numbers_dict|safe }}"></div>
+            
             <div class="numbers-grid">
                 {% for number in my_numbers %}
                 {% if number.raffle.id == campaign.raffle.id %}
@@ -103,7 +106,11 @@
                     {% if prize_key in prize_numbers_dict %}prize-number
                     {% elif number.source == 'purchase_bonus' %}bonus-purchase-number
                     {% elif number.source == 'referral_inviter' or number.source == 'referral_invitee' %}bonus-referral-number
-                    {% endif %}">
+                    {% endif %}"
+                    data-number="{{ number.number }}"
+                    data-raffle-id="{{ number.raffle.id }}"
+                    data-prize-key="{{ prize_key }}"
+                    data-has-prize="{% if prize_key in prize_numbers_dict %}true{% else %}false{% endif %}">
                     {% if prize_key in prize_numbers_dict %}
                     <div class="prize-badge">🏆</div>
                     {% endif %}

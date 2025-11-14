@@ -1087,6 +1087,9 @@
             <div class="premium-numbers-grid">
                 {% for prize_number in prize_numbers %}
                 <div class="premium-number-card {% if prize_number.is_won %}premium-won{% elif prize_number.number in user_numbers %}premium-owned-special{% else %}premium-available{% endif %}">
+                    {% if prize_number.is_won %}
+                    <div class="premium-badge-trophy">🏆</div>
+                    {% endif %}
                     <div class="premium-value-top">R${{ prize_number.prize_amount|floatformat:0 }}</div>
                     <div class="premium-number {% if prize_number.is_won %}premium-number-struck{% endif %}">
                         {% widthratio raffle.total_numbers 1 1 as total_str %}
