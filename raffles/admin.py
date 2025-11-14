@@ -49,8 +49,10 @@ class RaffleAdmin(ModelAdmin):
                 'milestone_quantity',
                 'milestone_prize_name',
                 'milestone_prize_description',
+                'milestone_prize_file',
+                'milestone_prize_url',
             ),
-            'description': 'Configure um prêmio especial para clientes que comprarem uma quantidade mínima de números (ex: compre 50 números e ganhe um PDF exclusivo).'
+            'description': 'Configure um prêmio especial para clientes que comprarem uma quantidade mínima de números (ex: compre 50 números e ganhe um PDF exclusivo). Você pode adicionar um arquivo para download ou um link externo (Google Drive, Dropbox, etc).'
         }),
         ('Estatisticas', {
             'fields': ('numbers_sold', 'numbers_reserved', 'numbers_available', 'created_at', 'updated_at')

@@ -281,3 +281,52 @@ def logout_view(request):
     auth_logout(request)
     messages.success(request, 'Voce saiu do sistema.')
     return redirect('customer_login')
+
+
+@login_required
+def get_milestone_reward(request):
+    """Get milestone reward file or redirect to URL"""
+    from django.http import FileResponse, HttpResponseForbidden
+    from raffles.models import Raffle, RaffleNumber, RaffleOrder
+    
+    if request.method != 'POST':
+        return redirect('customer_area')
+    
+    raffle_id = request.POST.get('raffle_id')
+    
+    try:
+        raffle = Raffle.objects.get(id=raffle_id)
+    except Raffle.DoesNotExist:
+        messages.error(request, 'Campanha não encontrada.')
+        return redirect('customer_area')
+    
+    # Check if milestone bonus is enabled
+    if not raffle.enable_milestone_bonus:
+        messages.error(request, 'Este prêmio não está disponível para esta campanha.')
+        return redirect('customer_area')
+    
+    # Check if user has enough purchases to unlock the reward
+    user_total_numbers = RaffleNumber.objects.filter(
+        user=request.user,
+        raffle=raffle
+    ).count()
+    
+    if user_total_numbers < raffle.milestone_quantity:
+        messages.error(request, f'Você precisa de {raffle.milestone_quantity} números para acessar este prêmio. Você tem {user_total_numbers}.')
+        return redirect('customer_area')
+    
+    # If there's a file, serve it for download
+    if raffle.milestone_prize_file:
+        file_path = raffle.milestone_prize_file.path
+        return FileResponse(
+            open(file_path, 'rb'),
+            as_attachment=True,
+            filename=f"{raffle.name}_{raffle.milestone_prize_name}.pdf"
+        )
+    
+    # If there's a URL, redirect to it
+    if raffle.milestone_prize_url:
+        return redirect(raffle.milestone_prize_url)
+    
+    messages.error(request, 'Nenhum prêmio disponível para download no momento.')
+    return redirect('customer_area')

@@ -30,6 +30,7 @@ urlpatterns = [
     path('login/', account_views.customer_login, name='customer_login'),
     path('minha-area/', account_views.customer_area, name='customer_area'),
     path('logout/', account_views.logout_view, name='logout'),
+    path('get-milestone-reward/', account_views.get_milestone_reward, name='get_milestone_reward'),
 
     # Public Raffle URLs (sem autenticação)
     path('r/<slug:slug>/', raffle_views.raffle_public_view, name='raffle_public'),

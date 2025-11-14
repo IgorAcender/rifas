@@ -79,6 +79,11 @@
             <button class="section-tab" data-section="share-{{ forloop.counter }}">
                 📤 Compartilhar
             </button>
+            {% if campaign.raffle.enable_milestone_bonus %}
+            <button class="section-tab" data-section="rewards-{{ forloop.counter }}">
+                🎁 Prêmios por Meta
+            </button>
+            {% endif %}
         </div>
 
         <!-- Section: Meus Números -->
@@ -214,6 +219,71 @@
                 </div>
             {% endfor %}
         </div>
+
+        <!-- Section: Prêmios por Meta -->
+        {% if campaign.raffle.enable_milestone_bonus %}
+        <div class="section-content" id="rewards-{{ forloop.counter }}">
+            <div class="rewards-box">
+                <div class="rewards-header">
+                    <h3 style="margin: 0; color: #1e293b; font-size: 20px; display: flex; align-items: center; gap: 8px;">
+                        🎁 {{ campaign.raffle.milestone_prize_name }}
+                    </h3>
+                </div>
+                
+                <div class="reward-requirement" style="margin: 24px 0; padding: 20px; background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 12px;">
+                    <div style="margin-bottom: 12px;">
+                        <p style="margin: 0 0 8px 0; color: #1e293b; font-weight: 600;">
+                            Requisito para desbloquear:
+                        </p>
+                        <p style="margin: 0; color: #64748b;">
+                            Compre <strong>{{ campaign.raffle.milestone_quantity }} números</strong> para desbloquear este prêmio digital
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px;">
+                        <div style="flex: 1; height: 12px; background: #e5e7eb; border-radius: 6px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%); width: {{ campaign.total_quantity|multiply:100|divide:campaign.raffle.milestone_quantity|floatformat:0 }}%; transition: width 0.3s;"></div>
+                        </div>
+                        <span style="font-size: 14px; font-weight: 600; color: #1e293b; min-width: 80px; text-align: right;">
+                            {{ campaign.total_quantity }}/{{ campaign.raffle.milestone_quantity }}
+                        </span>
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0; padding: 16px; background: #f8fafc; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-size: 15px;">📋 Descrição do Prêmio:</h4>
+                    <p style="margin: 0; color: #64748b; line-height: 1.6;">
+                        {{ campaign.raffle.milestone_prize_description }}
+                    </p>
+                </div>
+
+                {% if campaign.total_quantity >= campaign.raffle.milestone_quantity %}
+                    <!-- Unlocked -->
+                    <div style="padding: 20px; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: 2px solid #10b981; border-radius: 12px; text-align: center;">
+                        <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #065f46;">
+                            ✅ Parabéns! Você desbloqueou este prêmio!
+                        </p>
+                        <button class="reward-access-btn" onclick="accessReward({{ campaign.raffle.id }})">
+                            🔓 Acessar Prêmio Digital
+                        </button>
+                        <p style="margin: 12px 0 0 0; font-size: 13px; color: #047857;">
+                            Clique acima para acessar seu PDF ou conteúdo digital
+                        </p>
+                    </div>
+                {% else %}
+                    <!-- Locked -->
+                    <div style="padding: 20px; background: #f3f4f6; border: 2px solid #d1d5db; border-radius: 12px; text-align: center; opacity: 0.7;">
+                        <p style="margin: 0; font-size: 15px; color: #6b7280; font-weight: 600;">
+                            🔒 Prêmio bloqueado
+                        </p>
+                        <p style="margin: 8px 0 0 0; font-size: 13px; color: #9ca3af;">
+                            Compre {{ campaign.raffle.milestone_quantity|add:"-"|add:campaign.total_quantity }} números a mais para desbloquear
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
     </div>
     {% endfor %}
@@ -859,6 +929,43 @@
     box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
+/* Reward Access Button */
+.reward-access-btn {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reward-access-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.reward-access-btn:active {
+    transform: translateY(0);
+}
+
+.rewards-box {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.rewards-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #e5e5e5;
+}
+
 /* Empty State */
 .empty-message {
     text-align: center;
@@ -1010,6 +1117,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Access reward function
+function accessReward(raffleId) {
+    // Create a temporary form to submit a POST request
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/get-milestone-reward/';
+    
+    const raffleInput = document.createElement('input');
+    raffleInput.type = 'hidden';
+    raffleInput.name = 'raffle_id';
+    raffleInput.value = raffleId;
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+    
+    form.appendChild(raffleInput);
+    form.appendChild(csrfInput);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
 
 // Copy link function
 function copyLink(inputId) {

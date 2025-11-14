@@ -167,6 +167,8 @@ class Raffle(models.Model):
     milestone_quantity = models.PositiveIntegerField('Quantidade Mínima', default=50, help_text='Quantidade mínima de números para ganhar o prêmio')
     milestone_prize_name = models.CharField('Nome do Prêmio', max_length=200, blank=True, help_text='Ex: PDF Exclusivo, Curso Online, etc')
     milestone_prize_description = models.TextField('Descrição do Prêmio', blank=True, help_text='Detalhes sobre o prêmio especial')
+    milestone_prize_file = models.FileField('Arquivo do Prêmio (PDF, ZIP, etc)', upload_to='milestone_rewards/', blank=True, null=True, help_text='Upload do arquivo (PDF, ZIP, etc) para download')
+    milestone_prize_url = models.URLField('Link Digital do Prêmio', blank=True, help_text='Link externo para acesso ao prêmio digital (Google Drive, Dropbox, etc)')
 
     # Legacy field - deprecated, kept for database compatibility
     premium_numbers = models.PositiveIntegerField('Números Premium (Deprecated)', null=True, blank=True, help_text='Campo legado - não utilizado')

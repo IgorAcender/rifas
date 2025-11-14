@@ -187,6 +187,171 @@
         .divider span {
             padding: 0 16px;
         }
+
+        .milestone-section {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #e5e5e5;
+        }
+
+        .milestone-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .milestone-container {
+            display: grid;
+            gap: 12px;
+        }
+
+        .milestone-item {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+
+        .milestone-item.unlocked {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: #10b981;
+        }
+
+        .milestone-item.locked {
+            opacity: 0.7;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-color: #d1d5db;
+        }
+
+        .milestone-item:hover:not(.locked) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+        }
+
+        .milestone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .milestone-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .milestone-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.1);
+            color: #1e293b;
+        }
+
+        .milestone-badge.unlocked {
+            background: #10b981;
+            color: white;
+        }
+
+        .milestone-badge.locked {
+            background: #9ca3af;
+            color: white;
+        }
+
+        .milestone-description {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .milestone-requirement {
+            font-size: 13px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .requirement-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .requirement-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .requirement-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .requirement-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            white-space: nowrap;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .milestone-unlock-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .milestone-unlock-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .milestone-unlock-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .milestone-unlock-message {
+            display: inline-block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -231,6 +396,23 @@
 
         <div class="hint-text">
             Use o WhatsApp que voce usou na compra
+        </div>
+
+        <!-- Milestone Bonus Section -->
+        <div class="milestone-section">
+            <div class="milestone-title">🎁 Prêmios Especiais por Meta</div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+                Compre acima de determinadas quantidades e desbloqueie prêmios digitais exclusivos!
+            </p>
+            
+            <div class="milestone-container">
+                <!-- Placeholder for dynamic milestone items -->
+                <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 24px; text-align: center;">
+                    <p style="color: #94a3b8; font-size: 13px; margin: 0;">
+                        💡 Após fazer login, você verá aqui os prêmios especiais da campanha e poderá acessar seus PDFs e conteúdos digitais
+                    </p>
+                </div>
+            </div>
         </div>
 
         <div class="info-box">
