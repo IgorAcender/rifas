@@ -176,9 +176,6 @@ class Raffle(models.Model):
     # Admin WhatsApp for this raffle
     admin_whatsapp = models.CharField('WhatsApp de Suporte', max_length=20, blank=True, help_text='Número de WhatsApp para suporte (ex: 5511999999999). Se vazio, usará o padrão da configuração.')
 
-    # Test mode - for testing payments and notifications without real charges
-    is_test_mode = models.BooleanField('Modo de Teste', default=False, help_text='Ativa pagamento teste para simular compras e testar notificações')
-
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
 
@@ -196,8 +193,7 @@ class Raffle(models.Model):
             base_slug = slugify(self.name)
             slug = base_slug
             counter = 1
-            # Excluir a própria instância da verificação (se já existe)
-            while Raffle.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            while Raffle.objects.filter(slug=slug).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
@@ -532,16 +528,6 @@ class RaffleOrder(models.Model):
             sold_at=timezone.now()
         )
         print(f"✅ DEBUG: Marked {self.allocated_numbers.count()} numbers as sold")
-
-        # Enviar notificação de confirmação de pagamento
-        try:
-            from notifications.whatsapp import send_payment_confirmation
-            send_payment_confirmation(self)
-            print(f"📱 DEBUG: Notificação de pagamento enviada")
-        except Exception as e:
-            print(f"⚠️ Erro ao enviar notificação de pagamento: {e}")
-            import traceback
-            traceback.print_exc()
 
         # Verificar se algum número comprado é um número premiado
         allocated_numbers = list(self.allocated_numbers.values_list('number', flat=True))

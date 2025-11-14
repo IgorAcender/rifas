@@ -451,7 +451,6 @@ def raffle_create(request):
                 fee_percentage=float(fee_percentage_str) if fee_percentage_str else 0,
                 status=request.POST.get('status', 'draft'),
                 draw_date=request.POST.get('draw_date') if request.POST.get('draw_date') else None,
-                is_test_mode=request.POST.get('is_test_mode') == 'on',
                 inviter_bonus=int(inviter_bonus_str) if inviter_bonus_str else 2,
                 invitee_bonus=int(invitee_bonus_str) if invitee_bonus_str else 1,
                 enable_progressive_bonus=request.POST.get('enable_progressive_bonus') == '1',
@@ -515,10 +514,6 @@ def raffle_edit(request, pk):
 
     if request.method == 'POST':
         try:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.info(f"Editing raffle {pk}, POST data: {dict(request.POST)}")
-            
             # Check if total_numbers is being increased
             new_total_numbers = int(request.POST.get('total_numbers', raffle.total_numbers))
             if new_total_numbers > raffle.total_numbers:
@@ -541,9 +536,6 @@ def raffle_edit(request, pk):
             raffle.fee_percentage = float(fee_percentage) if fee_percentage else 0
             
             raffle.status = request.POST.get('status', 'draft')
-            
-            # Modo de teste
-            raffle.is_test_mode = request.POST.get('is_test_mode') == 'on'
             
             inviter_bonus = request.POST.get('inviter_bonus', '').strip()
             raffle.inviter_bonus = int(inviter_bonus) if inviter_bonus else 2
@@ -654,11 +646,6 @@ def raffle_edit(request, pk):
             return redirect('raffle_list')
 
         except Exception as e:
-            import traceback
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f'Erro ao atualizar campanha: {str(e)}')
-            logger.error(traceback.format_exc())
             messages.error(request, f'Erro ao atualizar campanha: {str(e)}')
 
     context = {
@@ -770,122 +757,6 @@ def raffle_public_view(request, slug):
         'prize_numbers': prize_numbers,
     }
     return render(request, 'raffles/public_view.html', context)
-
-
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-import json
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def test_payment(request, slug):
-    """Processa pagamento teste e força número premiado"""
-    try:
-        raffle = get_object_or_404(Raffle, slug=slug, status=Raffle.Status.ACTIVE)
-        
-        # Verificar se está em modo de teste
-        if not raffle.is_test_mode:
-            return JsonResponse({
-                'error': 'Esta campanha não está em modo de teste'
-            }, status=400)
-        
-        # Obter order_id e force_prize_number do body
-        data = json.loads(request.body)
-        order_id = data.get('order_id')
-        force_prize_number = data.get('force_prize_number', True)  # Default True para compatibilidade
-        
-        if not order_id:
-            return JsonResponse({'error': 'order_id é obrigatório'}, status=400)
-        
-        # Buscar a order
-        order = get_object_or_404(RaffleOrder, id=order_id, user=request.user, raffle=raffle)
-        
-        # Verificar se já não foi paga
-        if order.status == RaffleOrder.Status.PAID:
-            return JsonResponse({'error': 'Este pedido já foi pago'}, status=400)
-        
-        has_prize_number = False
-        prize_number_value = None
-        
-        # Forçar atribuição de um número premiado APENAS se force_prize_number=True
-        if force_prize_number:
-            # Buscar números premiados disponíveis (ainda não ganhos)
-            available_prize_numbers = raffle.prize_numbers.filter(
-                is_won=False
-            ).order_by('release_percentage_min')
-            
-            # Forçar atribuição de um número premiado se disponível
-            if available_prize_numbers.exists():
-                # Pegar o primeiro número premiado disponível
-                prize_number_obj = available_prize_numbers.first()
-                
-                # Buscar um RaffleNumber que corresponda a este número premiado
-                # e que esteja reservado para esta order
-                raffle_number = RaffleNumber.objects.filter(
-                    raffle=raffle,
-                    number=prize_number_obj.number,
-                    user=request.user,
-                    status=RaffleNumber.Status.RESERVED
-                ).first()
-                
-                # Se não encontrou o número premiado reservado, tentar trocar um número reservado
-                if not raffle_number:
-                    # Pegar qualquer número reservado deste usuário para esta rifa
-                    user_reserved_number = RaffleNumber.objects.filter(
-                        raffle=raffle,
-                        user=request.user,
-                        status=RaffleNumber.Status.RESERVED
-                    ).first()
-                    
-                    if user_reserved_number:
-                        # Verificar se o número premiado está disponível
-                        prize_raffle_number = RaffleNumber.objects.filter(
-                            raffle=raffle,
-                            number=prize_number_obj.number,
-                            status=RaffleNumber.Status.AVAILABLE
-                        ).first()
-                        
-                        if prize_raffle_number:
-                            # Liberar o número atual do usuário
-                            user_reserved_number.status = RaffleNumber.Status.AVAILABLE
-                            user_reserved_number.user = None
-                            user_reserved_number.reserved_at = None
-                            user_reserved_number.save()
-                            
-                            # Reservar o número premiado para o usuário
-                            prize_raffle_number.user = request.user
-                            prize_raffle_number.status = RaffleNumber.Status.RESERVED
-                            from django.utils import timezone
-                            prize_raffle_number.reserved_at = timezone.now()
-                            prize_raffle_number.save()
-                            
-                            raffle_number = prize_raffle_number
-                
-                if raffle_number:
-                    has_prize_number = True
-                    prize_number_value = raffle_number.number
-        
-        # Marcar order como paga
-        order.mark_as_paid()
-        
-        return JsonResponse({
-            'success': True,
-            'order_id': order.id,
-            'has_prize_number': has_prize_number,
-            'prize_number': prize_number_value,
-            'message': 'Pagamento teste processado com sucesso'
-        })
-        
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'JSON inválido'}, status=400)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({'error': str(e)}, status=500)
-
 
 
 @login_required
