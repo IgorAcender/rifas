@@ -242,7 +242,7 @@
                     
                     <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px;">
                         <div style="flex: 1; height: 12px; background: #e5e7eb; border-radius: 6px; overflow: hidden;">
-                            <div style="height: 100%; background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%); width: {{ campaign.total_quantity|multiply:100|divide:campaign.raffle.milestone_quantity|floatformat:0 }}%; transition: width 0.3s;"></div>
+                            <div class="progress-fill" style="height: 100%; background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%); width: 0%; transition: width 0.3s;" data-current="{{ campaign.total_quantity }}" data-total="{{ campaign.raffle.milestone_quantity }}"></div>
                         </div>
                         <span style="font-size: 14px; font-weight: 600; color: #1e293b; min-width: 80px; text-align: right;">
                             {{ campaign.total_quantity }}/{{ campaign.raffle.milestone_quantity }}
@@ -1224,5 +1224,16 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Calculate progress bars for milestone rewards
+document.addEventListener('DOMContentLoaded', function() {
+    const progressFills = document.querySelectorAll('.progress-fill');
+    progressFills.forEach(fill => {
+        const current = parseInt(fill.getAttribute('data-current'));
+        const total = parseInt(fill.getAttribute('data-total'));
+        const percentage = Math.min((current / total) * 100, 100);
+        fill.style.width = percentage + '%';
+    });
+});
 </script>
 {% endblock %}
