@@ -1623,6 +1623,15 @@
                     body: JSON.stringify({ whatsapp: whatsappClean })
                 });
 
+                if (!response.ok) {
+                    console.error('Response status:', response.status);
+                    const errorText = await response.text();
+                    console.error('Response error:', errorText);
+                    displayError('whatsappStep1', 'Erro ao verificar WhatsApp. Tente novamente.');
+                    setButtonLoading(continueBtn, false);
+                    return;
+                }
+
                 const data = await response.json();
 
                 // Transição para ETAPA 2
@@ -1667,6 +1676,11 @@
 
             } catch (error) {
                 console.error('WhatsApp check error:', error);
+                console.error('Error details:', {
+                    status: error.status,
+                    statusText: error.statusText,
+                    response: error
+                });
                 displayError('whatsappStep1', 'Erro ao verificar WhatsApp. Tente novamente.');
             } finally {
                 setButtonLoading(continueBtn, false);

@@ -48,32 +48,47 @@ def check_whatsapp(request):
         "whatsapp": "37900000000"
     }
     """
-    whatsapp = request.data.get('whatsapp', '').strip()
-
-    if not whatsapp:
-        return Response(
-            {'error': 'WhatsApp number is required'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Normalize WhatsApp (remove formatting)
-    whatsapp_clean = ''.join(filter(str.isdigit, whatsapp))
-
     try:
-        user = User.objects.get(whatsapp=whatsapp_clean, is_staff=False)
-        return Response({
-            'exists': True,
-            'user': {
-                'name': user.name,
-                'cpf': user.cpf or '',
-                'whatsapp': whatsapp_clean
-            }
-        }, status=status.HTTP_200_OK)
-    except User.DoesNotExist:
-        return Response({
-            'exists': False,
-            'user': None
-        }, status=status.HTTP_200_OK)
+        whatsapp = request.data.get('whatsapp', '').strip()
+
+        if not whatsapp:
+            return Response(
+                {'error': 'WhatsApp number is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Normalize WhatsApp (remove formatting)
+        whatsapp_clean = ''.join(filter(str.isdigit, whatsapp))
+        
+        if not whatsapp_clean:
+            return Response(
+                {'error': 'WhatsApp number must contain digits'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            user = User.objects.get(whatsapp=whatsapp_clean, is_staff=False)
+            return Response({
+                'exists': True,
+                'user': {
+                    'name': user.name,
+                    'cpf': user.cpf or '',
+                    'whatsapp': whatsapp_clean
+                }
+            }, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({
+                'exists': False,
+                'user': None
+            }, status=status.HTTP_200_OK)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in check_whatsapp: {e}", exc_info=True)
+        return Response(
+            {'error': 'Internal server error'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 # Frontend Views
