@@ -2310,7 +2310,38 @@
             openModal('termsModal');
         }
     </script>
-</body>
-</html>
+
+    <!-- Force Button Animation -->
+    <style>
+        @-webkit-keyframes buttonPulse {
+            0%, 100% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+            50% {
+                -webkit-transform: scale(1.03);
+                transform: scale(1.03);
+            }
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+            50% {
+                -webkit-transform: scale(1.03);
+                transform: scale(1.03);
+            }
+        }
+
+        button#buyButton.btn-buy {
+            -webkit-animation: buttonPulse 2s ease-in-out infinite !important;
+            animation: buttonPulse 2s ease-in-out infinite !important;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            will-change: transform;
+        }
+    </style>
 </body>
 </html>
