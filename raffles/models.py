@@ -38,13 +38,13 @@ class SiteConfiguration(models.Model):
     admin_phones = models.TextField(
         'WhatsApp dos Admins',
         blank=True,
-        help_text='Números de WhatsApp dos administradores e/ou IDs de grupos, um por linha. Ex: 5511999999999 ou 120363xxx-1234567890@g.us'
+        help_text='Números de WhatsApp dos administradores e/ou grupos de admin, um por linha. Receberão notificação COM dados do ganhador (WhatsApp, nome). Ex: 5511999999999 ou 120363xxx-1234567890@g.us'
     )
 
     group_phones = models.TextField(
-        'WhatsApp dos Grupos',
+        'WhatsApp dos Grupos Públicos',
         blank=True,
-        help_text='(Opcional) IDs dos grupos de WhatsApp, um por linha. Você também pode misturar números e grupos no campo acima.'
+        help_text='IDs dos grupos públicos, um por linha. Receberão notificação SEM dados sensíveis do ganhador (apenas nome). Ex: 120363xxx-1234567890@g.us'
     )
 
     # Home page redirect
@@ -94,27 +94,25 @@ class SiteConfiguration(models.Model):
 
     @classmethod
     def get_admin_phones(cls):
-        """Get list of admin phone numbers and group IDs from admin_phones field"""
+        """Get list of admin phone numbers and group IDs from admin_phones field
+
+        Returns contacts from the 'WhatsApp dos Admins' field.
+        Can include both individual numbers (e.g., 5511999999999) and admin groups (e.g., 120363xxx@g.us).
+        These will receive the admin notification with full details.
+        """
         config = cls.get_config()
         if not config.admin_phones:
             return []
         # Split by newlines and filter empty lines
         contacts = [contact.strip() for contact in config.admin_phones.split('\n')]
-        contacts = [contact for contact in contacts if contact]
-        
-        # Also include group_phones if they exist (for backward compatibility)
-        if config.group_phones:
-            group_contacts = [g.strip() for g in config.group_phones.split('\n')]
-            contacts.extend([g for g in group_contacts if g])
-        
-        return contacts
+        return [contact for contact in contacts if contact]
 
     @classmethod
     def get_group_phones(cls):
         """Get list of group IDs from group_phones field
-        
-        NOTE: This is kept for backward compatibility. 
-        You can also mix groups and numbers in admin_phones field.
+
+        Returns contacts from the 'WhatsApp dos Grupos' field.
+        These are public groups that will receive the group notification (without admin details).
         """
         config = cls.get_config()
         if not config.group_phones:

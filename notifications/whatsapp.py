@@ -295,47 +295,45 @@ def send_prize_admin_notifications(user, raffle, prize_number, prize_amount):
         user_name=user.name
     ).strip()
 
-    # Get all contacts from both fields
-    all_contacts = SiteConfiguration.get_admin_phones()
+    # Get contacts from admin_phones field (can be individual numbers or groups)
+    admin_contacts = SiteConfiguration.get_admin_phones()
 
-    # Separate individual admin numbers from group IDs
-    admin_numbers = []
-    group_ids = []
+    # Get contacts from group_phones field (public groups)
+    group_contacts = SiteConfiguration.get_group_phones()
 
-    for contact in all_contacts:
+    logger.info(f"📞 Found {len(admin_contacts)} admin contacts and {len(group_contacts)} public groups to notify")
+
+    # Send admin message to all contacts in admin_phones field
+    # (can be individual admin numbers or admin groups)
+    for contact in admin_contacts:
         if not contact:
             continue
-        # Check if it's a group (contains @g.us)
-        if '@g.us' in contact.lower():
-            group_ids.append(contact)
-        else:
-            admin_numbers.append(contact)
-
-    logger.info(f"📞 Found {len(admin_numbers)} admin numbers and {len(group_ids)} groups to notify")
-
-    # Send admin message to individual admin numbers only
-    for phone in admin_numbers:
         try:
-            logger.info(f"📤 Sending admin notification to {phone}")
-            result = send_whatsapp_message(phone, admin_message)
+            is_group = '@g.us' in contact.lower()
+            contact_type = "admin group" if is_group else "admin number"
+            logger.info(f"📤 Sending admin notification to {contact_type}: {contact}")
+            result = send_whatsapp_message(contact, admin_message)
             if result:
-                logger.info(f"✅ Prize admin notification sent to {phone}")
+                logger.info(f"✅ Prize admin notification sent to {contact}")
             else:
-                logger.error(f"❌ Failed to send prize admin notification to {phone}")
+                logger.error(f"❌ Failed to send prize admin notification to {contact}")
         except Exception as e:
-            logger.error(f"❌ Error sending prize admin notification to {phone}: {e}", exc_info=True)
+            logger.error(f"❌ Error sending prize admin notification to {contact}: {e}", exc_info=True)
 
-    # Send group message to group IDs only
-    for group_id in group_ids:
+    # Send group message to all contacts in group_phones field
+    # (public groups - message without admin details)
+    for contact in group_contacts:
+        if not contact:
+            continue
         try:
-            logger.info(f"📤 Sending group notification to {group_id}")
-            result = send_whatsapp_message(group_id, group_message)
+            logger.info(f"📤 Sending group notification to public group: {contact}")
+            result = send_whatsapp_message(contact, group_message)
             if result:
-                logger.info(f"✅ Prize group notification sent to {group_id}")
+                logger.info(f"✅ Prize group notification sent to {contact}")
             else:
-                logger.error(f"❌ Failed to send prize group notification to {group_id}")
+                logger.error(f"❌ Failed to send prize group notification to {contact}")
         except Exception as e:
-            logger.error(f"❌ Error sending prize group notification to {group_id}: {e}", exc_info=True)
+            logger.error(f"❌ Error sending prize group notification to {contact}: {e}", exc_info=True)
 
 
 def send_referral_copy_paste(order):
