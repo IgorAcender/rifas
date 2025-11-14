@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -993,6 +994,8 @@
         }
 
     </style>
+    <!-- Contador de Reserva -->
+    <link rel="stylesheet" href="{% static 'css/reservation-countdown.css' %}">
 </head>
 <body>
     <div class="header">
@@ -1351,6 +1354,8 @@
             accessToken: null,
             pollingInterval: null,
             timerInterval: null,
+            syncInterval: null,
+            currentRaffleId: {{ raffle.id }},
         };
 
         // --- UI Functions ---
@@ -1793,6 +1798,7 @@
             let remaining = seconds;
             const timerElement = document.getElementById('timer');
             
+            // Atualizar a cada segundo
             state.timerInterval = setInterval(() => {
                 const minutes = Math.floor(remaining / 60);
                 const secs = remaining % 60;
@@ -1806,6 +1812,29 @@
                     showExpired();
                 }
             }, 1000);
+            
+            // A cada 10 segundos, sincronizar com servidor para garantir precisão
+            state.syncInterval = setInterval(() => {
+                fetch(`/api/raffles/${state.currentRaffleId}/reservation-status/`, {
+                    method: 'GET',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include'
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.has_active_reservation && data.time_remaining_seconds > 0) {
+                        // Sincronizar com tempo do servidor
+                        remaining = data.time_remaining_seconds;
+                    } else if (!data.has_active_reservation || data.time_remaining_seconds <= 0) {
+                        // Expirou no servidor
+                        clearInterval(state.timerInterval);
+                        clearInterval(state.syncInterval);
+                        clearInterval(state.pollingInterval);
+                        showExpired();
+                    }
+                })
+                .catch(err => console.warn('Erro ao sincronizar tempo:', err));
+            }, 10000); // A cada 10 segundos
         }
 
         function showExpired() {
@@ -2269,10 +2298,15 @@
         </div>
     </div>
 
+    <!-- Contador de Reserva -->
+    <script src="{% static 'js/reservation-countdown.js' %}"></script>
+    
     <script>
         function openTermsModal() {
             openModal('termsModal');
         }
     </script>
+</body>
+</html>
 </body>
 </html>
