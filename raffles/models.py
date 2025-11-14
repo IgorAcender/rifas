@@ -533,6 +533,16 @@ class RaffleOrder(models.Model):
         )
         print(f"✅ DEBUG: Marked {self.allocated_numbers.count()} numbers as sold")
 
+        # Enviar notificação de confirmação de pagamento
+        try:
+            from notifications.whatsapp import send_payment_confirmation
+            send_payment_confirmation(self)
+            print(f"📱 DEBUG: Notificação de pagamento enviada")
+        except Exception as e:
+            print(f"⚠️ Erro ao enviar notificação de pagamento: {e}")
+            import traceback
+            traceback.print_exc()
+
         # Verificar se algum número comprado é um número premiado
         allocated_numbers = list(self.allocated_numbers.values_list('number', flat=True))
         won_prizes = []

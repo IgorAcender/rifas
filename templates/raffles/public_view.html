@@ -1908,36 +1908,8 @@
 
                 const data = await response.json();
                 
-                // Mostrar sucesso
-                const modalContent = document.getElementById('pixModalContent');
-                modalContent.innerHTML = `
-                    <h3 class="modal-title" style="color: #22c55e;">✅ Pagamento Teste Aprovado!</h3>
-                    
-                    <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
-                        ${data.has_prize_number ? `
-                            <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
-                            <p style="color: #15803d; font-size: 18px; font-weight: 600; margin-bottom: 5px;">
-                                NÚMERO PREMIADO!
-                            </p>
-                            <p style="color: #15803d; font-size: 16px;">
-                                Número <strong>${data.prize_number}</strong> ganhou!
-                            </p>
-                        ` : `
-                            <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
-                            <p style="color: #15803d; font-size: 16px;">
-                                Pagamento confirmado com sucesso!
-                            </p>
-                        `}
-                    </div>
-                    
-                    <p style="text-align: center; color: #64748b; margin-bottom: 20px;">
-                        Suas notificações de teste foram enviadas.
-                    </p>
-                    
-                    <button class="btn-confirm" onclick="location.reload()">
-                        Fazer Outra Compra Teste
-                    </button>
-                `;
+                // Redirecionar para área do cliente (igual ao fluxo real)
+                window.location.href = '/minha-area/';
                 
             } catch (error) {
                 console.error('Test payment error:', error);
