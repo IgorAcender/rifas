@@ -109,6 +109,63 @@
 </div>
 {% endif %}
 
+<!-- Números Premiados -->
+{% if prize_winners %}
+<div class="prize-winners-section">
+    <h2 class="section-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="7"></circle>
+            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+        </svg>
+        🏆 Números Premiados
+    </h2>
+    <div class="prize-winners-grid">
+        {% for prize in prize_winners %}
+        <div class="prize-card {% if prize.is_won %}prize-won{% elif prize.is_released %}prize-released{% else %}prize-locked{% endif %}">
+            <div class="prize-header">
+                <div class="prize-number-badge">{{ prize.number|stringformat:"04d" }}</div>
+                <div class="prize-amount">R$ {{ prize.prize_amount|floatformat:2 }}</div>
+            </div>
+            
+            {% if prize.is_won %}
+                <div class="prize-status status-won">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Prêmio Ganho
+                </div>
+                <div class="prize-winner-info">
+                    <p class="winner-label">Ganhador:</p>
+                    <p class="winner-name">{{ prize.winner.name }}</p>
+                    <p class="winner-phone">{{ prize.winner.whatsapp }}</p>
+                    <p class="winner-date">{{ prize.won_at|date:"d/m/Y às H:i" }}</p>
+                </div>
+            {% elif prize.is_released %}
+                <div class="prize-status status-released">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Liberado para Sorteio
+                </div>
+                <p class="prize-threshold">Liberado em {{ prize.release_threshold }}% de vendas</p>
+            {% else %}
+                <div class="prize-status status-locked">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                    </svg>
+                    Bloqueado
+                </div>
+                <p class="prize-threshold">Será liberado em {{ prize.release_threshold }}% de vendas</p>
+                <p class="prize-current">Atual: {{ percentage_sold }}%</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Lista de Compradores -->
 <div class="buyers-section">
     <div class="buyers-header">
@@ -472,6 +529,144 @@
     font-weight: 700;
     color: #1e293b;
     margin: 0;
+}
+
+/* Top Inviters Section */
+.top-inviters-section {
+    margin-top: 40px;
+}
+
+/* Prize Winners Section */
+.prize-winners-section {
+    margin-top: 40px;
+}
+
+.prize-winners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.prize-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.prize-card.prize-won {
+    border-left-color: #22c55e;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.prize-card.prize-released {
+    border-left-color: #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.prize-card.prize-locked {
+    border-left-color: #94a3b8;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.prize-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.prize-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.prize-number-badge {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1e293b;
+    font-family: 'Courier New', monospace;
+}
+
+.prize-amount {
+    font-size: 20px;
+    font-weight: 600;
+    color: #059669;
+}
+
+.prize-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.prize-status.status-won {
+    background: #22c55e;
+    color: white;
+}
+
+.prize-status.status-released {
+    background: #f59e0b;
+    color: white;
+}
+
+.prize-status.status-locked {
+    background: #94a3b8;
+    color: white;
+}
+
+.prize-winner-info {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.winner-label {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 6px 0;
+}
+
+.winner-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.winner-phone {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0 0 8px 0;
+    font-family: 'Courier New', monospace;
+}
+
+.winner-date {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.prize-threshold {
+    font-size: 13px;
+    color: #64748b;
+    margin: 8px 0 0 0;
+}
+
+.prize-current {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 4px 0 0 0;
 }
 
 /* Top Inviters Section */

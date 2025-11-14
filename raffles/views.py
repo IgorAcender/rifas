@@ -351,6 +351,20 @@ def campaign_details(request, pk):
 
     top_inviters = sorted(inviter_stats.values(), key=lambda x: x['referral_count'], reverse=True)[:5]
 
+    # Números Premiados (Prize Numbers)
+    prize_numbers = PrizeNumber.objects.filter(raffle=raffle).order_by('number')
+    prize_winners = []
+    for prize in prize_numbers:
+        prize_winners.append({
+            'number': prize.number,
+            'prize_amount': prize.prize_amount,
+            'is_released': prize.is_released,
+            'is_won': prize.is_won,
+            'winner': prize.winner,
+            'won_at': prize.won_at,
+            'release_threshold': prize.release_threshold,
+        })
+
     context = {
         'raffle': raffle,
         'numbers_sold': numbers_sold,
@@ -366,6 +380,7 @@ def campaign_details(request, pk):
         'total_referrals': total_referrals,
         'top_inviters': top_inviters,
         'current_filter': filter_by,
+        'prize_winners': prize_winners,
     }
     return render(request, 'raffles/campaign_details.html', context)
 
