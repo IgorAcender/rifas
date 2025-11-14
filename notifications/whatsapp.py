@@ -33,27 +33,35 @@ def send_whatsapp_message(phone, message):
     """
     Send WhatsApp message with automatic fallback
     Priority: Evolution API -> Avolution API
+    
+    Supports both individual numbers and group IDs
     """
+    from notifications.evolution import evolution_api
+    
     original_phone = phone
 
-    # Normalize phone number - ensure it has country code
-    if phone:
-        # Remove all non-numeric characters
-        phone = ''.join(filter(str.isdigit, phone))
+    # Check if it's a group (contains @g.us)
+    is_group = '@g.us' in str(phone).lower()
+    
+    if not is_group:
+        # Normalize phone number only for individual numbers
+        if phone:
+            # Remove all non-numeric characters except special group chars
+            phone = ''.join(filter(str.isdigit, phone))
 
-        # Add Brazil country code if not present
-        if not phone.startswith('55'):
-            phone = '55' + phone
+            # Add Brazil country code if not present
+            if not phone.startswith('55'):
+                phone = '55' + phone
 
-    logger.info(f"📱 Normalizing phone: '{original_phone}' -> '{phone}'")
+    logger.info(f"📱 Normalizing: '{original_phone}' -> '{phone}' (Group: {is_group})")
     logger.info(f"📤 Sending WhatsApp to {phone}")
 
     # Try Evolution API first
     if settings.EVOLUTION_API_URL and settings.EVOLUTION_API_KEY:
         logger.info(f"🔄 Trying Evolution API: {settings.EVOLUTION_API_URL}")
         try:
-            from notifications.evolution import send_whatsapp_message as send_evolution
-            result = send_evolution(phone, message)
+            # Use the improved normalize_phone from evolution_api that handles groups
+            result = evolution_api.send_text_message(phone, message)
             if result:
                 logger.info(f"✅ Evolution API success")
                 return result
@@ -61,8 +69,8 @@ def send_whatsapp_message(phone, message):
         except Exception as e:
             logger.error(f"❌ Evolution API error: {e}, trying Avolution fallback...")
 
-    # Fallback to Avolution
-    if settings.AVOLUTION_API_URL and settings.AVOLUTION_API_KEY:
+    # Fallback to Avolution (only for individual numbers, not groups)
+    if not is_group and settings.AVOLUTION_API_URL and settings.AVOLUTION_API_KEY:
         logger.info(f"🔄 Trying Avolution API: {settings.AVOLUTION_API_URL}")
         return send_whatsapp_message_avolution(phone, message)
 
@@ -291,27 +299,35 @@ def send_prize_admin_notifications(user, raffle, prize_number, prize_amount):
     admin_phones = SiteConfiguration.get_admin_phones()
     group_phones = SiteConfiguration.get_group_phones()
 
+    logger.info(f"📞 Found {len(admin_phones)} admins and {len(group_phones)} groups to notify")
+
     # Send to all admin phones
     for phone in admin_phones:
+        if not phone:  # Skip empty entries
+            continue
         try:
+            logger.info(f"📤 Sending admin notification to {phone}")
             result = send_whatsapp_message(phone, admin_message)
             if result:
                 logger.info(f"✅ Prize admin notification sent to {phone}")
             else:
                 logger.error(f"❌ Failed to send prize admin notification to {phone}")
         except Exception as e:
-            logger.error(f"❌ Error sending prize admin notification to {phone}: {e}")
+            logger.error(f"❌ Error sending prize admin notification to {phone}: {e}", exc_info=True)
 
     # Send to all groups
     for group_id in group_phones:
+        if not group_id:  # Skip empty entries
+            continue
         try:
+            logger.info(f"📤 Sending group notification to {group_id}")
             result = send_whatsapp_message(group_id, group_message)
             if result:
                 logger.info(f"✅ Prize group notification sent to {group_id}")
             else:
                 logger.error(f"❌ Failed to send prize group notification to {group_id}")
         except Exception as e:
-            logger.error(f"❌ Error sending prize group notification to {group_id}: {e}")
+            logger.error(f"❌ Error sending prize group notification to {group_id}: {e}", exc_info=True)
 
 
 def send_referral_copy_paste(order):
