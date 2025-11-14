@@ -109,21 +109,23 @@
             <div class="numbers-grid">
                 {% for number in my_numbers %}
                 {% if number.raffle.id == campaign.raffle.id %}
-                {% with prize_key=number.raffle.id|stringformat:"d"|add:"_"|add:number.number|stringformat:"d" %}
+                {% with prize_key=number.raffle.id|add:0|stringformat:"d" %}
+                {% with prize_key_final=prize_key|add:"_"|add:number.number|stringformat:"d" %}
                 <div class="number-item 
-                    {% if prize_key in prize_numbers_dict %}prize-number
+                    {% if prize_key_final in prize_numbers_dict %}prize-number
                     {% elif number.source == 'purchase_bonus' %}bonus-purchase-number
                     {% elif number.source == 'referral_inviter' or number.source == 'referral_invitee' %}bonus-referral-number
                     {% endif %}"
                     data-number="{{ number.number }}"
                     data-raffle-id="{{ number.raffle.id }}"
-                    data-prize-key="{{ prize_key }}"
-                    data-has-prize="{% if prize_key in prize_numbers_dict %}true{% else %}false{% endif %}">
-                    {% if prize_key in prize_numbers_dict %}
+                    data-prize-key="{{ prize_key_final }}"
+                    data-has-prize="{% if prize_key_final in prize_numbers_dict %}true{% else %}false{% endif %}">
+                    {% if prize_key_final in prize_numbers_dict %}
                     <div class="prize-badge">🏆</div>
                     {% endif %}
                     <div class="number-value">{{ number.number|stringformat:"04d" }}</div>
                 </div>
+                {% endwith %}
                 {% endwith %}
                 {% endif %}
                 {% empty %}
