@@ -295,16 +295,26 @@ def send_prize_admin_notifications(user, raffle, prize_number, prize_amount):
         user_name=user.name
     ).strip()
 
-    # Get admin phones and group IDs
-    admin_phones = SiteConfiguration.get_admin_phones()
-    group_phones = SiteConfiguration.get_group_phones()
+    # Get all contacts from both fields
+    all_contacts = SiteConfiguration.get_admin_phones()
 
-    logger.info(f"📞 Found {len(admin_phones)} admins and {len(group_phones)} groups to notify")
+    # Separate individual admin numbers from group IDs
+    admin_numbers = []
+    group_ids = []
 
-    # Send to all admin phones
-    for phone in admin_phones:
-        if not phone:  # Skip empty entries
+    for contact in all_contacts:
+        if not contact:
             continue
+        # Check if it's a group (contains @g.us)
+        if '@g.us' in contact.lower():
+            group_ids.append(contact)
+        else:
+            admin_numbers.append(contact)
+
+    logger.info(f"📞 Found {len(admin_numbers)} admin numbers and {len(group_ids)} groups to notify")
+
+    # Send admin message to individual admin numbers only
+    for phone in admin_numbers:
         try:
             logger.info(f"📤 Sending admin notification to {phone}")
             result = send_whatsapp_message(phone, admin_message)
@@ -315,10 +325,8 @@ def send_prize_admin_notifications(user, raffle, prize_number, prize_amount):
         except Exception as e:
             logger.error(f"❌ Error sending prize admin notification to {phone}: {e}", exc_info=True)
 
-    # Send to all groups
-    for group_id in group_phones:
-        if not group_id:  # Skip empty entries
-            continue
+    # Send group message to group IDs only
+    for group_id in group_ids:
         try:
             logger.info(f"📤 Sending group notification to {group_id}")
             result = send_whatsapp_message(group_id, group_message)
