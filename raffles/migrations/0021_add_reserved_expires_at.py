@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('raffles', '0020_auto_migration'),  # Ajuste para a última migração
+        ('raffles', '0019_skip_duplicate_fields'),
     ]
 
     operations = [
