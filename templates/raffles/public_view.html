@@ -1798,41 +1798,6 @@
         function startTimer(seconds, orderId) {
             const timerElement = document.getElementById('timer');
             let remaining = seconds;
-            let hasSyncedWithServer = false;
-            
-            // Função para sincronizar com servidor
-            function syncWithServer() {
-                let syncUrl = `/api/raffles/${state.currentRaffleId}/reservation-status/`;
-                if (orderId) {
-                    syncUrl += `?order_id=${orderId}`;
-                }
-                
-                fetch(syncUrl, {
-                    method: 'GET',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'include'
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.has_active_reservation && data.time_remaining_seconds > 0) {
-                        // Sincronizar com tempo do servidor
-                        remaining = data.time_remaining_seconds;
-                        hasSyncedWithServer = true;
-                        console.log('✓ Sincronizado com servidor. Tempo restante:', remaining, 's');
-                    } else if (!data.has_active_reservation || data.time_remaining_seconds <= 0) {
-                        // Expirou no servidor
-                        console.log('✗ Reserva expirou no servidor');
-                        clearInterval(state.timerInterval);
-                        clearInterval(state.syncInterval);
-                        clearInterval(state.pollingInterval);
-                        showExpired();
-                    }
-                })
-                .catch(err => {
-                    console.warn('Erro ao sincronizar tempo:', err);
-                    // Continuar com o timer local em caso de erro
-                });
-            }
             
             // Atualizar a cada segundo
             state.timerInterval = setInterval(() => {
@@ -1844,18 +1809,10 @@
                 
                 if (remaining < 0) {
                     clearInterval(state.timerInterval);
-                    clearInterval(state.syncInterval);
                     clearInterval(state.pollingInterval);
                     showExpired();
                 }
             }, 1000);
-            
-            // Sincronizar a cada 8 segundos com servidor
-            // Aguardar 2 segundos antes de primeira sincronização para deixar a reserva ser criada
-            setTimeout(() => {
-                syncWithServer();
-                state.syncInterval = setInterval(syncWithServer, 8000);
-            }, 2000);
         }
 
         function showExpired() {
