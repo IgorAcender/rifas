@@ -36,13 +36,13 @@ class SiteConfiguration(models.Model):
     admin_phones = models.TextField(
         'WhatsApp dos Admins',
         blank=True,
-        help_text='Números de WhatsApp dos administradores, um por linha. Ex: 5511999999999'
+        help_text='Números de WhatsApp dos administradores e/ou IDs de grupos, um por linha. Ex: 5511999999999 ou 120363xxx-1234567890@g.us'
     )
 
     group_phones = models.TextField(
         'WhatsApp dos Grupos',
         blank=True,
-        help_text='IDs dos grupos de WhatsApp, um por linha. Ex: 5511999999999-1234567890@g.us'
+        help_text='(Opcional) IDs dos grupos de WhatsApp, um por linha. Você também pode misturar números e grupos no campo acima.'
     )
 
     # Home page redirect
@@ -92,17 +92,28 @@ class SiteConfiguration(models.Model):
 
     @classmethod
     def get_admin_phones(cls):
-        """Get list of admin phone numbers"""
+        """Get list of admin phone numbers and group IDs from admin_phones field"""
         config = cls.get_config()
         if not config.admin_phones:
             return []
         # Split by newlines and filter empty lines
-        phones = [phone.strip() for phone in config.admin_phones.split('\n')]
-        return [phone for phone in phones if phone]
+        contacts = [contact.strip() for contact in config.admin_phones.split('\n')]
+        contacts = [contact for contact in contacts if contact]
+        
+        # Also include group_phones if they exist (for backward compatibility)
+        if config.group_phones:
+            group_contacts = [g.strip() for g in config.group_phones.split('\n')]
+            contacts.extend([g for g in group_contacts if g])
+        
+        return contacts
 
     @classmethod
     def get_group_phones(cls):
-        """Get list of group IDs"""
+        """Get list of group IDs from group_phones field
+        
+        NOTE: This is kept for backward compatibility. 
+        You can also mix groups and numbers in admin_phones field.
+        """
         config = cls.get_config()
         if not config.group_phones:
             return []
