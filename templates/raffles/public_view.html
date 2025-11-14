@@ -304,16 +304,46 @@
             animation: none !important;
         }
 
-        @keyframes pulse {
+        @-webkit-keyframes pulse {
             0% {
+                -webkit-transform: scale(1);
                 transform: scale(1);
             }
             50% {
+                -webkit-transform: scale(1.03);
                 transform: scale(1.03);
             }
             100% {
+                -webkit-transform: scale(1);
                 transform: scale(1);
             }
+        }
+
+        @keyframes pulse {
+            0% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+            50% {
+                -webkit-transform: scale(1.03);
+                transform: scale(1.03);
+            }
+            100% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+        }
+
+        /* Button Animation - Force apply */
+        #buyButton {
+            -webkit-animation: pulse 2s ease-in-out infinite !important;
+            animation: pulse 2s ease-in-out infinite !important;
+            will-change: transform;
+        }
+
+        #buyButton:disabled {
+            -webkit-animation: none !important;
+            animation: none !important;
         }
 
         /* Modal Styles */
