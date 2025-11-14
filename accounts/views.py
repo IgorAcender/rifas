@@ -137,11 +137,17 @@ def customer_login(request):
 def customer_area(request):
     """Area do cliente - ver seus numeros e historico"""
     from raffles.models import RaffleNumber, RaffleOrder, Referral, PrizeNumber
+    from django.db.models import F
+    from django.db.models.functions import Coalesce
 
     my_numbers = RaffleNumber.objects.filter(
         user=request.user,
         status__in=['reserved', 'vendido']
-    ).select_related('raffle').order_by('-sold_at', '-reserved_at')
+    ).select_related('raffle').order_by(
+        # Ordena pelo mais recente entre sold_at e reserved_at
+        Coalesce('sold_at', 'reserved_at').desc(nulls_last=True),
+        '-id'  # Fallback para ID se ambos forem null
+    )
     
     # Get all prize numbers for the user's raffles and mark them
     prize_numbers_dict = {}
