@@ -70,6 +70,15 @@
                     </svg>
                     <span>Sorteador</span>
                 </a>
+
+                <a href="{% url 'analytics:dashboard' %}" class="nav-item {% if request.resolver_match.app_name == 'analytics' %}active{% endif %}">
+                    <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                        <path d="M17 5h-5v14h5z"></path>
+                        <path d="M7 15h5V2H7z"></path>
+                    </svg>
+                    <span>Analytics</span>
+                </a>
             </nav>
 
             <a href="{% url 'logout' %}" class="btn-sair">
