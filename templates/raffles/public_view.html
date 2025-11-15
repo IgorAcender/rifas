@@ -38,7 +38,7 @@
         .header {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
             color: var(--white);
-            padding: 20px;
+            padding: 16px 20px;
         }
 
         .header-container {
@@ -47,24 +47,20 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
         }
 
         .header-logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            flex-shrink: 0;
         }
 
         .header-logo img {
             height: 50px;
             width: auto;
+            max-width: 150px;
             object-fit: contain;
-        }
-
-        .header-logo-text {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--white);
         }
 
         .header-login {
@@ -79,6 +75,8 @@
             font-weight: 600;
             transition: all 0.2s;
             backdrop-filter: blur(10px);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .header-login:hover {
@@ -91,22 +89,27 @@
         }
 
         @media (max-width: 768px) {
+            .header {
+                padding: 12px 16px;
+            }
+
             .header-container {
-                flex-direction: row;
-                justify-content: space-between;
+                gap: 12px;
             }
 
             .header-logo img {
-                height: 40px;
-            }
-
-            .header-logo-text {
-                font-size: 18px;
+                height: 36px;
+                max-width: 120px;
             }
 
             .header-login {
-                padding: 8px 16px;
-                font-size: 14px;
+                padding: 8px 14px;
+                font-size: 13px;
+                gap: 6px;
+            }
+
+            .header-login-icon {
+                font-size: 18px;
             }
         }
 
@@ -1118,7 +1121,6 @@
                 {% if site_config.logo_base64 %}
                     <img src="{{ site_config.logo_base64 }}" alt="{{ site_config.site_name }}">
                 {% endif %}
-                <span class="header-logo-text">{{ site_config.site_name }}</span>
             </div>
             <a href="{% url 'customer_login' %}" class="header-login">
                 <span class="header-login-icon">👤</span>
