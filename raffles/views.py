@@ -849,18 +849,21 @@ def raffle_public_view(request, slug):
     
     # Get prize numbers (todos - para mostrar como disponíveis e gerar interesse)
     prize_numbers = raffle.prize_numbers.all().order_by('release_percentage_min', 'number')
-    
+
     # Get user's numbers if authenticated
     user_numbers = []
     if request.user.is_authenticated:
         user_numbers = list(
             RaffleNumber.objects.filter(
-                raffle=raffle, 
+                raffle=raffle,
                 user=request.user,
                 status__in=[RaffleNumber.Status.SOLD, RaffleNumber.Status.RESERVED]
             ).values_list('number', flat=True)
         )
-    
+
+    # Get site configuration
+    site_config = SiteConfiguration.get_config()
+
     context = {
         'raffle': raffle,
         'numbers': numbers,
@@ -868,6 +871,7 @@ def raffle_public_view(request, slug):
         'admin_whatsapp': settings.ADMIN_WHATSAPP,
         'user_numbers': user_numbers,
         'prize_numbers': prize_numbers,
+        'site_config': site_config,
     }
     return render(request, 'raffles/public_view.html', context)
 
