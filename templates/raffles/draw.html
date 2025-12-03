@@ -96,6 +96,15 @@
                     </svg>
                     <span id="displayTotalNumbers"></span> números comprados
                 </div>
+                <div class="info-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Compra: <span id="displayPurchaseDate"></span>
+                </div>
                 <div class="info-item bonus-item" id="bonusInfo" style="display: none;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="8" r="7"></circle>
@@ -144,6 +153,10 @@
                 <div class="detail-item">
                     <label>Total de Números Comprados:</label>
                     <span id="fullTotalNumbers"></span>
+                </div>
+                <div class="detail-item">
+                    <label>Data da Compra:</label>
+                    <span id="fullPurchaseDate"></span>
                 </div>
                 <div class="detail-item">
                     <label>ID do Usuário:</label>
@@ -844,6 +857,7 @@ function showWinner(data) {
     document.getElementById('displayName').textContent = data.name;
     document.getElementById('displayPhone').textContent = data.masked_phone;
     document.getElementById('displayTotalNumbers').textContent = data.total_numbers;
+    document.getElementById('displayPurchaseDate').textContent = data.purchase_date || 'N/A';
 
     // Mostrar informação de bônus se houver
     if (data.total_bonus && data.total_bonus > 0) {
@@ -872,6 +886,7 @@ function showWinner(data) {
     document.getElementById('fullPhone').textContent = data.real_phone;
     document.getElementById('fullNumber').textContent = data.number.toString().padStart(5, '0');
     document.getElementById('fullTotalNumbers').textContent = data.total_numbers;
+    document.getElementById('fullPurchaseDate').textContent = data.purchase_date || 'N/A';
     document.getElementById('fullUserId').textContent = data.user_id;
     document.getElementById('fullOrderId').textContent = data.order_id;
 

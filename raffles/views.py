@@ -1063,6 +1063,9 @@ def raffle_draw(request):
                 bonus_numbers_list = list(bonus_numbers)
                 total_bonus = len(bonus_numbers_list)
 
+                # Data da compra do número sorteado
+                purchase_date = winner_number.order.created_at.strftime('%d/%m/%Y às %H:%M')
+
                 winner_data = {
                     'number': winner_number.number,
                     'name': user.name,
@@ -1075,6 +1078,7 @@ def raffle_draw(request):
                     'raffle_name': raffle.name,
                     'user_id': user.id,
                     'order_id': winner_number.order.id,
+                    'purchase_date': purchase_date,  # Data da compra
                 }
 
                 print(f"DEBUG: Winner data = {winner_data}")
